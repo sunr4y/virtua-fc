@@ -2,7 +2,7 @@
 /** @var App\Models\Game $game */
 @endphp
 
-<x-app-layout>
+<x-app-layout :hide-footer="true">
     <div class="min-h-screen flex items-center justify-center py-8" x-data="loadingPoller()" x-init="startPolling()">
         <div class="text-center px-4">
             @if($showCrest ?? false)
