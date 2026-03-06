@@ -8,10 +8,13 @@
     @else
         <div class="space-y-2">
             @foreach($topScorers as $index => $scorer)
-                @php $isPlayerTeam = $scorer->team_id === $playerTeamId; @endphp
+                @php
+                    $scorerTeam = $scorer->scorer_team ?? $scorer->team;
+                    $isPlayerTeam = $scorerTeam?->id === $playerTeamId;
+                @endphp
                 <div class="flex items-center gap-2 text-sm @if($isPlayerTeam) bg-sky-50 -mx-2 px-2 py-1 rounded @endif">
                     <span class="w-5 text-slate-400 text-xs">{{ $index + 1 }}</span>
-                    <x-team-crest :team="$scorer->team" class="w-4 h-4" title="{{ $scorer->team->name }}" />
+                    <x-team-crest :team="$scorerTeam" class="w-4 h-4" title="{{ $scorerTeam?->name }}" />
                     <span class="flex-1 truncate @if($isPlayerTeam) font-medium @endif">{{ $scorer->player->name }}</span>
                     <span class="font-semibold">{{ $scorer->goals }}</span>
                 </div>

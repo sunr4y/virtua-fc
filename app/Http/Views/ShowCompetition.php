@@ -319,27 +319,41 @@ class ShowCompetition
      */
     private function getCompetitionTopScorers(string $gameId, string $competitionId): Collection
     {
-        $goalCounts = MatchEvent::where('match_events.game_id', $gameId)
+        // Get goal counts and the team_id from match events (the team when the goal was scored)
+        $scorerRows = MatchEvent::where('match_events.game_id', $gameId)
             ->where('match_events.event_type', MatchEvent::TYPE_GOAL)
             ->join('game_matches', 'game_matches.id', '=', 'match_events.game_match_id')
             ->where('game_matches.competition_id', $competitionId)
-            ->selectRaw('match_events.game_player_id, COUNT(*) as goals')
-            ->groupBy('match_events.game_player_id')
+            ->selectRaw('match_events.game_player_id, match_events.team_id, COUNT(*) as goals')
+            ->groupBy('match_events.game_player_id', 'match_events.team_id')
             ->orderByDesc('goals')
             ->limit(10)
-            ->pluck('goals', 'game_player_id');
+            ->get();
 
-        if ($goalCounts->isEmpty()) {
+        if ($scorerRows->isEmpty()) {
             return collect();
         }
 
-        $players = GamePlayer::with(['player', 'team'])
-            ->whereIn('id', $goalCounts->keys())
-            ->get()
-            ->each(fn ($p) => $p->goals = $goalCounts[$p->id])
-            ->sortByDesc('goals')
-            ->values();
+        $playerIds = $scorerRows->pluck('game_player_id')->unique();
+        $teamIds = $scorerRows->pluck('team_id')->unique();
 
-        return $players;
+        $players = GamePlayer::with('player')
+            ->whereIn('id', $playerIds)
+            ->get()
+            ->keyBy('id');
+
+        $teams = \App\Models\Team::whereIn('id', $teamIds)->get()->keyBy('id');
+
+        return $scorerRows->map(function ($row) use ($players, $teams) {
+            $player = $players[$row->game_player_id] ?? null;
+            if (!$player) {
+                return null;
+            }
+            $player = clone $player;
+            $player->goals = $row->goals;
+            $player->scorer_team = $teams[$row->team_id] ?? null;
+
+            return $player;
+        })->filter()->sortByDesc('goals')->values();
     }
 }
