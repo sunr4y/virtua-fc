@@ -526,7 +526,7 @@
                                                         </td>
                                                         {{-- Overall --}}
                                                         <td class="py-2 pr-3 text-center">
-                                                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold
+                                                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold
                                                                 @if($player->overall_score >= 80) bg-emerald-500 text-white
                                                                 @elseif($player->overall_score >= 70) bg-lime-500 text-white
                                                                 @elseif($player->overall_score >= 60) bg-amber-500 text-white

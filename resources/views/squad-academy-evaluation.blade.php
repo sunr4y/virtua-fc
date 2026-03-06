@@ -174,7 +174,7 @@
                                     {{-- Overall --}}
                                     <div class="col-span-1 flex justify-center">
                                         @if($playerReveal >= 1)
-                                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold
+                                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold
                                                 @if($prospect->overall >= 80) bg-emerald-500 text-white
                                                 @elseif($prospect->overall >= 70) bg-lime-500 text-white
                                                 @elseif($prospect->overall >= 60) bg-amber-500 text-white
@@ -183,7 +183,7 @@
                                                 {{ $prospect->overall }}
                                             </span>
                                         @else
-                                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold bg-slate-200 text-slate-400">?</span>
+                                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold bg-slate-200 text-slate-400">?</span>
                                         @endif
                                     </div>
 

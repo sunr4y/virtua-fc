@@ -78,10 +78,10 @@
 
         <div class="border border-slate-200 rounded-lg p-6 mb-3">
             <div class="flex flex-wrap gap-3 items-center">
-                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold bg-emerald-500 text-white">88</span>
-                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold bg-lime-500 text-white">74</span>
-                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold bg-amber-500 text-white">63</span>
-                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold bg-slate-300 text-slate-700">52</span>
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold bg-emerald-500 text-white">88</span>
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold bg-lime-500 text-white">74</span>
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold bg-amber-500 text-white">63</span>
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold bg-slate-300 text-slate-700">52</span>
             </div>
         </div>
 
@@ -91,7 +91,7 @@
                 <span x-show="!copied">Copy</span>
                 <span x-show="copied" x-cloak class="text-green-400">Copied!</span>
             </button>
-            <pre class="bg-slate-800 text-slate-300 rounded-lg p-4 overflow-x-auto text-xs leading-relaxed"><code x-ref="code">&lt;span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold bg-emerald-500 text-white"&gt;88&lt;/span&gt;</code></pre>
+            <pre class="bg-slate-800 text-slate-300 rounded-lg p-4 overflow-x-auto text-xs leading-relaxed"><code x-ref="code">&lt;span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold bg-emerald-500 text-white"&gt;88&lt;/span&gt;</code></pre>
         </div>
     </div>
 

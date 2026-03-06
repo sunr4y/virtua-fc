@@ -34,7 +34,7 @@
                             <td class="py-2 text-center hidden md:table-cell">{{ $player['age'] }}</td>
                             <td class="py-2 text-right pr-4 tabular-nums text-slate-600 hidden md:table-cell">{{ $player['value'] }}</td>
                             <td class="py-2 text-center">
-                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold {{ $player['ovr'] >= 80 ? 'bg-emerald-500 text-white' : ($player['ovr'] >= 70 ? 'bg-lime-500 text-white' : 'bg-amber-500 text-white') }}">{{ $player['ovr'] }}</span>
+                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold {{ $player['ovr'] >= 80 ? 'bg-emerald-500 text-white' : ($player['ovr'] >= 70 ? 'bg-lime-500 text-white' : 'bg-amber-500 text-white') }}">{{ $player['ovr'] }}</span>
                             </td>
                         </tr>
                         @endforeach

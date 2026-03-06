@@ -190,7 +190,7 @@
                                                         {{-- Overall --}}
                                                         <td class="py-2 text-center">
                                                             @if($playerReveal >= 1)
-                                                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold
+                                                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold
                                                                     @if($prospect->overall >= 80) bg-emerald-500 text-white
                                                                     @elseif($prospect->overall >= 70) bg-lime-500 text-white
                                                                     @elseif($prospect->overall >= 60) bg-amber-500 text-white
@@ -199,7 +199,7 @@
                                                                     {{ $prospect->overall }}
                                                                 </span>
                                                             @else
-                                                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold bg-slate-200 text-slate-400">?</span>
+                                                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold bg-slate-200 text-slate-400">?</span>
                                                             @endif
                                                         </td>
                                                     </tr>
@@ -251,7 +251,7 @@
                                                     <td class="py-2 text-center text-slate-300 hidden md:table-cell">—</td>
                                                     <td class="py-2 text-center text-slate-300 hidden md:table-cell">—</td>
                                                     <td class="py-2 text-center">
-                                                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold bg-slate-200 text-slate-400">—</span>
+                                                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold bg-slate-200 text-slate-400">—</span>
                                                     </td>
                                                 </tr>
                                             @endforeach
