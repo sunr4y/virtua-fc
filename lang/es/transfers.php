@@ -39,7 +39,7 @@ return [
     'pending_bids_help' => 'Ofertas enviadas que están esperando respuesta del club vendedor',
     'loan_request' => 'Solicitud de Cesión',
     'loan_no_fee' => 'Cesión (sin coste)',
-    'free_transfer' => 'Libre (fin de contrato)',
+    'free_transfer' => 'Libre (sin contrato)',
     'free_agent' => 'Agente Libre',
     'sign_free_agent' => 'Fichar Agente Libre',
     'window_closed_for_signing' => 'Ventana de fichajes cerrada — no se puede fichar.',
