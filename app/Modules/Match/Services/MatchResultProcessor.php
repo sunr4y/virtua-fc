@@ -348,7 +348,8 @@ class MatchResultProcessor
                     $game,
                     $player,
                     $suspension['ban_length'],
-                    $reason
+                    $reason,
+                    $competitions->get($suspension['competition_id'])->name,
                 );
             }
         }

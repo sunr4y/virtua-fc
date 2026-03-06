@@ -24,7 +24,7 @@ return [
 
     // Player suspensions
     'player_suspended_title' => ':player suspended',
-    'player_suspended_message' => ':player has been suspended for :matches matches due to :reason.',
+    'player_suspended_message' => ':player has been suspended for :matches matches due to :reason. Will miss the next :competition match.',
     'reason_red_card' => 'a red card',
     'reason_yellow_accumulation' => 'yellow card accumulation',
 

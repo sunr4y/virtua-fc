@@ -65,6 +65,7 @@ class SendMatchNotifications
             $player,
             $suspensionMatches,
             __('notifications.reason_red_card'),
+            $event->competition->name,
         );
     }
 
@@ -89,6 +90,7 @@ class SendMatchNotifications
                 $player,
                 $suspension,
                 __('notifications.reason_yellow_accumulation'),
+                $event->competition->name,
             );
         }
     }

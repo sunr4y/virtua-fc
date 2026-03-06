@@ -198,7 +198,7 @@
                                                             </svg>
                                                         </div>
                                                         @if($notification->message)
-                                                        <p class="text-xs text-slate-600 mt-0.5 line-clamp-2">{{ $notification->message }}</p>
+                                                        <p class="text-xs text-slate-600 mt-0.5">{{ $notification->message }}</p>
                                                         @endif
                                                         @php $badge = $notification->getPriorityBadge(); @endphp
                                                         @if($badge)

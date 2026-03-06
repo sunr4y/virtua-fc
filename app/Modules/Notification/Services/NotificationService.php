@@ -147,7 +147,7 @@ class NotificationService
     /**
      * Create a suspension notification.
      */
-    public function notifySuspension(Game $game, GamePlayer $player, int $matches, string $reason): GameNotification
+    public function notifySuspension(Game $game, GamePlayer $player, int $matches, string $reason, string $competition): GameNotification
     {
         return $this->create(
             game: $game,
@@ -157,6 +157,7 @@ class NotificationService
                 'player' => $player->name,
                 'matches' => $matches,
                 'reason' => $reason,
+                'competition' => $competition,
             ]),
             priority: GameNotification::PRIORITY_CRITICAL,
             metadata: [

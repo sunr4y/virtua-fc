@@ -24,7 +24,7 @@ return [
 
     // Player suspensions
     'player_suspended_title' => ':player sancionado',
-    'player_suspended_message' => ':player ha sido sancionado con :matches partidos por :reason.',
+    'player_suspended_message' => ':player ha sido sancionado con :matches partidos por :reason. Se perderá el próximo partido de :competition.',
     'reason_red_card' => 'tarjeta roja',
     'reason_yellow_accumulation' => 'acumulación de amarillas',
 
