@@ -92,6 +92,7 @@
                                 expandedId: null,
                                 confirmRemoveId: null,
                                 isPreContractPeriod: {{ $isPreContractPeriod ? 'true' : 'false' }},
+                                isTransferWindow: {{ $isTransferWindow ? 'true' : 'false' }},
                                 csrfToken: '{{ csrf_token() }}',
                                 get sortedPlayers() {
                                     if (this.sortBy === 'default') return this.players;
@@ -144,6 +145,7 @@
                                 bidRoute(id) { return '{{ route('game.scouting.bid', [$game->id, '__ID__']) }}'.replace('__ID__', id); },
                                 loanRoute(id) { return '{{ route('game.scouting.loan', [$game->id, '__ID__']) }}'.replace('__ID__', id); },
                                 preContractRoute(id) { return '{{ route('game.scouting.pre-contract', [$game->id, '__ID__']) }}'.replace('__ID__', id); },
+                                signFreeAgentRoute(id) { return '{{ route('game.scouting.sign-free-agent', [$game->id, '__ID__']) }}'.replace('__ID__', id); },
                             }" @shortlist-toggled.window="handleToggle($event.detail)">
 
                                 {{-- Filled state --}}
@@ -192,7 +194,10 @@
                                                         <div class="flex items-center gap-2 flex-wrap">
                                                             <span class="font-semibold text-slate-900 truncate" x-text="player.name"></span>
                                                             <span class="text-xs text-slate-400" x-text="player.age + ' {{ __('app.years') }}'"></span>
-                                                            <template x-if="player.isExpiring">
+                                                            <template x-if="player.isFreeAgent">
+                                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-700">{{ __('transfers.free_agent') }}</span>
+                                                            </template>
+                                                            <template x-if="!player.isFreeAgent && player.isExpiring">
                                                                 <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-700">{{ __('transfers.expiring_contract') }}</span>
                                                             </template>
                                                         </div>
@@ -254,8 +259,32 @@
                                                             </div>
                                                         </div>
 
+                                                        {{-- Action: Free agent signing --}}
+                                                        <template x-if="player.isFreeAgent && !player.hasExistingOffer">
+                                                            <div>
+                                                                <template x-if="isTransferWindow && player.canAffordWage">
+                                                                    <form :action="signFreeAgentRoute(player.id)" method="POST">
+                                                                        <input type="hidden" name="_token" :value="csrfToken">
+                                                                        <button type="submit" class="inline-flex items-center justify-center px-4 py-1.5 min-h-[36px] bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg transition-colors whitespace-nowrap">
+                                                                            {{ __('transfers.sign_free_agent') }}
+                                                                        </button>
+                                                                    </form>
+                                                                </template>
+                                                                <template x-if="!isTransferWindow">
+                                                                    <div class="text-xs text-slate-500 italic">
+                                                                        {{ __('transfers.window_closed_for_signing') }}
+                                                                    </div>
+                                                                </template>
+                                                                <template x-if="isTransferWindow && !player.canAffordWage">
+                                                                    <div class="text-xs text-amber-600 font-medium">
+                                                                        {{ __('transfers.wage_exceeds_budget') }}
+                                                                    </div>
+                                                                </template>
+                                                            </div>
+                                                        </template>
+
                                                         {{-- Action: Offer awaiting response (pending, no counter) --}}
-                                                        <template x-if="player.hasExistingOffer && player.offerStatus === 'pending' && !player.offerIsCounter">
+                                                        <template x-if="!player.isFreeAgent && player.hasExistingOffer && player.offerStatus === 'pending' && !player.offerIsCounter">
                                                             <div class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
                                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                                                 {{ __('transfers.bid_awaiting_response') }}
@@ -263,7 +292,7 @@
                                                         </template>
 
                                                         {{-- Action: Counter-offer received (pending with counter) --}}
-                                                        <template x-if="player.hasExistingOffer && player.offerStatus === 'pending' && player.offerIsCounter">
+                                                        <template x-if="!player.isFreeAgent && player.hasExistingOffer && player.offerStatus === 'pending' && player.offerIsCounter">
                                                             <div class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
                                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
                                                                 {{ __('transfers.counter_offer_received') }}
@@ -271,7 +300,7 @@
                                                         </template>
 
                                                         {{-- Action: Transfer agreed, waiting for window --}}
-                                                        <template x-if="player.hasExistingOffer && player.offerStatus === 'agreed'">
+                                                        <template x-if="!player.isFreeAgent && player.hasExistingOffer && player.offerStatus === 'agreed'">
                                                             <div class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-green-50 text-green-700 border border-green-200">
                                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                                                 {{ __('transfers.transfer_agreed') }}
@@ -279,7 +308,7 @@
                                                         </template>
 
                                                         {{-- Action: Pre-contract --}}
-                                                        <template x-if="!player.hasExistingOffer && player.isExpiring && isPreContractPeriod">
+                                                        <template x-if="!player.isFreeAgent && !player.hasExistingOffer && player.isExpiring && isPreContractPeriod">
                                                             <form :action="preContractRoute(player.id)" method="POST" class="space-y-2">
                                                                 <input type="hidden" name="_token" :value="csrfToken">
                                                                 <label class="block text-xs font-medium text-slate-600">{{ __('transfers.offered_wage_euros') }}</label>
@@ -307,14 +336,14 @@
                                                         </template>
 
                                                         {{-- Action: Can't afford --}}
-                                                        <template x-if="!player.hasExistingOffer && !(player.isExpiring && isPreContractPeriod) && !player.canAffordFee">
+                                                        <template x-if="!player.isFreeAgent && !player.hasExistingOffer && !(player.isExpiring && isPreContractPeriod) && !player.canAffordFee">
                                                             <div class="text-xs text-red-600 font-medium">
                                                                 {{ __('transfers.transfer_fee_exceeds_budget') }}
                                                             </div>
                                                         </template>
 
                                                         {{-- Action: Bid + Loan --}}
-                                                        <template x-if="!player.hasExistingOffer && !(player.isExpiring && isPreContractPeriod) && player.canAffordFee">
+                                                        <template x-if="!player.isFreeAgent && !player.hasExistingOffer && !(player.isExpiring && isPreContractPeriod) && player.canAffordFee">
                                                             <div class="flex flex-col sm:flex-row gap-2" x-data="{
                                                                 holdTimer: null, holdInterval: null,
                                                                 get step() { return player.bidEuros >= 1000000 ? 100000 : 10000 },

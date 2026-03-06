@@ -51,7 +51,7 @@
                     $canAffordWage = $detail['can_afford_wage'] ?? false;
                     $techRange = $detail['tech_range'] ?? [0, 0];
                     $physRange = $detail['phys_range'] ?? [0, 0];
-                    $isExpiring = $player->contract_until && $player->contract_until <= $game->getSeasonEndDate();
+                    $isExpiring = !$isFreeAgent && $player->contract_until && $player->contract_until <= $game->getSeasonEndDate();
                     $isShortlisted = in_array($player->id, $shortlistedPlayerIds ?? []);
                 @endphp
                 <div class="px-4 md:px-6 py-4" x-data="{ expanded: false, shortlisted: {{ $isShortlisted ? 'true' : 'false' }}, toggling: false }" @shortlist-toggled.window="if($event.detail.playerId === '{{ $player->id }}') { shortlisted = $event.detail.action === 'added' }">
@@ -64,14 +64,14 @@
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <span class="font-semibold text-slate-900 truncate">{{ $player->name }}</span>
                                     <span class="text-xs text-slate-400">{{ $player->age }} {{ __('app.years') }}</span>
-                                    @if($isExpiring)
+                                    @if($isFreeAgent)
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-700">{{ __('transfers.free_agent') }}</span>
+                                    @elseif($isExpiring)
                                         <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-700">{{ __('transfers.expiring_contract') }}</span>
                                     @endif
                                 </div>
                                 <div class="flex items-center gap-2 text-xs text-slate-500 mt-0.5">
-                                    @if($isFreeAgent)
-                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-700">{{ __('transfers.free_agent') }}</span>
-                                    @elseif($player->team)
+                                    @if($player->team)
                                         <x-team-crest :team="$player->team" class="w-4 h-4 shrink-0" />
                                         <span class="truncate">{{ $player->team->name }}</span>
                                     @endif
@@ -148,7 +148,7 @@
                                             <span class="text-xs font-semibold text-slate-700">{{ $player->formatted_market_value }}</span>
                                         </div>
                                         {{-- Contract --}}
-                                        @if($player->contract_until)
+                                        @if(!$isFreeAgent && $player->contract_until)
                                             <div class="flex items-center justify-between">
                                                 <span class="text-xs text-slate-500">{{ __('transfers.contract_until') }}</span>
                                                 <span class="text-xs font-semibold {{ $isExpiring ? 'text-amber-600' : 'text-slate-700' }}">{{ $player->contract_until->format('M Y') }}</span>
