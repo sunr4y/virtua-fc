@@ -301,6 +301,12 @@ class NotificationService
                 'team_de' => $fromTeam?->nameWithDe() ?? '',
                 'fee' => $fee,
             ]);
+        } elseif ($offer->offer_type === TransferOffer::TYPE_LOAN_OUT) {
+            $title = __('notifications.loan_out_complete_title', ['player' => $player->name]);
+            $message = __('notifications.loan_out_complete_message', [
+                'player' => $player->name,
+                'team_a' => $offer->offeringTeam->nameWithA(),
+            ]);
         } else {
             $title = __('notifications.transfer_complete_outgoing_title', ['player' => $player->name]);
             $message = __('notifications.transfer_complete_outgoing_message', [

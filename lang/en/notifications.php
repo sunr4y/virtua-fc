@@ -44,6 +44,8 @@ return [
     'transfer_complete_incoming_message' => ':player has joined your squad :team_de for :fee.',
     'transfer_complete_outgoing_title' => ':player sold',
     'transfer_complete_outgoing_message' => ':player has been transferred :team_a for :fee.',
+    'loan_out_complete_title' => ':player loaned out',
+    'loan_out_complete_message' => ':player has been loaned :team_a until the end of the season.',
 
     // Expiring offers
     'offer_expiring_title' => 'Offer for :player expiring soon',
