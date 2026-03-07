@@ -368,9 +368,12 @@ return [
     'goal_uel_knockout' => 'Advance to knockout phase',
     'goal_uecl_knockout' => 'Advance to knockout phase',
 
-    // Team selection indicators
-    'team_strength' => 'Team strength',
-    'budget_high' => 'High budget',
-    'budget_mid' => 'Mid budget',
-    'budget_low' => 'Low budget',
+    // Team reputation levels
+    'reputation_elite' => 'Elite',
+    'reputation_contenders' => 'Contenders',
+    'reputation_continental' => 'Continental',
+    'reputation_established' => 'Established',
+    'reputation_modest' => 'Modest',
+    'reputation_professional' => 'Professional',
+    'reputation_local' => 'Local',
 ];

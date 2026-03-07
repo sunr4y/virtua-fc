@@ -368,9 +368,12 @@ return [
     'goal_uel_knockout' => 'Pasar a fase eliminatoria',
     'goal_uecl_knockout' => 'Pasar a fase eliminatoria',
 
-    // Team selection indicators
-    'team_strength' => 'Nivel del equipo',
-    'budget_high' => 'Presupuesto alto',
-    'budget_mid' => 'Presupuesto medio',
-    'budget_low' => 'Presupuesto bajo',
+    // Team reputation levels
+    'reputation_elite' => 'Élite',
+    'reputation_contenders' => 'Aspirante',
+    'reputation_continental' => 'Continental',
+    'reputation_established' => 'Consolidado',
+    'reputation_modest' => 'Modesto',
+    'reputation_professional' => 'Profesional',
+    'reputation_local' => 'Local',
 ];
