@@ -118,6 +118,7 @@ class ShowLiveMatch
             ->all();
 
         // Starting lineup players (for the "sub out" picker)
+        $currentDate = $game->current_date;
         $lineupPlayers = GamePlayer::with('player')
             ->whereIn('id', $userLineupIds)
             ->get()
@@ -130,7 +131,7 @@ class ShowLiveMatch
                 'positionSort' => LineupService::positionSortOrder($p->position),
                 'physicalAbility' => $p->physical_ability,
                 'technicalAbility' => $p->technical_ability,
-                'age' => $p->age,
+                'age' => (int) $p->player->date_of_birth->diffInYears($currentDate),
                 'overallScore' => $p->overall_score,
                 'fitness' => $p->fitness,
                 'morale' => $p->morale,
@@ -167,7 +168,7 @@ class ShowLiveMatch
                 'positionSort' => LineupService::positionSortOrder($p->position),
                 'physicalAbility' => $p->physical_ability,
                 'technicalAbility' => $p->technical_ability,
-                'age' => $p->age,
+                'age' => (int) $p->player->date_of_birth->diffInYears($currentDate),
                 'overallScore' => $p->overall_score,
                 'fitness' => $p->fitness,
                 'morale' => $p->morale,
