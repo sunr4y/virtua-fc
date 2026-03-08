@@ -87,7 +87,7 @@ class ShowOnboarding
             ->with('player')
             ->get();
 
-        $squadSnapshot = $this->buildSquadSnapshot($squad);
+        $squadSnapshot = $this->buildSquadSnapshot($squad, $game->current_date);
 
         // Off-season recap (season 2+ only)
         $offseasonRecap = null;
@@ -111,7 +111,7 @@ class ShowOnboarding
         ]);
     }
 
-    private function buildSquadSnapshot($squad): array
+    private function buildSquadSnapshot($squad, $currentDate): array
     {
         $positionGroups = $squad->groupBy(fn ($p) => PositionMapper::getPositionGroup($p->position));
 
@@ -139,7 +139,7 @@ class ShowOnboarding
 
         $totalPlayers = $squad->count();
         $avgOverall = $totalPlayers > 0 ? (int) round($squad->avg('overall_score')) : 0;
-        $avgAge = $totalPlayers > 0 ? round($squad->avg('age'), 1) : 0;
+        $avgAge = $totalPlayers > 0 ? round($squad->avg(fn ($p) => $p->age($currentDate)), 1) : 0;
         $totalWages = $squad->sum('annual_wage');
 
         // Detect concerns
