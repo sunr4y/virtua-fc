@@ -10,7 +10,7 @@ use App\Models\GameStanding;
 use App\Models\SimulatedSeason;
 use App\Models\TeamReputation;
 use App\Modules\Notification\Services\NotificationService;
-use App\Modules\Season\Contracts\SeasonEndProcessor;
+use App\Modules\Season\Contracts\SeasonProcessor;
 use App\Modules\Season\DTOs\SeasonTransitionData;
 use App\Models\GameNotification;
 
@@ -24,7 +24,7 @@ use App\Models\GameNotification;
  * Priority: 27 (after PromotionRelegation so we know final positions,
  * before LeagueFixture/BudgetProjection so new tiers affect next season)
  */
-class ReputationUpdateProcessor implements SeasonEndProcessor
+class ReputationUpdateProcessor implements SeasonProcessor
 {
     /** Track user team's tier before updates for notification. */
     private ?string $userTeamOldTier = null;
