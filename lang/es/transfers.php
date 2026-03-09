@@ -5,6 +5,7 @@ return [
     'window' => 'Ventana',
     'window_open' => 'Ventana de :window Abierta',
     'budget' => 'Presupuesto',
+    'budget_committed' => 'comprometidos',
 
     // Tab labels
     'outgoing' => 'Salidas',

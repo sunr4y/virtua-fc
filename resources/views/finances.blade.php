@@ -4,6 +4,11 @@
 /** @var App\Models\GameInvestment|null $investment */
 /** @var array $tierThresholds */
 /** @var int $availableBudget */
+/** @var int $initialTransferBudget */
+/** @var int $salesRevenue */
+/** @var int $purchaseSpending */
+/** @var int $infrastructureSpending */
+/** @var bool $hasTransferActivity */
 @endphp
 
 <x-app-layout>
@@ -132,19 +137,62 @@
                                     </div>
                                     @endif
 
-                                    {{-- Infrastructure deduction --}}
+                                    {{-- Infrastructure deduction (initial, excluding mid-season upgrades) --}}
                                     <div class="flex items-center justify-between py-2">
                                         <span class="text-slate-500 pl-5 flex items-center gap-1.5">{{ __('finances.infrastructure_investment') }} <svg x-data="" x-tooltip.raw="{{ __('finances.tooltip_infrastructure') }}" class="w-3.5 h-3.5 text-slate-300 hover:text-slate-500 cursor-help flex-shrink-0" fill="currentColor" viewBox="0 0 512 512"><path d="M256 512a256 256 0 1 0 0-512 256 256 0 1 0 0 512zm0-336c-17.7 0-32 14.3-32 32 0 13.3-10.7 24-24 24s-24-10.7-24-24c0-44.2 35.8-80 80-80s80 35.8 80 80c0 47.2-36 67.2-56 74.5l0 3.8c0 13.3-10.7 24-24 24s-24-10.7-24-24l0-8.1c0-20.5 14.8-35.2 30.1-40.2 6.4-2.1 13.2-5.5 18.2-10.3 4.3-4.2 7.7-10 7.7-19.6 0-17.7-14.3-32-32-32zM224 368a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/></svg></span>
-                                        <span class="text-red-600">-{{ $investment->formatted_total_infrastructure }}</span>
+                                        <span class="text-red-600">-{{ \App\Support\Money::format($investment->total_infrastructure - $infrastructureSpending) }}</span>
                                     </div>
 
-                                    {{-- Final: Transfer Budget --}}
+                                    @if($hasTransferActivity)
+                                    {{-- Season Allocation line --}}
+                                    <div class="border-t-2 border-slate-300 pt-2 mt-1">
+                                        <div class="flex items-center justify-between py-1">
+                                            <span class="font-semibold text-slate-700 flex items-center gap-1.5">= {{ __('finances.season_allocation') }}</span>
+                                            <span class="font-semibold text-slate-700">{{ \App\Support\Money::format($initialTransferBudget) }}</span>
+                                        </div>
+                                    </div>
+
+                                    {{-- Transfer Activity section --}}
+                                    <div class="mt-3 pt-3 border-t border-dashed border-slate-200">
+                                        <div class="flex items-center gap-1.5 mb-2">
+                                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">{{ __('finances.transfer_activity') }}</span>
+                                        </div>
+                                        @if($salesRevenue > 0)
+                                        <div class="flex items-center justify-between py-1.5">
+                                            <span class="text-slate-500 pl-5">{{ __('finances.player_sales') }}</span>
+                                            <span class="text-green-600">+{{ \App\Support\Money::format($salesRevenue) }}</span>
+                                        </div>
+                                        @endif
+                                        @if($purchaseSpending > 0)
+                                        <div class="flex items-center justify-between py-1.5">
+                                            <span class="text-slate-500 pl-5">{{ __('finances.player_purchases') }}</span>
+                                            <span class="text-red-600">-{{ \App\Support\Money::format($purchaseSpending) }}</span>
+                                        </div>
+                                        @endif
+                                        @if($infrastructureSpending > 0)
+                                        <div class="flex items-center justify-between py-1.5">
+                                            <span class="text-slate-500 pl-5">{{ __('finances.infrastructure_upgrades') }}</span>
+                                            <span class="text-red-600">-{{ \App\Support\Money::format($infrastructureSpending) }}</span>
+                                        </div>
+                                        @endif
+                                    </div>
+
+                                    {{-- Final: Current Transfer Budget --}}
+                                    <div class="border-t-2 border-slate-900 pt-2 mt-1">
+                                        <div class="flex items-center justify-between py-1">
+                                            <span class="font-semibold text-lg text-slate-900 flex items-center gap-1.5">= {{ __('finances.current_transfer_budget') }} <svg x-data="" x-tooltip.raw="{{ __('finances.tooltip_transfer_budget') }}" class="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 cursor-help flex-shrink-0" fill="currentColor" viewBox="0 0 512 512"><path d="M256 512a256 256 0 1 0 0-512 256 256 0 1 0 0 512zm0-336c-17.7 0-32 14.3-32 32 0 13.3-10.7 24-24 24s-24-10.7-24-24c0-44.2 35.8-80 80-80s80 35.8 80 80c0 47.2-36 67.2-56 74.5l0 3.8c0 13.3-10.7 24-24 24s-24-10.7-24-24l0-8.1c0-20.5 14.8-35.2 30.1-40.2 6.4-2.1 13.2-5.5 18.2-10.3 4.3-4.2 7.7-10 7.7-19.6 0-17.7-14.3-32-32-32zM224 368a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/></svg></span>
+                                            <span class="font-semibold text-lg text-slate-900">{{ $investment->formatted_transfer_budget }}</span>
+                                        </div>
+                                    </div>
+                                    @else
+                                    {{-- No transfer activity: simple Transfer Budget line --}}
                                     <div class="border-t-2 border-slate-900 pt-2 mt-1">
                                         <div class="flex items-center justify-between py-1">
                                             <span class="font-semibold text-lg text-slate-900 flex items-center gap-1.5">= {{ __('finances.transfer_budget') }} <svg x-data="" x-tooltip.raw="{{ __('finances.tooltip_transfer_budget') }}" class="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 cursor-help flex-shrink-0" fill="currentColor" viewBox="0 0 512 512"><path d="M256 512a256 256 0 1 0 0-512 256 256 0 1 0 0 512zm0-336c-17.7 0-32 14.3-32 32 0 13.3-10.7 24-24 24s-24-10.7-24-24c0-44.2 35.8-80 80-80s80 35.8 80 80c0 47.2-36 67.2-56 74.5l0 3.8c0 13.3-10.7 24-24 24s-24-10.7-24-24l0-8.1c0-20.5 14.8-35.2 30.1-40.2 6.4-2.1 13.2-5.5 18.2-10.3 4.3-4.2 7.7-10 7.7-19.6 0-17.7-14.3-32-32-32zM224 368a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/></svg></span>
                                             <span class="font-semibold text-lg text-slate-900">{{ $investment->formatted_transfer_budget }}</span>
                                         </div>
                                     </div>
+                                    @endif
                                 </div>
                             </div>
                             @else

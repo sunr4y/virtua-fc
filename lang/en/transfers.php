@@ -5,6 +5,7 @@ return [
     'window' => 'Window',
     'window_open' => ':window Window Open',
     'budget' => 'Budget',
+    'budget_committed' => 'committed',
 
     // Tab labels
     'outgoing' => 'Outgoing',

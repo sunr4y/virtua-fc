@@ -78,6 +78,12 @@ return [
 
     // Budget flow
     'budget_flow' => 'Budget Flow',
+    'season_allocation' => 'Season Allocation',
+    'transfer_activity' => 'In-Season Activity',
+    'player_sales' => 'Player sales',
+    'player_purchases' => 'Player purchases',
+    'infrastructure_upgrades' => 'Infrastructure upgrades',
+    'current_transfer_budget' => 'Current Budget',
     'budget_not_set' => 'Season budget not configured',
     'surplus_to_allocate' => 'available surplus to allocate',
 

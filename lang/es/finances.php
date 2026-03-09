@@ -78,6 +78,12 @@ return [
 
     // Budget flow
     'budget_flow' => 'Flujo de Presupuesto',
+    'season_allocation' => 'Asignación de Temporada',
+    'transfer_activity' => 'Movimientos de Temporada',
+    'player_sales' => 'Ventas de jugadores',
+    'player_purchases' => 'Compras de jugadores',
+    'infrastructure_upgrades' => 'Mejoras de infraestructura',
+    'current_transfer_budget' => 'Presupuesto Actual',
     'budget_not_set' => 'Presupuesto de temporada sin configurar',
     'surplus_to_allocate' => 'superávit disponible para asignar',
 

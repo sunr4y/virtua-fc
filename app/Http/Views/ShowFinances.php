@@ -64,6 +64,36 @@ class ShowFinances
             ? $investment->transfer_budget - TransferOffer::committedBudget($game->id)
             : 0;
 
+        // Transfer activity totals for budget flow breakdown (single query)
+        $activityTotals = FinancialTransaction::where('game_id', $gameId)
+            ->whereBetween('transaction_date', [$seasonStart, $seasonEnd])
+            ->whereIn('category', [
+                FinancialTransaction::CATEGORY_TRANSFER_IN,
+                FinancialTransaction::CATEGORY_TRANSFER_OUT,
+                FinancialTransaction::CATEGORY_INFRASTRUCTURE,
+            ])
+            ->selectRaw("
+                COALESCE(SUM(CASE WHEN category = ? AND type = ? THEN amount ELSE 0 END), 0) as sales_revenue,
+                COALESCE(SUM(CASE WHEN category = ? AND type = ? THEN amount ELSE 0 END), 0) as purchase_spending,
+                COALESCE(SUM(CASE WHEN category = ? AND type = ? THEN amount ELSE 0 END), 0) as infrastructure_spending
+            ", [
+                FinancialTransaction::CATEGORY_TRANSFER_IN, FinancialTransaction::TYPE_INCOME,
+                FinancialTransaction::CATEGORY_TRANSFER_OUT, FinancialTransaction::TYPE_EXPENSE,
+                FinancialTransaction::CATEGORY_INFRASTRUCTURE, FinancialTransaction::TYPE_EXPENSE,
+            ])
+            ->first();
+
+        $salesRevenue = (int) $activityTotals->sales_revenue;
+        $purchaseSpending = (int) $activityTotals->purchase_spending;
+        $infrastructureSpending = (int) $activityTotals->infrastructure_spending;
+
+        // Initial transfer budget = current budget - sales + purchases + mid-season infrastructure
+        $initialTransferBudget = $investment
+            ? $investment->transfer_budget - $salesRevenue + $purchaseSpending + $infrastructureSpending
+            : 0;
+
+        $hasTransferActivity = $salesRevenue > 0 || $purchaseSpending > 0 || $infrastructureSpending > 0;
+
         return view('finances', [
             'game' => $game,
             'finances' => $finances,
@@ -76,6 +106,11 @@ class ShowFinances
             'wageRevenueRatio' => $wageRevenueRatio,
             'tierThresholds' => GameInvestment::TIER_THRESHOLDS,
             'availableBudget' => $availableBudget,
+            'initialTransferBudget' => $initialTransferBudget,
+            'salesRevenue' => $salesRevenue,
+            'purchaseSpending' => $purchaseSpending,
+            'infrastructureSpending' => $infrastructureSpending,
+            'hasTransferActivity' => $hasTransferActivity,
         ]);
     }
 }
