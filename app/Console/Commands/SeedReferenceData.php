@@ -202,6 +202,22 @@ class SeedReferenceData extends Command
             ]);
         }
         $this->line("  Step 4/4: Done.");
+
+        // Seed the pre-season competition (used for pre-season matches)
+        DB::table('competitions')->updateOrInsert(
+            ['id' => 'PRESEASON'],
+            [
+                'name' => 'game.pre_season',
+                'country' => 'INT',
+                'flag' => null,
+                'tier' => 0,
+                'type' => 'league',
+                'role' => 'preseason',
+                'scope' => 'domestic',
+                'handler_type' => 'preseason',
+                'season' => '2025',
+            ]
+        );
     }
 
     private function createDefaultUser(): void

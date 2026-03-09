@@ -26,6 +26,41 @@
                 </div>
             @endif
 
+            {{-- Pre-Season Banner --}}
+            @if(!empty($isPreSeason))
+            <div class="mb-4 p-4 bg-gradient-to-r from-sky-50 to-indigo-50 border border-sky-200 rounded-lg flex flex-col md:flex-row md:items-center md:justify-between gap-3" x-data="{ confirmSkip: false }">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-sky-900">{{ __('game.pre_season_banner_title') }}</h4>
+                        <p class="text-sm text-sky-700 mt-0.5">
+                            {{ __('game.pre_season_banner_desc', ['date' => isset($seasonStartDate) ? $seasonStartDate->locale(app()->getLocale())->translatedFormat('d M Y') : '']) }}
+                        </p>
+                    </div>
+                </div>
+                <div class="shrink-0">
+                    <x-secondary-button @click="confirmSkip = true" x-show="!confirmSkip">
+                        {{ __('game.pre_season_skip') }}
+                    </x-secondary-button>
+                    <div x-show="confirmSkip" x-cloak class="flex items-center gap-2">
+                        <form action="{{ route('game.skip-pre-season', $game->id) }}" method="POST" class="inline">
+                            @csrf
+                            <x-danger-button>
+                                {{ __('app.confirm') }}
+                            </x-danger-button>
+                        </form>
+                        <x-secondary-button @click="confirmSkip = false">
+                            {{ __('app.cancel') }}
+                        </x-secondary-button>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             @if($nextMatch)
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-4 sm:p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
@@ -43,6 +78,7 @@
                         @php
                             $comp = $nextMatch->competition;
                             $accent = match(true) {
+                                ($comp->handler_type ?? '') === 'preseason' => ['badge' => 'bg-sky-100 text-sky-800', 'border' => 'border-l-sky-500'],
                                 ($comp->scope ?? '') === 'continental' => ['badge' => 'bg-blue-100 text-blue-800', 'border' => 'border-l-blue-500'],
                                 ($comp->type ?? '') === 'cup' => ['badge' => 'bg-emerald-100 text-emerald-800', 'border' => 'border-l-emerald-500'],
                                 default => ['badge' => 'bg-amber-100 text-amber-800', 'border' => 'border-l-amber-500'],
@@ -53,7 +89,7 @@
                             <div class="text-center">
                                 <div class="flex items-center justify-center gap-2">
                                     <span class="px-3 py-1 text-sm font-semibold rounded-full {{ $accent['badge'] }}">
-                                        {{ __($nextMatch->competition->name ?? 'League') }}
+                                        {{ ($comp->handler_type ?? '') === 'preseason' ? __('game.pre_season_friendly') : __($nextMatch->competition->name ?? 'League') }}
                                     </span>
                                     @if($nextMatch->round_name)
                                         <span class="text-sm text-slate-500">&middot; {{ __($nextMatch->round_name) }}</span>
@@ -72,6 +108,7 @@
                                 <div class="flex-1 flex flex-col items-center text-center min-w-0 px-2">
                                     <x-team-crest :team="$nextMatch->homeTeam" class="w-12 h-12 md:w-20 md:h-20 mb-2" />
                                     <h4 class="text-base md:text-xl font-bold text-slate-900 truncate max-w-full">{{ $nextMatch->homeTeam->name }}</h4>
+                                    @if(($comp->handler_type ?? '') !== 'preseason')
                                     @if($homeStanding)
                                     <div class="text-sm text-slate-500 mt-0.5">
                                         {{ $homeStanding->position }}{{ $homeStanding->position == 1 ? 'st' : ($homeStanding->position == 2 ? 'nd' : ($homeStanding->position == 3 ? 'rd' : 'th')) }} &middot; {{ $homeStanding->points }} {{ __('game.pts') }}
@@ -90,12 +127,14 @@
                                             <span class="text-slate-400 text-sm">{{ __('game.no_form') }}</span>
                                         @endforelse
                                     </div>
+                                    @endif
                                 </div>
 
                                 {{-- Away Team --}}
                                 <div class="flex-1 flex flex-col items-center text-center min-w-0 px-2">
                                     <x-team-crest :team="$nextMatch->awayTeam" class="w-12 h-12 md:w-20 md:h-20 mb-2" />
                                     <h4 class="text-base md:text-xl font-bold text-slate-900 truncate max-w-full">{{ $nextMatch->awayTeam->name }}</h4>
+                                    @if(($comp->handler_type ?? '') !== 'preseason')
                                     @if($awayStanding)
                                     <div class="text-sm text-slate-500 mt-0.5">
                                         {{ $awayStanding->position }}{{ $awayStanding->position == 1 ? 'st' : ($awayStanding->position == 2 ? 'nd' : ($awayStanding->position == 3 ? 'rd' : 'th')) }} &middot; {{ $awayStanding->points }} {{ __('game.pts') }}
@@ -114,6 +153,7 @@
                                             <span class="text-slate-400 text-sm">{{ __('game.no_form') }}</span>
                                         @endforelse
                                     </div>
+                                    @endif
                                 </div>
                             </div>
 
@@ -218,8 +258,8 @@
                             @endif
                         </div>
 
-                        {{-- Abridged League Standings --}}
-                        @if($leagueStandings->isNotEmpty())
+                        {{-- Abridged League Standings (hidden during pre-season) --}}
+                        @if($leagueStandings->isNotEmpty() && empty($isPreSeason))
                         <div>
                             <div class="flex items-center justify-between mb-4">
                                 <h4 class="font-semibold text-xl text-slate-900">

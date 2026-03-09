@@ -393,4 +393,12 @@ return [
     // Onboarding - Club Info
     'stadium' => 'Stadium',
     'seats' => ':count seats',
+
+    // Pre-season
+    'pre_season' => 'Pre-Season',
+    'pre_season_friendly' => 'Friendly',
+    'pre_season_banner_title' => 'Pre-Season',
+    'pre_season_banner_desc' => 'Season starts :date. Use this time to set up your squad, play friendlies and sign players.',
+    'pre_season_skip' => 'Skip Pre-Season',
+    'pre_season_skipped' => 'Pre-season skipped. The season has begun.',
 ];
