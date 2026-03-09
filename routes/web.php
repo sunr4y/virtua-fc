@@ -72,7 +72,7 @@ use App\Http\Views\ShowAcademyEvaluation;
 use App\Http\Views\GameSetupStatus;
 use App\Http\Views\ShowAcademyPlayerDetail;
 use App\Http\Views\ShowPlayerDetail;
-use App\Http\Views\ShowSquadV2;
+use App\Http\Views\ShowSquad;
 use App\Http\Views\ShowTransferActivity;
 use App\Http\Views\ShowTransfers;
 use App\Http\Actions\ProcessSubstitution;
@@ -102,7 +102,7 @@ Route::middleware('auth')->group(function () {
 
         // Game Views
         Route::get('/game/{gameId}', ShowGame::class)->name('show-game');
-        Route::get('/game/{gameId}/squad', ShowSquadV2::class)->name('game.squad');
+        Route::get('/game/{gameId}/squad', ShowSquad::class)->name('game.squad');
         Route::get('/game/{gameId}/squad/academy', ShowAcademy::class)->name('game.squad.academy');
         Route::get('/game/{gameId}/player/{playerId}/detail', ShowPlayerDetail::class)->name('game.player.detail');
         Route::get('/game/{gameId}/academy/{playerId}/detail', ShowAcademyPlayerDetail::class)->name('game.academy.detail');

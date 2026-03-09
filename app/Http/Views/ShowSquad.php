@@ -11,7 +11,7 @@ use App\Modules\Squad\Services\PlayerDevelopmentService;
 use App\Modules\Transfer\Services\ContractService;
 use App\Support\PositionMapper;
 
-class ShowSquadV2
+class ShowSquad
 {
     public function __construct(
         private readonly ContractService $contractService,
@@ -239,21 +239,21 @@ class ShowSquadV2
         if ($injuredCount >= 3) {
             $alerts[] = [
                 'type' => 'warning',
-                'message' => __('squad_v2.alert_many_injured', ['count' => $injuredCount]),
+                'message' => __('squad.alert_many_injured', ['count' => $injuredCount]),
             ];
         }
 
         if ($lowMoraleCount >= 3) {
             $alerts[] = [
                 'type' => 'warning',
-                'message' => __('squad_v2.alert_low_morale', ['count' => $lowMoraleCount]),
+                'message' => __('squad.alert_low_morale', ['count' => $lowMoraleCount]),
             ];
         }
 
         if ($lowFitnessCount >= 3) {
             $alerts[] = [
                 'type' => 'warning',
-                'message' => __('squad_v2.alert_low_fitness', ['count' => $lowFitnessCount]),
+                'message' => __('squad.alert_low_fitness', ['count' => $lowFitnessCount]),
             ];
         }
 
@@ -262,12 +262,12 @@ class ShowSquadV2
             if ($slot === 'GK' && $data['count'] < 2) {
                 $alerts[] = [
                     'type' => 'danger',
-                    'message' => __('squad_v2.alert_thin_position', ['position' => PositionMapper::slotToDisplayAbbreviation($slot), 'count' => $data['count']]),
+                    'message' => __('squad.alert_thin_position', ['position' => PositionMapper::slotToDisplayAbbreviation($slot), 'count' => $data['count']]),
                 ];
             } elseif ($slot !== 'GK' && $data['count'] === 0) {
                 $alerts[] = [
                     'type' => 'danger',
-                    'message' => __('squad_v2.alert_no_cover', ['position' => PositionMapper::slotToDisplayAbbreviation($slot)]),
+                    'message' => __('squad.alert_no_cover', ['position' => PositionMapper::slotToDisplayAbbreviation($slot)]),
                 ];
             }
         }
@@ -275,7 +275,7 @@ class ShowSquadV2
         if ($isCareerMode && $windowCountdown && $windowCountdown['action'] === 'closes' && $windowCountdown['matchdays'] <= 3) {
             $alerts[] = [
                 'type' => 'info',
-                'message' => __('squad_v2.alert_window_closing', ['date' => $windowCountdown['date']->locale(app()->getLocale())->translatedFormat('d M Y')]),
+                'message' => __('squad.alert_window_closing', ['date' => $windowCountdown['date']->locale(app()->getLocale())->translatedFormat('d M Y')]),
             ];
         }
 

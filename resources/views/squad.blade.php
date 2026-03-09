@@ -146,7 +146,7 @@
                     <div class="mt-6 grid grid-cols-2 {{ $isCareerMode ? 'md:grid-cols-5' : 'md:grid-cols-3' }} gap-3">
                         {{-- Squad Size --}}
                         <div class="bg-slate-50 rounded-lg p-3 border border-slate-200">
-                            <div class="text-xs text-slate-500 font-medium uppercase tracking-wide">{{ __('squad_v2.squad_size') }}</div>
+                            <div class="text-xs text-slate-500 font-medium uppercase tracking-wide">{{ __('squad.squad_size') }}</div>
                             <div class="mt-1">
                                 <span class="text-2xl font-bold text-slate-900">{{ $squadSize }}</span>
                             </div>
@@ -154,7 +154,7 @@
 
                         {{-- Avg Age --}}
                         <div class="bg-slate-50 rounded-lg p-3 border border-slate-200">
-                            <div class="text-xs text-slate-500 font-medium uppercase tracking-wide">{{ __('squad_v2.avg_age') }}</div>
+                            <div class="text-xs text-slate-500 font-medium uppercase tracking-wide">{{ __('squad.avg_age') }}</div>
                             <div class="mt-1">
                                 <span class="text-2xl font-bold text-slate-900">{{ $avgAge }}</span>
                             </div>
@@ -162,18 +162,18 @@
 
                         {{-- Condition: Fitness, Morale, Avg Overall --}}
                         <div class="bg-slate-50 rounded-lg p-3 border border-slate-200">
-                            <div class="text-xs text-slate-500 font-medium uppercase tracking-wide">{{ __('squad_v2.condition') }}</div>
+                            <div class="text-xs text-slate-500 font-medium uppercase tracking-wide">{{ __('squad.condition') }}</div>
                             <div class="mt-1 flex items-end gap-3">
-                                <div class="flex items-center gap-1 cursor-help" x-tooltip.raw="{{ __('squad_v2.tooltip_fitness') }}">
+                                <div class="flex items-center gap-1 cursor-help" x-tooltip.raw="{{ __('squad.tooltip_fitness') }}">
                                     <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                                     <span class="text-xl font-bold @if($avgFitness >= 85) text-green-600 @elseif($avgFitness >= 70) text-slate-900 @else text-amber-600 @endif">{{ $avgFitness }}</span>
                                 </div>
-                                <div class="flex items-center gap-1 cursor-help" x-tooltip.raw="{{ __('squad_v2.tooltip_morale') }}">
+                                <div class="flex items-center gap-1 cursor-help" x-tooltip.raw="{{ __('squad.tooltip_morale') }}">
                                     <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                     <span class="text-xl font-bold @if($avgMorale >= 80) text-green-600 @elseif($avgMorale >= 65) text-slate-900 @else text-amber-600 @endif">{{ $avgMorale }}</span>
                                 </div>
-                                <div class="flex items-center gap-1 cursor-help" x-tooltip.raw="{{ __('squad_v2.tooltip_avg_overall') }}">
-                                    <span class="text-xs font-semibold text-slate-400 uppercase">{{ __('squad_v2.avg_ovr') }}</span>
+                                <div class="flex items-center gap-1 cursor-help" x-tooltip.raw="{{ __('squad.tooltip_avg_overall') }}">
+                                    <span class="text-xs font-semibold text-slate-400 uppercase">{{ __('squad.avg_ovr') }}</span>
                                     <span class="text-xl font-bold @if($avgOverall >= 75) text-green-600 @elseif($avgOverall >= 65) text-slate-900 @else text-amber-600 @endif">{{ $avgOverall }}</span>
                                 </div>
                             </div>
@@ -182,7 +182,7 @@
                         @if($isCareerMode)
                         {{-- Squad Value --}}
                         <div class="bg-slate-50 rounded-lg p-3 border border-slate-200">
-                            <div class="text-xs text-slate-500 font-medium uppercase tracking-wide">{{ __('squad_v2.squad_value') }}</div>
+                            <div class="text-xs text-slate-500 font-medium uppercase tracking-wide">{{ __('squad.squad_value') }}</div>
                             <div class="mt-1">
                                 <span class="text-2xl font-bold text-slate-900">{{ \App\Support\Money::format($squadValue) }}</span>
                             </div>
@@ -204,18 +204,18 @@
                         {{-- View Mode Toggle --}}
                         <div class="flex items-center overflow-x-auto scrollbar-hide gap-1 bg-slate-100 rounded-lg p-1">
                             <button @click="viewMode = 'tactical'" :class="viewMode === 'tactical' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'" class="shrink-0 px-3 py-1.5 text-sm font-medium rounded-md transition-colors min-h-[36px]">
-                                {{ __('squad_v2.tactical') }}
+                                {{ __('squad.tactical') }}
                             </button>
                             @if($isCareerMode)
                             <button @click="viewMode = 'planning'" :class="viewMode === 'planning' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'" class="shrink-0 px-3 py-1.5 text-sm font-medium rounded-md transition-colors min-h-[36px]">
-                                {{ __('squad_v2.planning') }}
+                                {{ __('squad.planning') }}
                             </button>
                             @endif
                             <button @click="viewMode = 'stats'" :class="viewMode === 'stats' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'" class="shrink-0 px-3 py-1.5 text-sm font-medium rounded-md transition-colors min-h-[36px]">
                                 {{ __('squad.stats') }}
                             </button>
                             <button @click="viewMode = 'numbers'" :class="viewMode === 'numbers' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'" class="shrink-0 px-3 py-1.5 text-sm font-medium rounded-md transition-colors min-h-[36px]">
-                                {{ __('squad_v2.numbers') }}
+                                {{ __('squad.numbers') }}
                             </button>
                         </div>
 
@@ -232,19 +232,19 @@
 
                             {{-- Availability filter --}}
                             <div class="flex items-center gap-1 shrink-0 border-l border-slate-200 pl-2">
-                                <button @click="availFilter = availFilter === 'available' ? 'all' : 'available'" :class="availFilter === 'available' ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'" class="px-2 py-1 text-xs font-medium rounded transition-colors">{{ __('squad_v2.available') }}</button>
-                                <button @click="availFilter = availFilter === 'unavailable' ? 'all' : 'unavailable'" :class="availFilter === 'unavailable' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'" class="px-2 py-1 text-xs font-medium rounded transition-colors">{{ __('squad_v2.unavailable') }}</button>
+                                <button @click="availFilter = availFilter === 'available' ? 'all' : 'available'" :class="availFilter === 'available' ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'" class="px-2 py-1 text-xs font-medium rounded transition-colors">{{ __('squad.available') }}</button>
+                                <button @click="availFilter = availFilter === 'unavailable' ? 'all' : 'unavailable'" :class="availFilter === 'unavailable' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'" class="px-2 py-1 text-xs font-medium rounded transition-colors">{{ __('squad.unavailable') }}</button>
                             </div>
 
                             {{-- Clear filters --}}
                             <button x-show="activeFilterCount() > 0" @click="clearFilters()" class="shrink-0 text-xs text-slate-400 hover:text-slate-600 underline underline-offset-2">
-                                {{ __('squad_v2.clear_filters') }}
+                                {{ __('squad.clear_filters') }}
                             </button>
 
                             {{-- Desktop: Squad Analysis toggle --}}
                             <button @click="sidebarOpen = !sidebarOpen" class="hidden xl:inline-flex shrink-0 ml-auto items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                                {{ __('squad_v2.squad_analysis') }}
+                                {{ __('squad.squad_analysis') }}
                             </button>
                         </div>
                     </div>
@@ -314,7 +314,7 @@
                                                 <th class="font-semibold py-2 text-center w-10 cursor-help" x-data x-tooltip.raw="{{ __('squad.legend_own_goals') }}">{{ __('squad.own_goals') }}</th>
                                             </template>
                                             <template x-if="viewMode === 'stats'">
-                                                <th class="font-semibold py-2 text-center w-16">{{ __('squad_v2.cards') }}</th>
+                                                <th class="font-semibold py-2 text-center w-16">{{ __('squad.cards') }}</th>
                                             </template>
 
                                             {{-- Numbers header --}}
@@ -334,7 +334,7 @@
                                                     <div class="flex items-center gap-2">
                                                         <span class="text-xs font-semibold text-slate-600 uppercase tracking-wide">{{ $group['label'] }}</span>
                                                         <span class="text-xs text-slate-400">({{ $group['players']->count() }})</span>
-                                                        <span class="text-xs text-slate-400 ml-auto">{{ __('squad_v2.avg_ovr') }} {{ round($group['players']->avg('overall_score')) }}</span>
+                                                        <span class="text-xs text-slate-400 ml-auto">{{ __('squad.avg_ovr') }} {{ round($group['players']->avg('overall_score')) }}</span>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -636,7 +636,7 @@
                         <button @click="mobileAnalysisOpen = !mobileAnalysisOpen" class="w-full flex items-center justify-between py-3 px-4 bg-slate-50 rounded-lg border border-slate-200 text-sm font-medium text-slate-700">
                             <span class="flex items-center gap-2">
                                 <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                                {{ __('squad_v2.squad_analysis') }}
+                                {{ __('squad.squad_analysis') }}
                             </span>
                             <svg :class="mobileAnalysisOpen && 'rotate-180'" class="w-4 h-4 text-slate-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </button>
