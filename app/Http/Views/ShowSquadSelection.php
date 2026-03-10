@@ -2,6 +2,7 @@
 
 namespace App\Http\Views;
 
+use App\Http\Actions\SaveSquadSelection;
 use App\Models\Game;
 use App\Models\Player;
 use App\Support\PositionMapper;
@@ -23,6 +24,25 @@ class ShowSquadSelection
         }
 
         $candidates = $this->loadCandidates($game);
+
+        // If the roster has 26 or fewer players, auto-select all and skip the UI
+        $totalCandidates = array_sum(array_map('count', $candidates));
+        if ($totalCandidates <= 26) {
+            $allTmIds = [];
+            $positionByTmId = [];
+            foreach ($candidates as $group) {
+                foreach ($group as $candidate) {
+                    $allTmIds[] = $candidate['transfermarkt_id'];
+                    $positionByTmId[$candidate['transfermarkt_id']] = $candidate['position'];
+                }
+            }
+
+            SaveSquadSelection::createTournamentGamePlayers($game->id, $game->team_id, $allTmIds, $positionByTmId);
+            $game->completeOnboarding();
+
+            return redirect()->route('show-game', $game->id)
+                ->with('success', __('squad.squad_confirmed'));
+        }
 
         return view('squad-selection', [
             'game' => $game,

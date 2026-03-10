@@ -25,7 +25,7 @@ class SaveSquadSelection
         }
 
         $request->validate([
-            'player_ids' => 'required|array|size:26',
+            'player_ids' => 'required|array|max:26',
             'player_ids.*' => 'required|string',
         ]);
 
@@ -47,12 +47,20 @@ class SaveSquadSelection
         // Build position lookup from JSON
         $positionByTmId = $jsonPlayers->pluck('position', 'id')->toArray();
 
-        // Load Player models for abilities
-        $playerModels = Player::whereIn('transfermarkt_id', $selectedTmIds)->get()->keyBy('transfermarkt_id');
+        self::createTournamentGamePlayers($gameId, $game->team_id, $selectedTmIds, $positionByTmId);
 
-        // Create GamePlayer records for the 26 selected players
+        $game->completeOnboarding();
+
+        return redirect()->route('show-game', $gameId)
+            ->with('success', __('squad.squad_confirmed'));
+    }
+
+    public static function createTournamentGamePlayers(string $gameId, string $teamId, array $tmIds, array $positionByTmId): void
+    {
+        $playerModels = Player::whereIn('transfermarkt_id', $tmIds)->get()->keyBy('transfermarkt_id');
+
         $playerRows = [];
-        foreach ($selectedTmIds as $tmId) {
+        foreach ($tmIds as $tmId) {
             $player = $playerModels->get($tmId);
             if (!$player) {
                 continue;
@@ -62,7 +70,7 @@ class SaveSquadSelection
                 'id' => Str::uuid()->toString(),
                 'game_id' => $gameId,
                 'player_id' => $player->id,
-                'team_id' => $game->team_id,
+                'team_id' => $teamId,
                 'number' => null,
                 'position' => $positionByTmId[$tmId] ?? 'Central Midfield',
                 'market_value' => null,
@@ -79,10 +87,5 @@ class SaveSquadSelection
         }
 
         GamePlayer::insert($playerRows);
-
-        $game->completeOnboarding();
-
-        return redirect()->route('show-game', $gameId)
-            ->with('success', __('squad.squad_confirmed'));
     }
 }
