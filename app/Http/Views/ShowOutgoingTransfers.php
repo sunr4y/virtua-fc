@@ -11,7 +11,7 @@ use App\Models\RenewalNegotiation;
 use App\Models\TransferOffer;
 use App\Support\Money;
 
-class ShowTransfers
+class ShowOutgoingTransfers
 {
     public function __construct(
         private readonly TransferService $transferService,
@@ -91,7 +91,6 @@ class ShowTransfers
             ->where('status', TransferOffer::STATUS_COMPLETED)
             ->where('direction', '!=', TransferOffer::DIRECTION_INCOMING)
             ->orderByDesc('resolved_at')
-            ->limit(10)
             ->get();
 
         // Loan data
@@ -176,7 +175,7 @@ class ShowTransfers
             ->whereColumn('asking_price', '>', 'transfer_fee')
             ->count();
 
-        return view('transfers', [
+        return view('outgoing-transfers', [
             'game' => $game,
             'unsolicitedOffers' => $unsolicitedOffers,
             'preContractOffers' => $preContractOffers,

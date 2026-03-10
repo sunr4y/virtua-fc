@@ -8,7 +8,7 @@ use App\Models\GamePlayer;
 use App\Models\TransferOffer;
 use Illuminate\Http\Request;
 
-class ShowScouting
+class ShowIncomingTransfers
 {
     public function __construct(
         private readonly LoanService $loanService,
@@ -34,6 +34,13 @@ class ShowScouting
         $regularPendingBids = $pendingBids->reject(function ($bid) {
             return $bid->asking_price && $bid->asking_price > $bid->transfer_fee;
         });
+
+        $recentSignings = TransferOffer::with(['gamePlayer.player', 'gamePlayer.team', 'sellingTeam'])
+            ->where('game_id', $gameId)
+            ->where('status', TransferOffer::STATUS_COMPLETED)
+            ->where('direction', TransferOffer::DIRECTION_INCOMING)
+            ->orderByDesc('resolved_at')
+            ->get();
 
         $rejectedBids = TransferOffer::with(['gamePlayer.player', 'gamePlayer.team', 'sellingTeam'])
             ->where('game_id', $gameId)
@@ -78,13 +85,14 @@ class ShowScouting
             ])
             ->count();
 
-        return view('scouting', [
+        return view('incoming-transfers', [
             'game' => $game,
             'isTransferWindow' => $isTransferWindow,
             'currentWindow' => $currentWindow,
             'counterOffers' => $counterOffers,
             'pendingBids' => $regularPendingBids,
             'rejectedBids' => $rejectedBids,
+            'recentSignings' => $recentSignings,
             'incomingAgreedTransfers' => $incomingAgreedTransfers,
             'loansIn' => $loansIn,
             'windowCountdown' => $windowCountdown,

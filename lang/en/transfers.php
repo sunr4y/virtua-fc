@@ -79,6 +79,7 @@ return [
 
     // Recent transfers
     'recent_sales' => 'Recent Sales',
+    'recent_signings' => 'Recent Signings',
 
     // Scouting
     'scout_search_desc' => 'Your scout will search for players and present a shortlist of candidates that best fit your team. The more specific your criteria, the better the results.',
