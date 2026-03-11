@@ -7,6 +7,12 @@
     $isTwoLegged = $tie->isTwoLegged();
     $firstLegPlayed = $tie->firstLegMatch?->played;
     $secondLegPlayed = $tie->secondLegMatch?->played;
+
+    // For extra time / penalties, show the final score instead of the 90-min score
+    $resolutionType = $tie->resolution['type'] ?? 'normal';
+    $scoreAfterEt = isset($tie->resolution['score_after_et']) ? explode('-', $tie->resolution['score_after_et']) : null;
+    $firstLegHomeScore = $scoreAfterEt ? (int) $scoreAfterEt[0] : $tie->firstLegMatch?->home_score;
+    $firstLegAwayScore = $scoreAfterEt ? (int) $scoreAfterEt[1] : $tie->firstLegMatch?->away_score;
 @endphp
 
 <div class="border rounded-lg overflow-hidden {{ $isPlayerTie ? 'border-sky-300 bg-sky-50' : 'border-slate-200' }}">
@@ -17,7 +23,7 @@
             {{ $tie->homeTeam->name }}
         </span>
         @if($firstLegPlayed)
-            <span class="text-sm tabular-nums {{ $homeWon ? 'font-semibold' : '' }}">{{ $tie->firstLegMatch->home_score }}</span>
+            <span class="text-sm tabular-nums {{ $homeWon ? 'font-semibold' : '' }}">{{ $firstLegHomeScore }}</span>
         @endif
         @if($isTwoLegged && $secondLegPlayed)
             <span class="text-sm tabular-nums {{ $homeWon ? 'font-semibold' : '' }}">{{ $tie->secondLegMatch->away_score }}</span>
@@ -31,7 +37,7 @@
             {{ $tie->awayTeam->name }}
         </span>
         @if($firstLegPlayed)
-            <span class="text-sm tabular-nums {{ $awayWon ? 'font-semibold' : '' }}">{{ $tie->firstLegMatch->away_score }}</span>
+            <span class="text-sm tabular-nums {{ $awayWon ? 'font-semibold' : '' }}">{{ $firstLegAwayScore }}</span>
         @endif
         @if($isTwoLegged && $secondLegPlayed)
             <span class="text-sm tabular-nums {{ $awayWon ? 'font-semibold' : '' }}">{{ $tie->secondLegMatch->home_score }}</span>

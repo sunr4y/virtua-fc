@@ -197,14 +197,17 @@ class CupTie extends Model
         $firstLeg = $this->firstLegMatch;
 
         if (!$this->isTwoLegged()) {
-            $score = "{$firstLeg->home_score}-{$firstLeg->away_score}";
+            $resolutionType = $this->resolution['type'] ?? 'normal';
+            $scoreAfterEt = $this->resolution['score_after_et'] ?? null;
 
-            if ($firstLeg->is_extra_time) {
+            $score = $scoreAfterEt ?? "{$firstLeg->home_score}-{$firstLeg->away_score}";
+
+            if ($resolutionType === 'extra_time') {
                 $score .= ' (AET)';
             }
 
-            if ($firstLeg->home_score_penalties !== null) {
-                $score .= " ({$firstLeg->home_score_penalties}-{$firstLeg->away_score_penalties} pen)";
+            if ($resolutionType === 'penalties') {
+                $score .= " ({$this->resolution['penalties']} pen)";
             }
 
             return $score;
