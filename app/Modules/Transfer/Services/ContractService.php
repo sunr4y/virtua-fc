@@ -36,13 +36,13 @@ class ContractService
      * Higher value players command a larger percentage of their value as wages.
      */
     private const WAGE_TIERS = [
-        ['min_value' => 10_000_000_000, 'percentage' => 0.175], // €100M+ → 17.5%
-        ['min_value' => 5_000_000_000, 'percentage' => 0.15],   // €50-100M → 15%
-        ['min_value' => 2_000_000_000, 'percentage' => 0.125],  // €20-50M → 12.5%
-        ['min_value' => 1_000_000_000, 'percentage' => 0.11],   // €10-20M → 11%
-        ['min_value' => 500_000_000, 'percentage' => 0.10],     // €5-10M → 10%
-        ['min_value' => 200_000_000, 'percentage' => 0.09],     // €2-5M → 9%
-        ['min_value' => 0, 'percentage' => 0.08],               // <€2M → 8%
+        ['min_value' => 10_000_000_000, 'percentage' => 0.20],  // €100M+ → 20%
+        ['min_value' => 5_000_000_000, 'percentage' => 0.175],  // €50-100M → 17.5%
+        ['min_value' => 2_000_000_000, 'percentage' => 0.145],  // €20-50M → 14.5%
+        ['min_value' => 1_000_000_000, 'percentage' => 0.13],   // €10-20M → 13%
+        ['min_value' => 500_000_000, 'percentage' => 0.12],     // €5-10M → 12%
+        ['min_value' => 200_000_000, 'percentage' => 0.105],    // €2-5M → 10.5%
+        ['min_value' => 0, 'percentage' => 0.095],              // <€2M → 9.5%
     ];
 
     /**
