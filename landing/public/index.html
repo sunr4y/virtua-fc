@@ -149,8 +149,45 @@
         </div>
     </section>
 
+    <!-- Video Showcase -->
+    <section class="max-w-7xl mx-auto px-6 py-20">
+        <div class="text-center mb-12">
+            <h2 class="font-heading text-3xl font-bold mb-3 uppercase tracking-wide">El Juego en Acción</h2>
+            <p class="text-sm text-slate-400 max-w-2xl mx-auto">Gestiona todos los aspectos de tu club: tácticas, fichajes, cantera, finanzas y competiciones europeas.</p>
+        </div>
+        <div class="relative max-w-5xl mx-auto">
+            <!-- Ambient glow behind video -->
+            <div class="absolute -inset-4 bg-accent-red/8 rounded-3xl blur-2xl"></div>
+            <!-- Video container -->
+            <div class="relative rounded-xl overflow-hidden border border-white/10 shadow-2xl shadow-black/50" style="aspect-ratio: 16/9;">
+                <video
+                    id="promo-video"
+                    class="w-full h-full object-cover"
+                    poster="/screenshots/dashboard.png"
+                    playsinline
+                    preload="metadata"
+                >
+                    <source src="/virtuafc-promo.webm" type="video/webm">
+                    <source src="/virtuafc-promo.mp4" type="video/mp4">
+                </video>
+                <!-- Play overlay -->
+                <button id="video-play-btn" class="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/20 transition-colors duration-300 cursor-pointer group" aria-label="Reproducir vídeo">
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-accent-red/90 group-hover:bg-accent-red group-hover:scale-110 flex items-center justify-center transition-all duration-300 shadow-lg shadow-accent-red/30">
+                        <svg class="w-7 h-7 sm:w-8 sm:h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    </div>
+                </button>
+            </div>
+            <!-- Subtle caption -->
+            <p class="text-center text-xs text-slate-500 mt-4 uppercase tracking-widest">Gameplay real · Sin edición</p>
+        </div>
+    </section>
+
     <!-- Features + Testimonials -->
     <section id="features" class="max-w-7xl mx-auto px-6 py-20">
+        <div class="text-center mb-12">
+            <h2 class="font-heading text-3xl font-bold mb-3 uppercase tracking-wide">Todo lo que necesitas</h2>
+            <p class="text-sm text-slate-400 max-w-2xl mx-auto">Tácticas, fichajes, cantera, finanzas y competiciones europeas. Todo en tu navegador.</p>
+        </div>
         <div class="grid lg:grid-cols-3 gap-8 lg:gap-12">
 
             <!-- USPs -->
@@ -235,52 +272,6 @@
         </div>
     </section>
 
-    <!-- Screenshots -->
-    <section class="max-w-7xl mx-auto px-6 py-20">
-        <div class="text-center mb-12">
-            <h2 class="font-heading text-3xl font-bold mb-3 uppercase tracking-wide">El Juego en Acción</h2>
-            <p class="text-sm text-slate-400 max-w-2xl mx-auto">Gestiona todos los aspectos de tu club: tácticas, fichajes, cantera, finanzas y competiciones europeas.</p>
-        </div>
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <button data-gallery="1" class="group block overflow-hidden rounded-xl border border-white/5 hover:border-white/15 transition">
-                <img src="/screenshots/dashboard.png" alt="Panel Principal de Virtua FC" class="w-full group-hover:scale-[1.02] transition duration-300" loading="lazy">
-                <div class="bg-white/5 px-4 py-3">
-                    <p class="text-sm font-semibold text-slate-300">Panel Principal</p>
-                </div>
-            </button>
-            <button data-gallery="2" class="group block overflow-hidden rounded-xl border border-white/5 hover:border-white/15 transition">
-                <img src="/screenshots/lineup.png" alt="Gestión de Tácticas" class="w-full group-hover:scale-[1.02] transition duration-300" loading="lazy">
-                <div class="bg-white/5 px-4 py-3">
-                    <p class="text-sm font-semibold text-slate-300">Gestión de Tácticas</p>
-                </div>
-            </button>
-            <button data-gallery="3" class="group block overflow-hidden rounded-xl border border-white/5 hover:border-white/15 transition">
-                <img src="/screenshots/match.png" alt="Partido en Vivo" class="w-full group-hover:scale-[1.02] transition duration-300" loading="lazy">
-                <div class="bg-white/5 px-4 py-3">
-                    <p class="text-sm font-semibold text-slate-300">Partido en Vivo</p>
-                </div>
-            </button>
-            <button data-gallery="4" class="group block overflow-hidden rounded-xl border border-white/5 hover:border-white/15 transition">
-                <img src="/screenshots/squad.png" alt="Plantilla" class="w-full group-hover:scale-[1.02] transition duration-300" loading="lazy">
-                <div class="bg-white/5 px-4 py-3">
-                    <p class="text-sm font-semibold text-slate-300">Plantilla</p>
-                </div>
-            </button>
-            <button data-gallery="6" class="group block overflow-hidden rounded-xl border border-white/5 hover:border-white/15 transition">
-                <img src="/screenshots/scouting.png" alt="Scouting y Fichajes" class="w-full group-hover:scale-[1.02] transition duration-300" loading="lazy">
-                <div class="bg-white/5 px-4 py-3">
-                    <p class="text-sm font-semibold text-slate-300">Scouting y Fichajes</p>
-                </div>
-            </button>
-            <button data-gallery="7" class="group block overflow-hidden rounded-xl border border-white/5 hover:border-white/15 transition">
-                <img src="/screenshots/finances.png" alt="Finanzas del Club" class="w-full group-hover:scale-[1.02] transition duration-300" loading="lazy">
-                <div class="bg-white/5 px-4 py-3">
-                    <p class="text-sm font-semibold text-slate-300">Finanzas del Club</p>
-                </div>
-            </button>
-        </div>
-    </section>
-
     <!-- Open Source + Creator -->
     <section class="max-w-7xl mx-auto px-6 py-20">
         <div class="grid lg:grid-cols-2 gap-8">
@@ -359,38 +350,6 @@
         </a>
     </section>
 
-    <!-- Screenshot Gallery Modal -->
-    <div id="gallery-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true" aria-label="Galería de capturas">
-        <!-- Backdrop -->
-        <div id="gallery-backdrop" class="absolute inset-0 bg-black/90 backdrop-blur-xs transition-opacity duration-300 opacity-0"></div>
-
-        <!-- Close button -->
-        <button id="gallery-close" class="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition" aria-label="Cerrar galería">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-
-        <!-- Counter -->
-        <div id="gallery-counter" class="absolute top-5 left-1/2 -translate-x-1/2 text-sm text-slate-400 z-10"></div>
-
-        <!-- Content area -->
-        <div class="absolute inset-0 flex items-center justify-center px-4 sm:px-16">
-            <!-- Prev button -->
-            <button id="gallery-prev" class="absolute left-2 sm:left-4 z-10 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition" aria-label="Anterior">
-                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
-            </button>
-
-            <!-- Image + Caption -->
-            <div class="max-w-5xl w-full transition-opacity duration-200" id="gallery-content">
-                <img id="gallery-img" src="" alt="" class="w-full rounded-lg shadow-2xl">
-                <p id="gallery-caption" class="text-center text-sm text-slate-300 mt-4 font-semibold"></p>
-            </div>
-
-            <!-- Next button -->
-            <button id="gallery-next" class="absolute right-2 sm:right-4 z-10 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition" aria-label="Siguiente">
-                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
-            </button>
-        </div>
-    </div>
 
     <!-- Footer -->
     <footer class="max-w-7xl mx-auto px-6 py-12 border-t border-white/10">
@@ -452,90 +411,19 @@
     </script>
 
     <script>
-        const gallery = {
-            modal: document.getElementById('gallery-modal'),
-            backdrop: document.getElementById('gallery-backdrop'),
-            img: document.getElementById('gallery-img'),
-            caption: document.getElementById('gallery-caption'),
-            counter: document.getElementById('gallery-counter'),
-            content: document.getElementById('gallery-content'),
-            current: 0,
-            items: [],
+        const video = document.getElementById('promo-video');
+        const playBtn = document.getElementById('video-play-btn');
 
-            init() {
-                const buttons = document.querySelectorAll('[data-gallery]');
-                this.items = Array.from(buttons).map(btn => ({
-                    src: btn.querySelector('img').src,
-                    alt: btn.querySelector('img').alt,
-                    caption: btn.querySelector('p').textContent,
-                }));
+        playBtn.addEventListener('click', () => {
+            video.play();
+            playBtn.style.display = 'none';
+            video.setAttribute('controls', '');
+        });
 
-                buttons.forEach(btn => {
-                    btn.addEventListener('click', () => this.open(parseInt(btn.dataset.gallery)));
-                });
-
-                document.getElementById('gallery-close').addEventListener('click', () => this.close());
-                document.getElementById('gallery-prev').addEventListener('click', () => this.prev());
-                document.getElementById('gallery-next').addEventListener('click', () => this.next());
-                this.backdrop.addEventListener('click', () => this.close());
-                this.content.addEventListener('click', (e) => e.stopPropagation());
-
-                document.addEventListener('keydown', (e) => {
-                    if (this.modal.classList.contains('hidden')) return;
-                    if (e.key === 'Escape') this.close();
-                    if (e.key === 'ArrowLeft') this.prev();
-                    if (e.key === 'ArrowRight') this.next();
-                });
-            },
-
-            open(index) {
-                this.current = index;
-                this.show();
-                this.modal.classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
-                requestAnimationFrame(() => {
-                    this.backdrop.classList.remove('opacity-0');
-                    this.content.classList.remove('opacity-0');
-                });
-            },
-
-            close() {
-                this.backdrop.classList.add('opacity-0');
-                this.content.classList.add('opacity-0');
-                setTimeout(() => {
-                    this.modal.classList.add('hidden');
-                    document.body.style.overflow = '';
-                }, 300);
-            },
-
-            prev() {
-                this.current = (this.current - 1 + this.items.length) % this.items.length;
-                this.transition();
-            },
-
-            next() {
-                this.current = (this.current + 1) % this.items.length;
-                this.transition();
-            },
-
-            transition() {
-                this.content.classList.add('opacity-0');
-                setTimeout(() => {
-                    this.show();
-                    this.content.classList.remove('opacity-0');
-                }, 200);
-            },
-
-            show() {
-                const item = this.items[this.current];
-                this.img.src = item.src;
-                this.img.alt = item.alt;
-                this.caption.textContent = item.caption;
-                this.counter.textContent = `${this.current + 1} / ${this.items.length}`;
-            },
-        };
-
-        gallery.init();
+        video.addEventListener('ended', () => {
+            playBtn.style.display = '';
+            video.removeAttribute('controls');
+        });
     </script>
 
 </body>
