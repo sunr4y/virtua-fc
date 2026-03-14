@@ -1,3 +1,3 @@
 @props(['disabled' => false])
 
-<input type="checkbox" @disabled($disabled) {{ $attributes->merge(['class' => 'rounded border-slate-300 text-sky-600 focus:ring-sky-500']) }}>
+<input type="checkbox" @disabled($disabled) {{ $attributes->merge(['class' => 'rounded-sm border border-border-strong text-accent-blue focus:ring-accent-blue focus:ring-offset-surface-800']) }}>

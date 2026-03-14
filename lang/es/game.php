@@ -24,7 +24,9 @@ return [
     'set_lineup' => 'Alinear',
     'vs' => 'vs',
     'home' => 'Casa',
+    'home_abbr' => 'L',
     'away' => 'Fuera',
+    'away_abbr' => 'V',
     'no_form' => 'Sin historial',
     'form' => 'Forma',
 
@@ -41,6 +43,7 @@ return [
 
     // Standings
     'pts' => 'pts',
+    'team' => 'Equipo',
     'played_abbr' => 'PJ',
     'won_abbr' => 'G',
     'drawn_abbr' => 'E',
@@ -78,6 +81,9 @@ return [
     'mentality_tip_defensive' => 'Tus goles :own, goles rival :opponent. Cierra el partido.',
     'mentality_tip_balanced' => 'Sin modificadores. Juego equilibrado.',
     'mentality_tip_attacking' => 'Tus goles :own, goles rival :opponent. Riesgo y recompensa.',
+    'mentality_summary_defensive' => 'Prioriza la solidez defensiva sobre el ataque.',
+    'mentality_summary_balanced' => 'Equilibrio entre ataque y defensa.',
+    'mentality_summary_attacking' => 'Prioriza el ataque asumiendo más riesgo defensivo.',
 
     // Playing Style
     'style_possession' => 'Posesión',
@@ -164,6 +170,7 @@ return [
     'weeks_remaining' => ':count semana restante|:count semanas restantes',
 
     // Calendar
+    'record' => 'Registro',
     'win_rate' => ':percent% victorias',
     'goals' => 'Goles',
     'scored' => 'Marcados',
@@ -227,6 +234,22 @@ return [
     'live_skip' => 'Saltar',
     'live_other_results' => 'Otros',
     'live_continue_dashboard' => 'Continuar',
+    'live_label' => 'En vivo',
+    'live_paused' => 'Pausado',
+    'live_continue' => 'Continuar',
+    'live_result_win' => 'Victoria',
+    'live_result_draw' => 'Empate',
+    'live_result_loss' => 'Derrota',
+    'processing_short' => 'Espera...',
+    'live_tab_events' => 'Eventos',
+    'live_tab_stats' => 'Estadísticas',
+    'live_tab_lineups' => 'Alineaciones',
+    'live_tab_results' => 'Resultados',
+    'live_stat_goals' => 'Goles',
+    'live_stat_cards' => 'Tarjetas',
+    'live_stat_injuries' => 'Lesiones',
+    'live_stat_subs' => 'Sustituciones',
+    'live_lineup_starters' => 'Once titular',
     'live_injury_alert' => 'se ha lesionado. Realiza una sustitución.',
     'player_booked' => 'Amonestado',
     'ovr_fitness' => 'Forma',

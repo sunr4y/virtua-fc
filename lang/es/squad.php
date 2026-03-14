@@ -101,6 +101,7 @@ return [
     'coach_low_morale' => ':count jugador(es) con moral baja. Tendrán peor rendimiento en el partido.',
     'coach_bench_frustration' => ':count jugador(es) de calidad sin jugar y perdiendo moral. Rota para mantenerlos contentos.',
     'coach_opponent_expected_label' => 'Previsto',
+    'coach_full_report' => 'Ver Informe Completo',
     'coach_opponent_defensive_setup' => 'Rival previsto con :formation (:mentality). Considera un enfoque ofensivo para desbloquearlos.',
     'coach_opponent_attacking_setup' => 'Rival previsto con :formation (:mentality). Dejarán espacios — una defensa sólida puede aprovecharlos.',
     'coach_opponent_deep_block' => 'Rival con 5 defensas. Amplitud y paciencia serán clave.',
@@ -208,6 +209,7 @@ return [
     'academy_incoming' => ':min-:max nuevos canteranos esperados',
     'academy_on_loan' => 'Cedido',
     'academy_seasons' => ':count temporada|:count temporadas',
+    'academy_phase_label' => 'Fase',
     'academy_phase_unknown' => 'Habilidades desconocidas',
     'academy_phase_glimpse' => 'Habilidades visibles',
     'academy_phase_verdict' => 'Potencial revelado',
@@ -323,8 +325,32 @@ return [
     'assigned' => 'Asignado',
     'available_number' => 'Disponible',
 
+    // Column headers (new design)
+    'player' => 'Jugador',
+    'pos' => 'Pos',
+    'rating' => 'Nota',
+    'key_stats' => 'Estadísticas',
+    'players_count' => 'jugadores',
+    'dev_status_label' => 'Estado',
+
+    // Morale labels
+    'morale_ecstatic' => 'Eufórico',
+    'morale_happy' => 'Contento',
+    'morale_content' => 'Normal',
+    'morale_frustrated' => 'Frustrado',
+    'morale_unhappy' => 'Descontento',
+
     // Lineup tabs & labels
     'tactics' => 'Táctica',
     'defensive_line' => 'Línea Defensiva',
     'unsaved_changes' => 'Cambios sin guardar',
+
+    // Lineup redesign
+    'opponent_goal' => 'Portería Rival',
+    'available_players' => 'Jugadores Disponibles',
+    'substitutes' => 'Suplentes',
+    'lineup_overview' => 'Resumen de Alineación',
+
+    // Dorsales
+    'number' => 'Dorsal',
 ];

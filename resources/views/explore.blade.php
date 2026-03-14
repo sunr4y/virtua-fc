@@ -5,18 +5,15 @@
         <x-game-header :game="$game" :next-match="$game->next_match"></x-game-header>
     </x-slot>
 
-    <div>
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            {{-- Flash Messages --}}
-            @if(session('success'))
-            <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
-                {{ session('success') }}
-            </div>
-            @endif
+    <div class="max-w-7xl mx-auto px-4 pb-8">
+        <div class="mt-6 mb-6">
+            <h2 class="font-heading text-2xl lg:text-3xl font-bold uppercase tracking-wide text-text-primary">{{ __('app.transfers') }}</h2>
+        </div>
 
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-4 sm:p-6 md:p-8">
-                    @include('partials.transfers-header')
+        {{-- Flash Messages --}}
+        <x-flash-message type="success" :message="session('success')" class="mb-4" />
+
+        @include('partials.transfers-header')
 
                     {{-- Tab Navigation --}}
                     <x-section-nav :items="[
@@ -32,24 +29,24 @@
                          x-init="init()">
 
                         {{-- Hint --}}
-                        <p class="text-sm text-slate-500 mb-5">{{ __('transfers.explore_hint') }}</p>
+                        <p class="text-sm text-text-muted mb-5">{{ __('transfers.explore_hint') }}</p>
 
                         {{-- Competition Selector --}}
-                        <div class="flex overflow-x-auto scrollbar-hide gap-2 pb-3 mb-5 border-b border-slate-100">
+                        <div class="flex overflow-x-auto scrollbar-hide gap-2 pb-3 mb-5 border-b border-border-default">
                             <template x-for="comp in competitions" :key="comp.id">
-                                <button @click="selectCompetition(comp)"
-                                        :class="selectedCompetition?.id === comp.id
-                                            ? 'bg-slate-900 text-white border-slate-900'
-                                            : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400'"
-                                        class="shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-colors min-h-[44px]">
+                                <x-pill-button @click="selectCompetition(comp)"
+                                        x-bind:class="selectedCompetition?.id === comp.id
+                                            ? 'bg-accent-blue/15 text-accent-blue border-accent-blue/30'
+                                            : 'bg-surface-800 text-text-body border-border-default hover:border-border-strong'"
+                                        class="shrink-0 gap-2 rounded-lg border min-h-[44px]">
                                     <template x-if="comp.country">
-                                        <img :src="'/flags/' + comp.flag + '.svg'" class="w-5 h-3.5 rounded-sm shadow-sm" :alt="comp.country">
+                                        <img :src="'/flags/' + comp.flag + '.svg'" class="w-5 h-3.5 rounded-xs shadow-xs" :alt="comp.country">
                                     </template>
                                     <span x-text="comp.name"></span>
                                     <span class="text-xs px-1.5 py-0.5 rounded-full"
-                                          :class="selectedCompetition?.id === comp.id ? 'bg-white/20' : 'bg-slate-100 text-slate-500'"
+                                          :class="selectedCompetition?.id === comp.id ? 'bg-accent-blue/20 text-accent-blue' : 'bg-surface-700 text-text-muted'"
                                           x-text="comp.teamCount"></span>
-                                </button>
+                                </x-pill-button>
                             </template>
                         </div>
 
@@ -57,17 +54,17 @@
                         <div class="flex flex-col md:flex-row gap-6">
 
                             {{-- Mobile tab toggle --}}
-                            <div class="flex md:hidden border-b border-slate-200 mb-2">
-                                <button @click="mobileView = 'teams'"
-                                        :class="mobileView === 'teams' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-500'"
-                                        class="flex-1 text-center py-2.5 text-sm font-medium border-b-2 transition-colors min-h-[44px]">
+                            <div class="flex md:hidden border-b border-border-strong mb-2">
+                                <x-tab-button @click="mobileView = 'teams'"
+                                        x-bind:class="mobileView === 'teams' ? 'border-accent-blue text-accent-blue' : 'border-transparent text-text-muted'"
+                                        class="flex-1 text-center min-h-[44px]">
                                     {{ __('transfers.explore_mobile_teams') }}
-                                </button>
-                                <button @click="mobileView = 'squad'"
-                                        :class="mobileView === 'squad' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-500'"
-                                        class="flex-1 text-center py-2.5 text-sm font-medium border-b-2 transition-colors min-h-[44px]">
+                                </x-tab-button>
+                                <x-tab-button @click="mobileView = 'squad'"
+                                        x-bind:class="mobileView === 'squad' ? 'border-accent-blue text-accent-blue' : 'border-transparent text-text-muted'"
+                                        class="flex-1 text-center min-h-[44px]">
                                     {{ __('transfers.explore_mobile_squad') }}
-                                </button>
+                                </x-tab-button>
                             </div>
 
                             {{-- Left column: Teams list --}}
@@ -77,7 +74,7 @@
                                 {{-- Loading state --}}
                                 <template x-if="loadingTeams">
                                     <div class="flex items-center justify-center py-12">
-                                        <svg class="animate-spin h-6 w-6 text-slate-400" fill="none" viewBox="0 0 24 24">
+                                        <svg class="animate-spin h-6 w-6 text-text-secondary" fill="none" viewBox="0 0 24 24">
                                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                         </svg>
@@ -90,12 +87,12 @@
                                         <template x-for="team in teams" :key="team.id">
                                             <button @click="selectTeam(team)"
                                                     :class="selectedTeam?.id === team.id
-                                                        ? 'bg-sky-50 border-sky-200 ring-1 ring-sky-200'
-                                                        : 'bg-white border-slate-100 hover:bg-slate-50'"
+                                                        ? 'bg-accent-blue/10 border-accent-blue/20 ring-1 ring-accent-blue/20'
+                                                        : 'bg-surface-800 border-border-default hover:bg-surface-700/50'"
                                                     class="w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left min-h-[44px]">
                                                 <img :src="team.image" :alt="team.name" class="w-8 h-8 shrink-0 object-contain">
                                                 <div class="min-w-0">
-                                                    <div class="text-sm font-medium text-slate-900 truncate" x-text="team.name"></div></div>
+                                                    <div class="text-sm font-medium text-text-primary truncate" x-text="team.name"></div></div>
                                             </button>
                                         </template>
                                     </div>
@@ -103,18 +100,18 @@
 
                                 {{-- Empty state --}}
                                 <template x-if="!loadingTeams && teams.length === 0 && selectedCompetition">
-                                    <p class="text-sm text-slate-400 text-center py-8">{{ __('transfers.explore_no_teams') }}</p>
+                                    <p class="text-sm text-text-secondary text-center py-8">{{ __('transfers.explore_no_teams') }}</p>
                                 </template>
                             </div>
 
                             {{-- Right column: Squad view --}}
-                            <div class="md:w-2/3 md:border-l md:border-slate-100 md:pl-6"
+                            <div class="md:w-2/3 md:border-l md:border-border-default md:pl-6"
                                  :class="{ 'hidden md:block': mobileView === 'teams' }">
 
                                 {{-- Loading state --}}
                                 <template x-if="loadingSquad">
                                     <div class="flex items-center justify-center py-12">
-                                        <svg class="animate-spin h-6 w-6 text-slate-400" fill="none" viewBox="0 0 24 24">
+                                        <svg class="animate-spin h-6 w-6 text-text-secondary" fill="none" viewBox="0 0 24 24">
                                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                         </svg>
@@ -124,10 +121,10 @@
                                 {{-- Empty state: no team selected --}}
                                 <template x-if="!loadingSquad && !squadHtml">
                                     <div class="flex flex-col items-center justify-center py-16 text-center">
-                                        <svg class="w-16 h-16 text-slate-200 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-16 h-16 text-text-body mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                         </svg>
-                                        <p class="text-sm text-slate-400">{{ __('transfers.explore_select_team') }}</p>
+                                        <p class="text-sm text-text-secondary">{{ __('transfers.explore_select_team') }}</p>
                                     </div>
                                 </template>
 
@@ -136,9 +133,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script>

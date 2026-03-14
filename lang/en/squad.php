@@ -101,6 +101,7 @@ return [
     'coach_low_morale' => ':count player(s) with low morale. They\'ll perform worse in the match.',
     'coach_bench_frustration' => ':count quality player(s) not playing and losing morale. Rotate to keep them happy.',
     'coach_opponent_expected_label' => 'Expected',
+    'coach_full_report' => 'View Full Report',
     'coach_opponent_defensive_setup' => 'Opponent expected to play :formation (:mentality). Consider an attacking approach to break them down.',
     'coach_opponent_attacking_setup' => 'Opponent expected to play :formation (:mentality). They\'ll leave space — a solid defense can exploit this.',
     'coach_opponent_deep_block' => 'Opponent playing with 5 defenders. Width and patience will be key.',
@@ -208,6 +209,7 @@ return [
     'academy_incoming' => ':min-:max new academy prospects expected',
     'academy_on_loan' => 'On Loan',
     'academy_seasons' => ':count season|:count seasons',
+    'academy_phase_label' => 'Phase',
     'academy_phase_unknown' => 'Abilities unknown',
     'academy_phase_glimpse' => 'Abilities visible',
     'academy_phase_verdict' => 'Potential revealed',
@@ -323,8 +325,32 @@ return [
     'assigned' => 'Assigned',
     'available_number' => 'Available',
 
+    // Column headers (new design)
+    'player' => 'Player',
+    'pos' => 'Pos',
+    'rating' => 'Rating',
+    'key_stats' => 'Key Stats',
+    'players_count' => 'players',
+    'dev_status_label' => 'Status',
+
+    // Morale labels
+    'morale_ecstatic' => 'Ecstatic',
+    'morale_happy' => 'Happy',
+    'morale_content' => 'Content',
+    'morale_frustrated' => 'Frustrated',
+    'morale_unhappy' => 'Unhappy',
+
     // Lineup tabs & labels
     'tactics' => 'Tactics',
     'defensive_line' => 'Defensive Line',
     'unsaved_changes' => 'Unsaved changes',
+
+    // Lineup redesign
+    'opponent_goal' => 'Opponent Goal',
+    'available_players' => 'Available Players',
+    'substitutes' => 'Substitutes',
+    'lineup_overview' => 'Lineup Overview',
+
+    // Number
+    'number' => 'Number',
 ];

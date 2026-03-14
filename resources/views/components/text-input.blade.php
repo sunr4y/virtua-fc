@@ -1,3 +1,3 @@
 @props(['disabled' => false, 'readonly' => false])
 
-<input @disabled($disabled) @readonly($readonly) {{ $attributes->merge(['class' => 'border-slate-300 focus:border-sky-500 focus:ring-sky-500 rounded-lg shadow-sm text-sm']) }}>
+<input @disabled($disabled) @readonly($readonly) {{ $attributes->merge(['class' => 'bg-surface-700 border border-border-strong text-text-primary placeholder-text-muted focus:border-accent-blue/50 focus:ring-accent-blue rounded-lg shadow-xs text-sm']) }}>

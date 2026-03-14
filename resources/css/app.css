@@ -1,6 +1,579 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@800&family=Inter:wght@300;400;500;600;700&display=swap')
+layer(base);
+
+@import 'tailwindcss';
+
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+/* ── Theme mode custom properties ── */
+:root {
+  --surface-600: #334155;
+  --surface-700: #1e293b;
+  --surface-800: #0f172a;
+  --surface-900: #0b1120;
+  --text-primary: #ffffff;
+  --text-body: #cbd5e1;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-faint: #475569;
+  --border-default: rgba(255, 255, 255, 0.05);
+  --border-strong: rgba(255, 255, 255, 0.10);
+  --scrollbar-track: #0f172a;
+  --scrollbar-thumb: #334155;
+  --ring-offset-bg: #0b1120;
+  --stat-bar-bg: rgba(255, 255, 255, 0.06);
+  --shadow-card: none;
+  --accent-tint: rgba(59, 130, 246, 0.1);
+  --accent-tint-border: rgba(59, 130, 246, 0.2);
+  --success-tint: rgba(34, 197, 94, 0.1);
+  --success-tint-border: rgba(34, 197, 94, 0.2);
+  --warning-tint: rgba(245, 158, 11, 0.1);
+  --warning-tint-border: rgba(245, 158, 11, 0.2);
+  --bar-track: #334155;
+  --overlay-bg: rgba(0, 0, 0, 0.8);
+  --goal-highlight: rgba(255, 255, 255, 0.04);
+  --penalty-text: #d8b4fe;
+  --penalty-score: #e9d5ff;
+}
+
+.light {
+  --surface-600: #e2e8f0;
+  --surface-700: #f1f5f9;
+  --surface-800: #f8fafc;
+  --surface-900: #ffffff;
+  --text-primary: #0f172a;
+  --text-body: #334155;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-faint: #94a3b8;
+  --border-default: rgba(0, 0, 0, 0.07);
+  --border-strong: rgba(0, 0, 0, 0.12);
+  --scrollbar-track: #f1f5f9;
+  --scrollbar-thumb: #cbd5e1;
+  --ring-offset-bg: #ffffff;
+  --stat-bar-bg: rgba(0, 0, 0, 0.06);
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --accent-tint: rgba(59, 130, 246, 0.06);
+  --accent-tint-border: rgba(59, 130, 246, 0.15);
+  --success-tint: rgba(34, 197, 94, 0.06);
+  --success-tint-border: rgba(34, 197, 94, 0.15);
+  --warning-tint: rgba(245, 158, 11, 0.06);
+  --warning-tint-border: rgba(245, 158, 11, 0.15);
+  --bar-track: #e2e8f0;
+  --overlay-bg: rgba(0, 0, 0, 0.5);
+  --goal-highlight: rgba(0, 0, 0, 0.04);
+  --penalty-text: #7c3aed;
+  --penalty-score: #6b21a8;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  background-color: transparent !important;
+  border: 1.5px solid var(--text-muted) !important;
+}
+
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+  background-color: var(--color-accent-blue) !important;
+  border-color: var(--color-accent-blue) !important;
+}
+
+@theme {
+  --font-heading:
+    Barlow Condensed, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-body:
+    Inter, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-sans:
+    Inter, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+  --color-surface-600: var(--surface-600);
+  --color-surface-700: var(--surface-700);
+  --color-surface-800: var(--surface-800);
+  --color-surface-900: var(--surface-900);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-body: var(--text-body);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-faint: var(--text-faint);
+
+  --color-border-default: var(--border-default);
+  --color-border-strong: var(--border-strong);
+
+  --color-accent-blue: #3b82f6;
+  --color-accent-gold: #f59e0b;
+  --color-accent-green: #22c55e;
+  --color-accent-red: #ef4444;
+  --color-accent-orange: #f97316;
+
+  --color-bar-track: var(--bar-track);
+  --color-overlay-bg: var(--overlay-bg);
+  --color-accent-tint: var(--accent-tint);
+  --color-accent-tint-border: var(--accent-tint-border);
+  --color-success-tint: var(--success-tint);
+  --color-success-tint-border: var(--success-tint-border);
+  --color-warning-tint: var(--warning-tint);
+  --color-warning-tint-border: var(--warning-tint-border);
+
+  --color-pitch-dark: #1a5c2a;
+  --color-pitch-base: #1e6b31;
+  --color-pitch-light: #22783a;
+  --color-pitch-line: rgba(255, 255, 255, 0.25);
+
+  --color-goal-highlight: var(--goal-highlight);
+  --color-penalty-text: var(--penalty-text);
+  --color-penalty-score: var(--penalty-score);
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+@utility dual-range {
+  /* Dual-range slider (scouting) */
+  @apply relative h-6 flex items-center;
+  & input[type='range'] {
+    @apply absolute w-full pointer-events-none appearance-none bg-transparent h-1.5;
+  }
+  & input[type='range']::-webkit-slider-thumb {
+    @apply pointer-events-auto appearance-none w-4 h-4 rounded-full bg-accent-blue border-2 border-surface-800 shadow-sm cursor-pointer;
+  }
+  & input[type='range']::-moz-range-thumb {
+    @apply pointer-events-auto appearance-none w-4 h-4 rounded-full bg-accent-blue border-2 border-surface-800 shadow-sm cursor-pointer;
+  }
+  & .track {
+    @apply absolute w-full h-1.5 rounded-full bg-surface-600;
+  }
+  & .track-fill {
+    @apply absolute h-1.5 rounded-full bg-accent-blue;
+  }
+}
+
+@utility track {
+  .dual-range & {
+    @apply absolute w-full h-1.5 rounded-full bg-surface-600;
+  }
+  .tier-range & {
+    @apply absolute w-full h-1.5 rounded-full bg-surface-600;
+  }
+}
+
+@utility track-fill {
+  .dual-range & {
+    @apply absolute h-1.5 rounded-full bg-accent-blue;
+  }
+  .tier-range & {
+    @apply absolute h-1.5 rounded-full bg-accent-blue;
+  }
+}
+
+@utility tier-range {
+  /* Tier range slider (budget allocation) */
+  @apply relative h-6 flex items-center;
+  & .track {
+    @apply absolute w-full h-1.5 rounded-full bg-surface-600;
+  }
+  & .track-fill {
+    @apply absolute h-1.5 rounded-full bg-accent-blue;
+  }
+  & input[type='range'] {
+    @apply absolute w-full appearance-none bg-transparent h-1.5 cursor-pointer;
+  }
+  & input[type='range']::-webkit-slider-thumb {
+    @apply pointer-events-auto appearance-none w-4 h-4 rounded-full bg-accent-blue border-2 border-surface-800 shadow-sm cursor-pointer;
+  }
+  & input[type='range']::-moz-range-thumb {
+    @apply pointer-events-auto appearance-none w-4 h-4 rounded-full bg-accent-blue border-2 border-surface-800 shadow-sm cursor-pointer;
+  }
+}
+
+@utility rating-elite {
+  /* Rating badge colors */
+  background: #22c55e;
+  color: #052e16;
+}
+
+@utility rating-good {
+  background: #84cc16;
+  color: #1a2e05;
+}
+
+@utility rating-average {
+  background: #f59e0b;
+  color: #451a03;
+}
+
+@utility rating-below {
+  background: #f97316;
+  color: #431407;
+}
+
+@utility rating-poor {
+  background: #ef4444;
+  color: #450a0a;
+}
+
+@utility nav-item {
+  /* Nav item with active underline */
+  position: relative;
+  &.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #3b82f6;
+  }
+}
+
+@utility active {
+  &.nav-item::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #3b82f6;
+  }
+  &.formation-option {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+  }
+  &.mentality-btn {
+    box-shadow: 0 0 0 1px currentColor;
+  }
+}
+
+@utility player-row {
+  /* Player row hover */
+  transition: all 0.15s ease;
+  &:hover {
+    background: rgba(59, 130, 246, 0.05);
+  }
+  &:hover .rating-badge {
+    transform: scale(1.08);
+  }
+}
+
+@utility fitness-bar {
+  /* Fitness bar animation */
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@utility stat-bar-track {
+  /* Stat bar */
+  height: 3px;
+  background: var(--stat-bar-bg);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+@utility stat-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@utility morale-dot {
+  /* Morale indicator dot */
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+@utility pitch {
+  background: var(--color-pitch-base);
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+@utility pitch-center-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--color-pitch-line);
+  pointer-events: none;
+}
+
+@utility pitch-center-circle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 80px;
+  height: 80px;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--color-pitch-line);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+@utility pitch-box-top {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 55%;
+  height: 15%;
+  border-bottom: 1px solid var(--color-pitch-line);
+  border-left: 1px solid var(--color-pitch-line);
+  border-right: 1px solid var(--color-pitch-line);
+  pointer-events: none;
+}
+
+@utility pitch-box-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 55%;
+  height: 15%;
+  border-top: 1px solid var(--color-pitch-line);
+  border-left: 1px solid var(--color-pitch-line);
+  border-right: 1px solid var(--color-pitch-line);
+  pointer-events: none;
+}
+
+@utility pitch-six-top {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30%;
+  height: 6%;
+  border-bottom: 1px solid var(--color-pitch-line);
+  border-left: 1px solid var(--color-pitch-line);
+  border-right: 1px solid var(--color-pitch-line);
+  pointer-events: none;
+}
+
+@utility pitch-six-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30%;
+  height: 6%;
+  border-top: 1px solid var(--color-pitch-line);
+  border-left: 1px solid var(--color-pitch-line);
+  border-right: 1px solid var(--color-pitch-line);
+  pointer-events: none;
+}
+
+@utility pitch-arc-top {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  clip-path: inset(15% 0 50% 0);
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 11%;
+    width: 80px;
+    height: 80px;
+    transform: translate(-50%, -50%);
+    border: 1px solid var(--color-pitch-line);
+    border-radius: 50%;
+  }
+}
+
+@utility pitch-arc-bottom {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  clip-path: inset(50% 0 15% 0);
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 11%;
+    width: 80px;
+    height: 80px;
+    transform: translate(-50%, 50%);
+    border: 1px solid var(--color-pitch-line);
+    border-radius: 50%;
+  }
+}
+
+@utility pitch-penalty-spot-top {
+  position: absolute;
+  left: 50%;
+  top: 11%;
+  width: 6px;
+  height: 6px;
+  transform: translate(-50%, -50%);
+  background: var(--color-pitch-line);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+@utility pitch-penalty-spot-bottom {
+  position: absolute;
+  left: 50%;
+  bottom: 11%;
+  width: 6px;
+  height: 6px;
+  transform: translate(-50%, 50%);
+  background: var(--color-pitch-line);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+@utility player-marker {
+  /* Player marker on pitch */
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
+  z-index: 10;
+  &:hover {
+    transform: translate(-50%, -50%) scale(1.12);
+    z-index: 20;
+  }
+}
+
+@utility player-dot {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  @media (min-width: 1024px) {
+    width: 48px;
+    height: 48px;
+    font-size: 15px;
+  }
+}
+
+@utility player-label {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  margin-top: 3px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  @media (min-width: 1024px) {
+    font-size: 11px;
+    margin-top: 4px;
+  }
+}
+
+@utility player-rating-mini {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+@utility player-fitness-ring {
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+}
+
+@utility formation-option {
+  /* Formation & mentality selectors */
+  transition: all 0.15s ease;
+  &.active {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+  }
+}
+
+@utility mentality-btn {
+  transition: all 0.15s ease;
+  &.active {
+    box-shadow: 0 0 0 1px currentColor;
+  }
+}
+
+@utility bench-card {
+  /* Bench card */
+  transition: all 0.15s ease;
+  &:hover {
+    background: rgba(59, 130, 246, 0.08);
+    border-color: rgba(59, 130, 246, 0.2);
+  }
+}
+
+@utility tip-card {
+  /* Tip card gradient */
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.08),
+    rgba(59, 130, 246, 0.02)
+  );
+  border: 1px solid rgba(59, 130, 246, 0.15);
+}
+
+@utility rating-badge {
+  /* Rating badge hover animation */
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+  .player-row:hover & {
+    transform: scale(1.08);
+  }
+}
+
+@utility bottom-nav {
+  /* Bottom nav blur */
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
 
 @layer base {
     @media (max-width: 767px) {
@@ -12,53 +585,43 @@
     [x-cloak] {
         display: none !important;
     }
+
+    .tippy-box {
+        background-color: var(--surface-600) !important;
+        border: 1px solid var(--border-strong) !important;
+        border-radius: 0.5rem !important;
+        color: var(--text-primary) !important;
+    }
+
+    .tippy-box > .tippy-arrow::before {
+        color: var(--surface-600) !important;
+    }
+
+    .tippy-content {
+        font-size: 0.75rem;
+    }
 }
 
-@layer components {
-    .dual-range {
-        @apply relative h-6 flex items-center;
-    }
-    .dual-range input[type="range"] {
-        @apply absolute w-full pointer-events-none appearance-none bg-transparent h-1.5;
-    }
-    .dual-range input[type="range"]::-webkit-slider-thumb {
-        @apply pointer-events-auto appearance-none w-4 h-4 rounded-full bg-sky-500 border-2 border-white shadow cursor-pointer;
-    }
-    .dual-range input[type="range"]::-moz-range-thumb {
-        @apply pointer-events-auto appearance-none w-4 h-4 rounded-full bg-sky-500 border-2 border-white shadow cursor-pointer;
-    }
-    .dual-range .track {
-        @apply absolute w-full h-1.5 rounded-full bg-slate-200;
-    }
-    .dual-range .track-fill {
-        @apply absolute h-1.5 rounded-full bg-sky-400;
-    }
-
-    .tier-range {
-        @apply relative h-6 flex items-center;
-    }
-    .tier-range .track {
-        @apply absolute w-full h-1.5 rounded-full bg-slate-200;
-    }
-    .tier-range .track-fill {
-        @apply absolute h-1.5 rounded-full bg-sky-400;
-    }
-    .tier-range input[type="range"] {
-        @apply absolute w-full appearance-none bg-transparent h-1.5 cursor-pointer;
-    }
-    .tier-range input[type="range"]::-webkit-slider-thumb {
-        @apply pointer-events-auto appearance-none w-4 h-4 rounded-full bg-sky-500 border-2 border-white shadow cursor-pointer;
-    }
-    .tier-range input[type="range"]::-moz-range-thumb {
-        @apply pointer-events-auto appearance-none w-4 h-4 rounded-full bg-sky-500 border-2 border-white shadow cursor-pointer;
-    }
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 4px;
 }
 
 /* Hide scrollbar for horizontal-scroll nav tabs */
-.scrollbar-hide::-webkit-scrollbar {
+.scrollbar-hide::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
     display: none;
 }
-.scrollbar-hide {
+.scrollbar-hide,
+.no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
 }

@@ -24,7 +24,9 @@ return [
     'set_lineup' => 'Set Lineup',
     'vs' => 'vs',
     'home' => 'Home',
+    'home_abbr' => 'H',
     'away' => 'Away',
+    'away_abbr' => 'A',
     'no_form' => 'No history',
     'form' => 'Form',
 
@@ -41,6 +43,7 @@ return [
 
     // Standings
     'pts' => 'pts',
+    'team' => 'Team',
     'played_abbr' => 'P',
     'won_abbr' => 'W',
     'drawn_abbr' => 'D',
@@ -78,6 +81,9 @@ return [
     'mentality_tip_defensive' => 'Your goals :own, opponent goals :opponent. Shut the game down.',
     'mentality_tip_balanced' => 'No modifiers. Balanced play.',
     'mentality_tip_attacking' => 'Your goals :own, opponent goals :opponent. Risk and reward.',
+    'mentality_summary_defensive' => 'Prioritize defensive solidity over attack.',
+    'mentality_summary_balanced' => 'Balance between attack and defense.',
+    'mentality_summary_attacking' => 'Prioritize attack at the cost of defensive risk.',
 
     // Playing Style
     'style_possession' => 'Possession',
@@ -164,6 +170,7 @@ return [
     'weeks_remaining' => ':count week remaining|:count weeks remaining',
 
     // Calendar
+    'record' => 'Record',
     'win_rate' => ':percent% win rate',
     'goals' => 'Goals',
     'scored' => 'Scored',
@@ -227,6 +234,22 @@ return [
     'live_skip' => 'Skip',
     'live_other_results' => 'Others',
     'live_continue_dashboard' => 'Continue',
+    'live_label' => 'Live',
+    'live_paused' => 'Paused',
+    'live_continue' => 'Continue',
+    'live_result_win' => 'Win',
+    'live_result_draw' => 'Draw',
+    'live_result_loss' => 'Defeat',
+    'processing_short' => 'Wait...',
+    'live_tab_events' => 'Events',
+    'live_tab_stats' => 'Stats',
+    'live_tab_lineups' => 'Lineups',
+    'live_tab_results' => 'Results',
+    'live_stat_goals' => 'Goals',
+    'live_stat_cards' => 'Cards',
+    'live_stat_injuries' => 'Injuries',
+    'live_stat_subs' => 'Substitutions',
+    'live_lineup_starters' => 'Starting XI',
     'live_injury_alert' => 'has been injured. Make a substitution.',
     'player_booked' => 'Booked',
     'ovr_fitness' => 'Fitness',
