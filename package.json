@@ -19,6 +19,6 @@
     },
     "dependencies": {
         "@ryangjchandler/alpine-tooltip": "^2.0.1",
-        "html2canvas": "^1.4.1"
+        "modern-screenshot": "^4.6.8"
     }
 }

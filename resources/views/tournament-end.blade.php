@@ -597,7 +597,7 @@ $awayGoalLines = $formatGoalGroup($awayGoals);
             {{-- ============================================ --}}
             <div class="mt-10 mb-10" x-data="shareCard()">
 
-                {{-- Hidden share card for html2canvas capture --}}
+                {{-- Hidden share card for image capture --}}
                 <div x-ref="shareCard" style="display: none;">
                     <x-share-card
                         :team="$game->team"

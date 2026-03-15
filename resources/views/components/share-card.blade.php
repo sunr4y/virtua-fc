@@ -17,7 +17,7 @@ $resultColorMap = [
 $colors = $resultColorMap[$resultLabel] ?? ['bg' => '#334155', 'text' => '#FFFFFF', 'accent' => '#94a3b8'];
 @endphp
 
-{{-- Share Card: self-contained with inline styles for html2canvas --}}
+{{-- Share Card: self-contained with inline styles for image capture --}}
 <div style="width: 440px; height: 660px; background: linear-gradient(145deg, {{ $colors['bg'] }}, #0f172a 60%); border-radius: 20px; overflow: hidden; font-family: 'Barlow Semi Condensed', sans-serif; position: relative; color: {{ $colors['text'] }};">
 
     {{-- Decorative circles --}}

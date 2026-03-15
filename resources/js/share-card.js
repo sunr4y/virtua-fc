@@ -1,4 +1,4 @@
-import html2canvas from 'html2canvas';
+import { domToPng } from 'modern-screenshot';
 
 export default () => ({
     generating: false,
@@ -19,11 +19,8 @@ export default () => ({
             cardEl.style.left = '-9999px';
             cardEl.style.display = 'block';
 
-            const canvas = await html2canvas(cardEl, {
-                backgroundColor: null,
+            this.imageUrl = await domToPng(cardEl, {
                 scale: 2,
-                useCORS: true,
-                allowTaint: true,
                 width: 440,
                 height: 660,
             });
@@ -33,7 +30,6 @@ export default () => ({
             cardEl.style.position = '';
             cardEl.style.left = '';
 
-            this.imageUrl = canvas.toDataURL('image/png');
             this.ready = true;
         } catch (error) {
             console.error('Share card generation failed:', error);
