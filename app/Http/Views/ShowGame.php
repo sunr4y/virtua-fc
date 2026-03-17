@@ -68,9 +68,9 @@ class ShowGame
                 ]),
                 'season_complete' => redirect()->route('game.season-end', $gameId),
                 'done' => redirect()->route('show-game', $gameId),
-                'blocked' => $result->pendingAction && $result->pendingAction['route']
+                'blocked' => $result->pendingAction && ($result->pendingAction['route'] ?? null)
                     ? redirect()->route($result->pendingAction['route'], $gameId)->with('warning', __('messages.action_required'))
-                    : redirect()->route('show-game', $gameId)->with('warning', __('messages.action_required')),
+                    : redirect()->route('show-game', $gameId)->with('warning', $result->pendingAction['message'] ?? __('messages.action_required')),
             };
         }
 

@@ -72,6 +72,14 @@ class MatchdayOrchestrator
             while ($batch = $this->matchdayService->getNextMatchBatch($game)) {
                 $result = $this->processBatch($game, $batch);
 
+                if ($result['insufficientPlayers'] ?? false) {
+                    return MatchdayAdvanceResult::blocked([
+                        'type' => 'insufficient_players',
+                        'route' => null,
+                        'message' => __('messages.insufficient_players'),
+                    ]);
+                }
+
                 if ($result['playerMatch']) {
                     $this->autoSimulateRemainingBatches($game);
 
@@ -132,7 +140,7 @@ class MatchdayOrchestrator
     /**
      * Process a single batch of matches: load players, simulate, process results.
      *
-     * @return array{playerMatch: ?GameMatch}
+     * @return array{playerMatch: ?GameMatch, insufficientPlayers: ?bool}
      */
     private function processBatch(Game $game, array $batch): array
     {
@@ -172,6 +180,18 @@ class MatchdayOrchestrator
 
         // --- Ensure lineups ---
         $this->lineupService->ensureLineupsForMatches($matches, $game, $allPlayers, $suspendedPlayerIds, $clubProfiles);
+
+        // --- Check minimum players (7 required per FIFA rules) ---
+        $playerMatch = $matches->first(fn ($m) => $m->involvesTeam($game->team_id));
+        if ($playerMatch) {
+            $side = $playerMatch->isHomeTeam($game->team_id) ? 'home' : 'away';
+            $lineupField = $side . '_lineup';
+            $lineupCount = count($playerMatch->$lineupField ?? []);
+
+            if ($lineupCount < 7) {
+                return ['playerMatch' => null, 'insufficientPlayers' => true];
+            }
+        }
 
         // --- Simulate matches ---
         $matchResults = $this->simulateMatches($matches, $game, $allPlayers);

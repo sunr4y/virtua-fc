@@ -8,6 +8,7 @@ use App\Models\Competition;
 use App\Models\CupTie;
 use App\Models\Game;
 use App\Models\GameMatch;
+use App\Models\GamePlayer;
 use App\Models\GameStanding;
 use App\Models\Team;
 use App\Models\User;
@@ -58,6 +59,27 @@ class AdvanceMatchdayTest extends TestCase
             'current_date' => '2024-08-15',
             'current_matchday' => 0,
         ]);
+
+        // Create minimum squads (11 players per team) so matches can be played
+        $this->createSquadForTeam($this->playerTeam);
+        $this->createSquadForTeam($this->opponentTeam);
+    }
+
+    private function createSquadForTeam(Team $team): void
+    {
+        $positions = [
+            'Goalkeeper',
+            'Centre-Back', 'Centre-Back', 'Left-Back', 'Right-Back',
+            'Central Midfield', 'Central Midfield', 'Defensive Midfield',
+            'Left Winger', 'Right Winger', 'Centre-Forward',
+        ];
+
+        foreach ($positions as $position) {
+            GamePlayer::factory()
+                ->forGame($this->game)
+                ->forTeam($team)
+                ->create(['position' => $position]);
+        }
     }
 
     public function test_advances_all_league_matches_in_same_matchday(): void
@@ -65,6 +87,8 @@ class AdvanceMatchdayTest extends TestCase
         // Create additional teams
         $team3 = Team::factory()->create(['name' => 'Team 3']);
         $team4 = Team::factory()->create(['name' => 'Team 4']);
+        $this->createSquadForTeam($team3);
+        $this->createSquadForTeam($team4);
 
         // Create matches for matchday 1 on different days (Friday and Saturday)
         GameMatch::factory()->create([

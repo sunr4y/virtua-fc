@@ -122,6 +122,9 @@ return [
     'preset_deleted' => 'Tactic deleted.',
     'preset_limit_reached' => 'Maximum of 3 saved tactics reached.',
 
+    // Match validation
+    'insufficient_players' => 'Match cannot be played — your team needs at least 7 available players. Sign players or wait for injured players to recover.',
+
     // Game management
     'game_deleted' => 'Game deleted successfully.',
     'game_limit_reached' => 'You have reached the maximum limit of 3 games. Delete one to create another.',

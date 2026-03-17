@@ -122,6 +122,9 @@ return [
     'preset_deleted' => 'Táctica eliminada.',
     'preset_limit_reached' => 'Máximo de 3 tácticas guardadas alcanzado.',
 
+    // Match validation
+    'insufficient_players' => 'No se puede disputar el partido — tu equipo necesita al menos 7 jugadores disponibles. Ficha jugadores o espera a que se recuperen los lesionados.',
+
     // Game management
     'game_deleted' => 'Partida eliminada correctamente.',
     'game_limit_reached' => 'Has alcanzado el límite máximo de 3 partidas. Elimina una para crear otra nueva.',
