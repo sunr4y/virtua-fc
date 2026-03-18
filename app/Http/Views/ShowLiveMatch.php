@@ -14,7 +14,10 @@ use App\Models\GameMatch;
 use App\Models\GamePlayer;
 use App\Models\PlayerSuspension;
 use App\Modules\Match\Services\MatchResimulationService;
+use App\Support\PitchGrid;
 use App\Support\PositionMapper;
+use App\Support\PositionSlotMapper;
+use App\Support\TeamColors;
 
 class ShowLiveMatch
 {
@@ -250,6 +253,20 @@ class ShowLiveMatch
             'tooltip' => $d->tooltip(),
         ], DefensiveLineHeight::cases());
 
+        // Pitch visualization data for tactical panel
+        $formationSlots = [];
+        foreach (Formation::cases() as $formation) {
+            $formationSlots[$formation->value] = array_map(function ($slot) {
+                $slot['displayLabel'] = PositionMapper::slotToDisplayAbbreviation($slot['label']);
+
+                return $slot;
+            }, $formation->pitchSlots());
+        }
+
+        $teamColorsHex = TeamColors::toHex($game->team->colors ?? TeamColors::get($game->team->getRawOriginal('name')));
+        $slotCompatibility = PositionSlotMapper::SLOT_COMPATIBILITY;
+        $gridConfig = PitchGrid::getGridConfig();
+
         return view('live-match', [
             'game' => $game,
             'match' => $playerMatch,
@@ -259,8 +276,7 @@ class ShowLiveMatch
             'lineupPlayers' => $lineupPlayers,
             'benchPlayers' => $benchPlayers,
             'existingSubstitutions' => $existingSubstitutions,
-            'substituteUrl' => route('game.match.substitute', ['gameId' => $game->id, 'matchId' => $playerMatch->id]),
-            'tacticsUrl' => route('game.match.tactics', ['gameId' => $game->id, 'matchId' => $playerMatch->id]),
+            'tacticalActionsUrl' => route('game.match.tactical-actions', ['gameId' => $game->id, 'matchId' => $playerMatch->id]),
             'extraTimeUrl' => route('game.match.extra-time', ['gameId' => $game->id, 'matchId' => $playerMatch->id]),
             'penaltiesUrl' => route('game.match.penalties', ['gameId' => $game->id, 'matchId' => $playerMatch->id]),
             'userFormation' => $userFormation,
@@ -288,6 +304,12 @@ class ShowLiveMatch
             'awayLineupDisplay' => $awayLineupDisplay,
             'homeFormation' => $playerMatch->home_formation ?? '4-4-2',
             'awayFormation' => $playerMatch->away_formation ?? '4-4-2',
+            'formationSlots' => $formationSlots,
+            'teamColors' => $teamColorsHex,
+            'slotCompatibility' => $slotCompatibility,
+            'gridConfig' => $gridConfig,
+            'pitchPositions' => $game->tactics?->default_pitch_positions ?? [],
+            'slotAssignments' => $game->tactics?->default_slot_assignments ?? [],
         ]);
     }
 

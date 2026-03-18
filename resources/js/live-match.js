@@ -1,3 +1,18 @@
+import {
+    getEffectivePosition as _getEffectivePosition,
+    getInitials as _getInitials,
+    getShirtStyle as _getShirtStyle,
+    getNumberStyle as _getNumberStyle,
+    getPlayerEnergy as _getPlayerEnergy,
+    getEnergyColor,
+    assignPlayersToSlots,
+    getEventCoords as _getEventCoords,
+    getDragPosition,
+    getCellFromClientCoords,
+    isValidGridCell as _isValidGridCell,
+    getZoneColorClass as _getZoneColorClass,
+} from './modules/pitch-renderer.js';
+
 export default function liveMatch(config) {
     return {
         // Config (from server)
@@ -16,7 +31,7 @@ export default function liveMatch(config) {
         // Substitution config
         lineupPlayers: config.lineupPlayers || [],
         benchPlayers: config.benchPlayers || [],
-        substituteUrl: config.substituteUrl || '',
+        tacticalActionsUrl: config.tacticalActionsUrl || '',
         csrfToken: config.csrfToken || '',
         maxSubstitutions: config.maxSubstitutions || 5,
         maxWindows: config.maxWindows || 3,
@@ -40,7 +55,6 @@ export default function liveMatch(config) {
         availablePlayingStyles: config.availablePlayingStyles || [],
         availablePressing: config.availablePressing || [],
         availableDefLine: config.availableDefLine || [],
-        tacticsUrl: config.tacticsUrl || '',
         translations: config.translations || {},
 
         // Extra time / knockout config
@@ -55,13 +69,35 @@ export default function liveMatch(config) {
         knockoutRoundNumber: config.knockoutRoundNumber || null,
         knockoutRoundName: config.knockoutRoundName || '',
 
+        // Pitch visualization config
+        formationSlots: config.formationSlots || {},
+        teamColors: config.teamColors || null,
+        slotCompatibility: config.slotCompatibility || {},
+        gridConfig: config.gridConfig || null,
+
+        // Pitch interaction state (for tap-to-substitute)
+        livePitchSelectedOutId: null,
+
+        // Pitch drag-and-drop state (for repositioning players)
+        draggingSlotId: null,
+        dragPosition: null,
+        positioningSlotId: null,
+        livePitchPositions: config.pitchPositions || {},
+        manualAssignments: config.manualAssignments || {},
+        _savedPitchPositions: config.pitchPositions ? { ...config.pitchPositions } : {},
+        _positionJustApplied: false,
+        _dragStartCoords: null,
+        _wasDragging: false,
+        _livePitchEl: null,
+
         // Tactical change state
         pendingFormation: null,
         pendingMentality: null,
         pendingPlayingStyle: null,
         pendingPressing: null,
         pendingDefLine: null,
-        tacticsProcessing: false,
+        applyingChanges: false,
+        showingConfirmation: false,
 
         // Tab state
         activeTab: 'events',
@@ -114,7 +150,6 @@ export default function liveMatch(config) {
         selectedPlayerOut: null,
         selectedPlayerIn: null,
         pendingSubs: [],        // Queued subs for the current window [{playerOut, playerIn}]
-        subProcessing: false,
         substitutionsMade: config.existingSubstitutions
             ? config.existingSubstitutions.map(s => ({
                 playerOutId: s.player_out_id,
@@ -147,6 +182,10 @@ export default function liveMatch(config) {
         },
 
         init() {
+            // Bind drag handlers for pitch repositioning
+            this._boundDragMove = (e) => this._onDragMove(e);
+            this._boundDragEnd = (e) => this._onDragEnd(e);
+
             // Start polling for career actions completion
             this.startProcessingPoll();
 
@@ -939,17 +978,26 @@ export default function liveMatch(config) {
             this.tacticalPanelOpen = false;
             this.selectedPlayerOut = null;
             this.selectedPlayerIn = null;
+            this.livePitchSelectedOutId = null;
             this.pendingSubs = [];
             this.pendingFormation = null;
             this.pendingMentality = null;
+            this.draggingSlotId = null;
+            this.dragPosition = null;
+            this.positioningSlotId = null;
             this.injuryAlertPlayer = null;
+            this._positionJustApplied = false;
+            this.showingConfirmation = false;
             document.body.classList.remove('overflow-y-hidden');
         },
 
-        get hasPendingChanges() {
+        get hasSubPendingChanges() {
             return this.pendingSubs.length > 0
-                || (this.selectedPlayerOut !== null && this.selectedPlayerIn !== null)
-                || this.hasTacticalChanges;
+                || (this.selectedPlayerOut !== null && this.selectedPlayerIn !== null);
+        },
+
+        get hasPendingChanges() {
+            return this.hasSubPendingChanges || this.hasTacticalChanges;
         },
 
         safeCloseTacticalPanel() {
@@ -998,48 +1046,191 @@ export default function liveMatch(config) {
             this.pendingDefLine = null;
         },
 
-        async confirmTacticalChanges() {
-            if (!this.hasTacticalChanges || this.tacticsProcessing) return;
-            this.tacticsProcessing = true;
+        resetAllChanges() {
+            this.resetSubstitutions();
+            this.resetTactics();
+            this.showingConfirmation = false;
+        },
+
+        getOptionLabel(options, value) {
+            const opt = options.find(o => o.value === value);
+            return opt ? opt.label : value;
+        },
+
+        get confirmationSummary() {
+            const summary = { subs: [], tactics: [] };
+
+            // Pending subs
+            for (const sub of this.pendingSubs) {
+                summary.subs.push({
+                    playerOut: sub.playerOut.name,
+                    playerOutAbbr: sub.playerOut.positionAbbr,
+                    playerOutGroup: sub.playerOut.positionGroup,
+                    playerIn: sub.playerIn.name,
+                    playerInAbbr: sub.playerIn.positionAbbr,
+                    playerInGroup: sub.playerIn.positionGroup,
+                });
+            }
+
+            // Also include auto-added pair if present
+            if (this.selectedPlayerOut && this.selectedPlayerIn) {
+                const alreadyPending = summary.subs.some(
+                    s => s.playerOut === this.selectedPlayerOut.name && s.playerIn === this.selectedPlayerIn.name
+                );
+                if (!alreadyPending) {
+                    summary.subs.push({
+                        playerOut: this.selectedPlayerOut.name,
+                        playerOutAbbr: this.selectedPlayerOut.positionAbbr,
+                        playerOutGroup: this.selectedPlayerOut.positionGroup,
+                        playerIn: this.selectedPlayerIn.name,
+                        playerInAbbr: this.selectedPlayerIn.positionAbbr,
+                        playerInGroup: this.selectedPlayerIn.positionGroup,
+                    });
+                }
+            }
+
+            // Tactical changes
+            if (this.pendingFormation !== null && this.pendingFormation !== this.activeFormation) {
+                summary.tactics.push({
+                    label: this.translations.confirmFormation ?? 'Formation',
+                    from: this.activeFormation,
+                    to: this.pendingFormation,
+                });
+            }
+            if (this.pendingMentality !== null && this.pendingMentality !== this.activeMentality) {
+                summary.tactics.push({
+                    label: this.translations.confirmMentality ?? 'Mentality',
+                    from: this.getOptionLabel(this.availableMentalities, this.activeMentality),
+                    to: this.getOptionLabel(this.availableMentalities, this.pendingMentality),
+                });
+            }
+            if (this.pendingPlayingStyle !== null && this.pendingPlayingStyle !== this.activePlayingStyle) {
+                summary.tactics.push({
+                    label: this.translations.confirmPlayingStyle ?? 'Playing style',
+                    from: this.getOptionLabel(this.availablePlayingStyles, this.activePlayingStyle),
+                    to: this.getOptionLabel(this.availablePlayingStyles, this.pendingPlayingStyle),
+                });
+            }
+            if (this.pendingPressing !== null && this.pendingPressing !== this.activePressing) {
+                summary.tactics.push({
+                    label: this.translations.confirmPressing ?? 'Pressing',
+                    from: this.getOptionLabel(this.availablePressing, this.activePressing),
+                    to: this.getOptionLabel(this.availablePressing, this.pendingPressing),
+                });
+            }
+            if (this.pendingDefLine !== null && this.pendingDefLine !== this.activeDefLine) {
+                summary.tactics.push({
+                    label: this.translations.confirmDefLine ?? 'Defensive line',
+                    from: this.getOptionLabel(this.availableDefLine, this.activeDefLine),
+                    to: this.getOptionLabel(this.availableDefLine, this.pendingDefLine),
+                });
+            }
+
+            return summary;
+        },
+
+        showConfirmation() {
+            this.showingConfirmation = true;
+        },
+
+        cancelConfirmation() {
+            this.showingConfirmation = false;
+        },
+
+        async confirmAllChanges() {
+            // Auto-add selected pair to pending if present
+            if (this.selectedPlayerOut && this.selectedPlayerIn) {
+                this.addPendingSub();
+            }
+
+            if (!this.hasPendingChanges || this.applyingChanges) return;
+            this.applyingChanges = true;
 
             const minute = Math.floor(this.currentMinute);
 
             try {
-                const response = await fetch(this.tacticsUrl, {
+                const payload = {
+                    minute,
+                    previousSubstitutions: this.substitutionsMade.map(s => ({
+                        playerOutId: s.playerOutId,
+                        playerInId: s.playerInId,
+                        minute: s.minute,
+                    })),
+                };
+
+                // Include subs if any
+                if (this.pendingSubs.length > 0) {
+                    payload.substitutions = this.pendingSubs.map(s => ({
+                        playerOutId: s.playerOut.id,
+                        playerInId: s.playerIn.id,
+                    }));
+                }
+
+                // Include tactical changes if any
+                if (this.hasTacticalChanges) {
+                    if (this.pendingFormation !== null && this.pendingFormation !== this.activeFormation) {
+                        payload.formation = this.pendingFormation;
+                    }
+                    if (this.pendingMentality !== null && this.pendingMentality !== this.activeMentality) {
+                        payload.mentality = this.pendingMentality;
+                    }
+                    if (this.pendingPlayingStyle !== null && this.pendingPlayingStyle !== this.activePlayingStyle) {
+                        payload.playing_style = this.pendingPlayingStyle;
+                    }
+                    if (this.pendingPressing !== null && this.pendingPressing !== this.activePressing) {
+                        payload.pressing = this.pendingPressing;
+                    }
+                    if (this.pendingDefLine !== null && this.pendingDefLine !== this.activeDefLine) {
+                        payload.defensive_line = this.pendingDefLine;
+                    }
+                }
+
+                const response = await fetch(this.tacticalActionsUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': this.csrfToken,
                         'Accept': 'application/json',
                     },
-                    body: JSON.stringify({
-                        minute,
-                        formation: this.pendingFormation !== this.activeFormation ? this.pendingFormation : null,
-                        mentality: this.pendingMentality !== this.activeMentality ? this.pendingMentality : null,
-                        playing_style: this.pendingPlayingStyle !== this.activePlayingStyle ? this.pendingPlayingStyle : null,
-                        pressing: this.pendingPressing !== this.activePressing ? this.pendingPressing : null,
-                        defensive_line: this.pendingDefLine !== this.activeDefLine ? this.pendingDefLine : null,
-                        previousSubstitutions: this.substitutionsMade.map(s => ({
-                            playerOutId: s.playerOutId,
-                            playerInId: s.playerInId,
-                            minute: s.minute,
-                        })),
-                    }),
+                    body: JSON.stringify(payload),
                 });
 
                 if (!response.ok) {
                     const error = await response.json();
-                    console.error('Tactical change failed:', error);
-                    this.tacticsProcessing = false;
+                    console.error('Tactical actions failed:', error);
+                    this.applyingChanges = false;
                     return;
                 }
 
                 const result = await response.json();
-                const isETChange = result.isExtraTime || false;
+                const isET = result.isExtraTime || false;
+
+                // Record substitutions if any
+                if (result.substitutions && result.substitutions.length > 0) {
+                    for (const sub of result.substitutions) {
+                        this.substitutionsMade.push({
+                            playerOutId: sub.playerOutId,
+                            playerInId: sub.playerInId,
+                            playerOutName: sub.playerOutName,
+                            playerInName: sub.playerInName,
+                            minute,
+                        });
+
+                        const benchPlayer = this.benchPlayers.find(p => p.id === sub.playerInId);
+                        if (benchPlayer) {
+                            benchPlayer.minuteEntered = minute;
+                        }
+                    }
+                }
 
                 // Update active tactics
                 if (result.formation) {
+                    const formationChanged = result.formation !== this.activeFormation;
                     this.activeFormation = result.formation;
+                    if (formationChanged) {
+                        this.livePitchPositions = {};
+                        this._savedPitchPositions = {};
+                    }
                 }
                 if (result.mentality) {
                     this.activeMentality = result.mentality;
@@ -1054,11 +1245,28 @@ export default function liveMatch(config) {
                     this.activeDefLine = result.defensiveLine;
                 }
 
-                if (isETChange) {
-                    // ET tactical change: update extra time events and scores
+                // Filter events up to current minute and add sub events to feed
+                if (isET) {
                     this.extraTimeEvents = this.extraTimeEvents.filter(e => e.minute <= minute);
-                    this.revealedEvents = this.revealedEvents.filter(e => e.minute <= minute);
+                } else {
+                    this.events = this.events.filter(e => e.minute <= minute);
+                }
+                this.revealedEvents = this.revealedEvents.filter(e => e.minute <= minute);
 
+                if (result.substitutions) {
+                    for (const sub of result.substitutions) {
+                        this.revealedEvents.unshift({
+                            minute,
+                            type: 'substitution',
+                            playerName: sub.playerOutName,
+                            playerInName: sub.playerInName,
+                            teamId: sub.teamId,
+                        });
+                    }
+                }
+
+                // Append new events and update scores
+                if (isET) {
                     if (result.newEvents && result.newEvents.length > 0) {
                         this.extraTimeEvents.push(...result.newEvents);
                         this.extraTimeEvents.sort((a, b) => a.minute - b.minute);
@@ -1076,13 +1284,7 @@ export default function liveMatch(config) {
                     this.etHomeScore = result.newScore.home;
                     this.etAwayScore = result.newScore.away;
                     this._needsPenalties = result.needsPenalties || false;
-
-                    this.recalculateScore();
                 } else {
-                    // Regular time tactical change
-                    this.events = this.events.filter(e => e.minute <= minute);
-                    this.revealedEvents = this.revealedEvents.filter(e => e.minute <= minute);
-
                     if (result.newEvents && result.newEvents.length > 0) {
                         this.events.push(...result.newEvents);
                         this.events.sort((a, b) => a.minute - b.minute);
@@ -1100,8 +1302,10 @@ export default function liveMatch(config) {
                     this.finalHomeScore = result.newScore.home;
                     this.finalAwayScore = result.newScore.away;
 
-                    this.recalculateScore();
+                    this.events = this.synthesizeGoalsIfNeeded(this.events);
                 }
+
+                this.recalculateScore();
 
                 // Update possession
                 if (result.homePossession !== undefined) {
@@ -1115,9 +1319,9 @@ export default function liveMatch(config) {
                 // Close the panel and resume
                 this.closeTacticalPanel();
             } catch (err) {
-                console.error('Tactical change request failed:', err);
+                console.error('Tactical actions request failed:', err);
             } finally {
-                this.tacticsProcessing = false;
+                this.applyingChanges = false;
             }
         },
 
@@ -1215,6 +1419,7 @@ export default function liveMatch(config) {
         resetSubstitutions() {
             this.selectedPlayerOut = null;
             this.selectedPlayerIn = null;
+            this.livePitchSelectedOutId = null;
             this.pendingSubs = [];
         },
 
@@ -1232,166 +1437,6 @@ export default function liveMatch(config) {
             this.pendingSubs.splice(index, 1);
         },
 
-        async confirmSubstitutions() {
-            // If there's a selected pair not yet added to pending, add it first
-            if (this.selectedPlayerOut && this.selectedPlayerIn) {
-                this.addPendingSub();
-            }
-
-            if (this.pendingSubs.length === 0 || this.subProcessing) return;
-
-            this.subProcessing = true;
-
-            const subMinute = Math.floor(this.currentMinute);
-
-            try {
-                const response = await fetch(this.substituteUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': this.csrfToken,
-                        'Accept': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        substitutions: this.pendingSubs.map(s => ({
-                            playerOutId: s.playerOut.id,
-                            playerInId: s.playerIn.id,
-                        })),
-                        minute: subMinute,
-                        previousSubstitutions: this.substitutionsMade.map(s => ({
-                            playerOutId: s.playerOutId,
-                            playerInId: s.playerInId,
-                            minute: s.minute,
-                        })),
-                    }),
-                });
-
-                if (!response.ok) {
-                    const error = await response.json();
-                    console.error('Substitution failed:', error);
-                    this.subProcessing = false;
-                    return;
-                }
-
-                const result = await response.json();
-                const isETSub = result.isExtraTime || false;
-
-                // Record all substitutions in the batch
-                for (const sub of result.substitutions) {
-                    this.substitutionsMade.push({
-                        playerOutId: sub.playerOutId,
-                        playerInId: sub.playerInId,
-                        playerOutName: sub.playerOutName,
-                        playerInName: sub.playerInName,
-                        minute: subMinute,
-                    });
-
-                    // Set minuteEntered on the bench player who just came on
-                    const benchPlayer = this.benchPlayers.find(p => p.id === sub.playerInId);
-                    if (benchPlayer) {
-                        benchPlayer.minuteEntered = subMinute;
-                    }
-                }
-
-                if (isETSub) {
-                    // ET substitution: update extra time events and scores
-                    this.extraTimeEvents = this.extraTimeEvents.filter(e => e.minute <= subMinute);
-                    this.revealedEvents = this.revealedEvents.filter(e => e.minute <= subMinute);
-
-                    // Add substitution events to the feed
-                    for (const sub of result.substitutions) {
-                        this.revealedEvents.unshift({
-                            minute: subMinute,
-                            type: 'substitution',
-                            playerName: sub.playerOutName,
-                            playerInName: sub.playerInName,
-                            teamId: sub.teamId,
-                        });
-                    }
-
-                    // Append new ET events
-                    if (result.newEvents && result.newEvents.length > 0) {
-                        this.extraTimeEvents.push(...result.newEvents);
-                        this.extraTimeEvents.sort((a, b) => a.minute - b.minute);
-                    }
-
-                    // Reset ET reveal index
-                    this.lastRevealedETIndex = -1;
-                    for (let i = 0; i < this.extraTimeEvents.length; i++) {
-                        if (this.extraTimeEvents[i].minute <= this.currentMinute) {
-                            this.lastRevealedETIndex = i;
-                        } else {
-                            break;
-                        }
-                    }
-
-                    // Update ET scores
-                    this.etHomeScore = result.newScore.home;
-                    this.etAwayScore = result.newScore.away;
-                    this._needsPenalties = result.needsPenalties || false;
-
-                    // Recalculate displayed score
-                    this.recalculateScore();
-                } else {
-                    // Regular time substitution
-                    this.events = this.events.filter(e => e.minute <= subMinute);
-                    this.revealedEvents = this.revealedEvents.filter(e => e.minute <= subMinute);
-
-                    // Add substitution events to the feed
-                    for (const sub of result.substitutions) {
-                        this.revealedEvents.unshift({
-                            minute: subMinute,
-                            type: 'substitution',
-                            playerName: sub.playerOutName,
-                            playerInName: sub.playerInName,
-                            teamId: sub.teamId,
-                        });
-                    }
-
-                    // Append new events from the server
-                    if (result.newEvents && result.newEvents.length > 0) {
-                        this.events.push(...result.newEvents);
-                        this.events.sort((a, b) => a.minute - b.minute);
-                    }
-
-                    // Reset lastRevealedIndex
-                    this.lastRevealedIndex = -1;
-                    for (let i = 0; i < this.events.length; i++) {
-                        if (this.events[i].minute <= this.currentMinute) {
-                            this.lastRevealedIndex = i;
-                        } else {
-                            break;
-                        }
-                    }
-
-                    // Update the final score
-                    this.finalHomeScore = result.newScore.home;
-                    this.finalAwayScore = result.newScore.away;
-
-                    // Synthesize missing goal events (e.g. opponent has no squad)
-                    this.events = this.synthesizeGoalsIfNeeded(this.events);
-
-                    // Recalculate current displayed score
-                    this.recalculateScore();
-                }
-
-                // Update possession
-                if (result.homePossession !== undefined) {
-                    this._basePossession = result.homePossession;
-                    this._possessionDisplay = result.homePossession;
-                    this.homePossession = result.homePossession;
-                    this.awayPossession = result.awayPossession;
-                    this.resetPossessionTarget();
-                }
-
-                // Close the panel and resume
-                this.closeTacticalPanel();
-            } catch (err) {
-                console.error('Substitution request failed:', err);
-            } finally {
-                this.subProcessing = false;
-            }
-        },
 
         recalculateScore() {
             let home = 0;
@@ -1484,6 +1529,151 @@ export default function liveMatch(config) {
             return event.type === 'goal' || event.type === 'own_goal';
         },
 
+        // =====================================================================
+        // Pitch Visualization (shared with lineup page)
+        // =====================================================================
+
+        get currentPitchSlots() {
+            const formation = this.pendingFormation ?? this.activeFormation;
+            return this.formationSlots[formation] || [];
+        },
+
+        // Alias for pitch-display component compatibility (lineup uses currentSlots)
+        get currentSlots() {
+            return this.currentPitchSlots;
+        },
+
+        /**
+         * Computed slot assignments for the pitch display.
+         * Maps current lineup players onto formation slots,
+         * then previews pending substitutions inline.
+         */
+        get slotAssignments() {
+            const slots = this.currentPitchSlots.map(slot => ({
+                ...slot,
+                player: null,
+                compatibility: 0,
+                isManual: false,
+            }));
+
+            // Build current active lineup (initial + substitutions applied)
+            const activeLineup = this.getActiveLineupPlayers();
+
+            const assignments = assignPlayersToSlots(slots, activeLineup, this.slotCompatibility, this.manualAssignments);
+
+            // Preview pending subs on the pitch: swap out → in
+            const allPendingSubs = [...this.pendingSubs];
+            if (this.selectedPlayerOut && this.selectedPlayerIn) {
+                const alreadyPending = allPendingSubs.some(
+                    s => s.playerOut.id === this.selectedPlayerOut.id
+                );
+                if (!alreadyPending) {
+                    allPendingSubs.push({
+                        playerOut: this.selectedPlayerOut,
+                        playerIn: this.selectedPlayerIn,
+                    });
+                }
+            }
+
+            for (const sub of allPendingSubs) {
+                const slot = assignments.find(s => s.player?.id === sub.playerOut.id);
+                if (slot) {
+                    slot.player = { ...sub.playerIn, isPendingSub: true };
+                }
+            }
+
+            return assignments;
+        },
+
+        /**
+         * Get the current active lineup players (starting XI with substitutions applied).
+         */
+        getActiveLineupPlayers() {
+            const subbedOutIds = new Set(this.substitutionsMade.map(s => s.playerOutId));
+            const subbedInIds = new Set(this.substitutionsMade.map(s => s.playerInId));
+
+            // Filter starting lineup: remove subbed out players
+            const remaining = this.lineupPlayers.filter(p => !subbedOutIds.has(p.id));
+
+            // Add subbed-in players from bench
+            const subbedIn = this.benchPlayers.filter(p => subbedInIds.has(p.id));
+
+            return [...remaining, ...subbedIn];
+        },
+
+        getEffectivePosition(slotId) {
+            const gc = this.gridConfig;
+            if (!gc) return null;
+            return _getEffectivePosition(slotId, this.livePitchPositions, this.currentPitchSlots, gc.cols, gc.rows);
+        },
+
+        getShirtStyle(role) {
+            return _getShirtStyle(role, this.teamColors);
+        },
+
+        getNumberStyle(role) {
+            return _getNumberStyle(role, this.teamColors);
+        },
+
+        getInitials(name) {
+            return _getInitials(name);
+        },
+
+        /**
+         * Handle tapping a player on the pitch to select for substitution.
+         */
+        handlePitchPlayerClick(slot) {
+            // If we just finished a drag, suppress the click
+            if (this._wasDragging) {
+                this._wasDragging = false;
+                return;
+            }
+
+            if (!slot.player) return;
+            if (this.tacticalTab !== 'substitutions') {
+                this.tacticalTab = 'substitutions';
+            }
+
+            // If this player is already selected, deselect
+            if (this.livePitchSelectedOutId === slot.player.id) {
+                this.livePitchSelectedOutId = null;
+                this.selectedPlayerOut = null;
+                return;
+            }
+
+            // Can't select if no subs/windows left
+            if (!this.canSubstitute || !this.hasWindowsLeft) return;
+
+            // Find this player in the lineup players list for the full data object
+            const playerData = this.lineupPlayers.find(p => p.id === slot.player.id)
+                || this.benchPlayers.find(p => p.id === slot.player.id);
+
+            if (playerData) {
+                this.livePitchSelectedOutId = slot.player.id;
+                this.selectedPlayerOut = playerData;
+            }
+        },
+
+        /**
+         * Get energy for a player badge on the pitch (live mode).
+         */
+        getPitchPlayerEnergy(player) {
+            if (!player) return 100;
+            // Try to find full player data with minuteEntered
+            const fullData = this.lineupPlayers.find(p => p.id === player.id)
+                || this.benchPlayers.find(p => p.id === player.id);
+            if (!fullData) return 100;
+            return _getPlayerEnergy(fullData, this.currentMinute);
+        },
+
+        /**
+         * Get energy bar color class for pitch display.
+         */
+        getPitchEnergyColor(player) {
+            const energy = this.getPitchPlayerEnergy(player);
+            return getEnergyColor(energy);
+        },
+
         getPositionBadgeColor(group) {
             const colors = {
                 'Goalkeeper': 'bg-amber-500',
@@ -1499,6 +1689,167 @@ export default function liveMatch(config) {
             if (score >= 70) return 'bg-lime-500 text-white';
             if (score >= 60) return 'bg-amber-500 text-white';
             return 'bg-slate-300 text-slate-700';
+        },
+
+        // =====================================================================
+        // Pitch Drag & Repositioning (live match)
+        // =====================================================================
+
+        _getLivePitchElement() {
+            if (!this._livePitchEl) {
+                this._livePitchEl = document.getElementById('live-pitch-field');
+            }
+            return this._livePitchEl;
+        },
+
+        startDrag(slotId, event) {
+            const slot = this.currentPitchSlots.find(s => s.id === slotId);
+            if (slot && slot.role === 'Goalkeeper') return;
+
+            event.preventDefault();
+
+            // Record start coords for tap-vs-drag threshold
+            const coords = _getEventCoords(event);
+            this._dragStartCoords = { x: coords.clientX, y: coords.clientY };
+            this._wasDragging = false;
+            this._pendingDragSlotId = slotId;
+
+            document.addEventListener('mousemove', this._boundDragMove);
+            document.addEventListener('mouseup', this._boundDragEnd);
+            document.addEventListener('touchmove', this._boundDragMove, { passive: false });
+            document.addEventListener('touchend', this._boundDragEnd);
+        },
+
+        _onDragMove(event) {
+            if (!this._pendingDragSlotId && this.draggingSlotId === null) return;
+            event.preventDefault();
+
+            const coords = _getEventCoords(event);
+
+            // Check if we've exceeded the tap-vs-drag threshold (5px)
+            if (this._pendingDragSlotId && !this.draggingSlotId) {
+                const dx = coords.clientX - this._dragStartCoords.x;
+                const dy = coords.clientY - this._dragStartCoords.y;
+                if (Math.sqrt(dx * dx + dy * dy) < 5) return;
+
+                // Threshold exceeded — activate drag
+                this.draggingSlotId = this._pendingDragSlotId;
+                this._pendingDragSlotId = null;
+                this._wasDragging = true;
+                this.positioningSlotId = null;
+            }
+
+            this.dragPosition = getDragPosition(coords.clientX, coords.clientY, this._getLivePitchElement());
+        },
+
+        _onDragEnd(event) {
+            const coords = _getEventCoords(event);
+
+            if (this.draggingSlotId !== null) {
+                const cell = getCellFromClientCoords(coords.clientX, coords.clientY, this._getLivePitchElement(), this.gridConfig);
+                if (cell) {
+                    this.setSlotGridPosition(this.draggingSlotId, cell.col, cell.row);
+                }
+            }
+
+            this.draggingSlotId = null;
+            this.dragPosition = null;
+            this._pendingDragSlotId = null;
+            this._dragStartCoords = null;
+
+            document.removeEventListener('mousemove', this._boundDragMove);
+            document.removeEventListener('mouseup', this._boundDragEnd);
+            document.removeEventListener('touchmove', this._boundDragMove);
+            document.removeEventListener('touchend', this._boundDragEnd);
+        },
+
+        getSlotCell(slotId) {
+            const customPos = this.livePitchPositions[String(slotId)];
+            if (customPos) return { col: customPos[0], row: customPos[1] };
+            const gc = this.gridConfig;
+            if (!gc) return null;
+            const formation = this.pendingFormation ?? this.activeFormation;
+            const defaultCells = gc.defaultCells[formation];
+            return defaultCells ? defaultCells[slotId] : null;
+        },
+
+        _findSlotAtCell(col, row, excludeSlotId) {
+            const assignments = this.slotAssignments;
+            for (const slot of assignments) {
+                if (slot.id === excludeSlotId || !slot.player) continue;
+                const cell = this.getSlotCell(slot.id);
+                if (cell && cell.col === col && cell.row === row) return slot;
+            }
+            return null;
+        },
+
+        setSlotGridPosition(slotId, col, row) {
+            const slot = this.currentPitchSlots.find(s => s.id === slotId);
+            if (!slot) return;
+            if (!_isValidGridCell(slot.label, col, row, this.gridConfig)) return;
+
+            const occupying = this._findSlotAtCell(col, row, slotId);
+            const newPositions = { ...this.livePitchPositions };
+
+            if (occupying) {
+                if (occupying.role === 'Goalkeeper') return;
+                const draggedCell = this.getSlotCell(slotId);
+                if (draggedCell) {
+                    newPositions[String(occupying.id)] = [draggedCell.col, draggedCell.row];
+                }
+            }
+
+            newPositions[String(slotId)] = [col, row];
+            this.livePitchPositions = newPositions;
+            this._savedPitchPositions = JSON.parse(JSON.stringify(newPositions));
+            this._positionJustApplied = true;
+            this.positioningSlotId = null;
+        },
+
+        selectForRepositioning(slotId) {
+            const slot = this.currentPitchSlots.find(s => s.id === slotId);
+            if (slot && slot.role === 'Goalkeeper') return;
+            if (this.positioningSlotId === slotId) {
+                this.positioningSlotId = null;
+            } else {
+                this.positioningSlotId = slotId;
+            }
+        },
+
+        handleGridCellClick(col, row) {
+            if (this.positioningSlotId === null) return;
+            this.setSlotGridPosition(this.positioningSlotId, col, row);
+        },
+
+        isValidGridCell(slotLabel, col, row) {
+            return _isValidGridCell(slotLabel, col, row, this.gridConfig);
+        },
+
+        getGridCellState(col, row) {
+            if (this.positioningSlotId === null && this.draggingSlotId === null) return 'neutral';
+
+            const activeSlotId = this.positioningSlotId ?? this.draggingSlotId;
+            const slot = this.currentPitchSlots.find(s => s.id === activeSlotId);
+            if (!slot) return 'neutral';
+
+            if (!_isValidGridCell(slot.label, col, row, this.gridConfig)) return 'invalid';
+
+            const occupying = this._findSlotAtCell(col, row, activeSlotId);
+            if (occupying && occupying.role === 'Goalkeeper') return 'occupied';
+
+            if (slot.role === 'Goalkeeper') return 'valid';
+
+            if (row <= 4) return 'valid-def';
+            if (row <= 9) return 'valid-mid';
+            return 'valid-fwd';
+        },
+
+        getZoneColorClass(role) {
+            return _getZoneColorClass(role);
+        },
+
+        confirmPositionChange() {
+            this._positionJustApplied = false;
         },
 
         getStatCount(type, side) {

@@ -1,3 +1,16 @@
+import {
+    cellToCoords as _cellToCoords,
+    getEffectivePosition as _getEffectivePosition,
+    getInitials as _getInitials,
+    getShirtStyle as _getShirtStyle,
+    getNumberStyle as _getNumberStyle,
+    getEventCoords as _getEventCoords,
+    getDragPosition,
+    getCellFromClientCoords,
+    isValidGridCell as _isValidGridCell,
+    getZoneColorClass as _getZoneColorClass,
+} from './modules/pitch-renderer.js';
+
 export default function lineupManager(config) {
     return {
         // State
@@ -430,12 +443,7 @@ export default function lineupManager(config) {
         },
 
         getInitials(name) {
-            if (!name) return '??';
-            const parts = name.trim().split(/\s+/);
-            if (parts.length === 1) {
-                return parts[0].substring(0, 2).toUpperCase();
-            }
-            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+            return _getInitials(name);
         },
 
         getAvatarDisplay(player) {
@@ -462,68 +470,13 @@ export default function lineupManager(config) {
             return map[positionGroup] || map['Midfielder'];
         },
 
-        // Generate inline CSS for the player badge background based on team shirt
+        // Delegate to shared pitch-renderer module
         getShirtStyle(role) {
-            // Goalkeeper always gets a distinct amber kit
-            if (role === 'Goalkeeper') {
-                return 'background: linear-gradient(to bottom right, #FBBF24, #D97706)';
-            }
-
-            const tc = this.teamColors;
-            if (!tc) return 'background: linear-gradient(to bottom right, #3B82F6, #1D4ED8)';
-
-            const p = tc.primary;
-            const s = tc.secondary;
-
-            switch (tc.pattern) {
-                case 'stripes':
-                    return `background: linear-gradient(90deg, ${s} 3px, ${p} 3px, ${p} 9px, ${s} 9px); background-size: 12px 100%; background-position: center`;
-                case 'hoops':
-                    return `background: linear-gradient(0deg, ${s} 3px, ${p} 3px, ${p} 9px, ${s} 9px); background-size: 100% 12px; background-position: center`;
-                case 'sash':
-                    return `background: linear-gradient(135deg, ${p} 0%, ${p} 35%, ${s} 35%, ${s} 65%, ${p} 65%, ${p} 100%)`;
-                case 'bar':
-                    return `background: linear-gradient(90deg, ${p} 0%, ${p} 35%, ${s} 35%, ${s} 65%, ${p} 65%, ${p} 100%)`;
-                case 'halves':
-                    return `background: linear-gradient(90deg, ${p} 50%, ${s} 50%)`;
-                default:
-                    return `background: ${p}`;
-            }
+            return _getShirtStyle(role, this.teamColors);
         },
 
-        // Get the complete inline style for the player number including backdrop for patterned shirts
         getNumberStyle(role) {
-            if (role === 'Goalkeeper') {
-                return 'color: #FFFFFF; text-shadow: 0 1px 2px rgba(0,0,0,0.5)';
-            }
-            const tc = this.teamColors;
-            if (!tc) return 'color: #FFFFFF; text-shadow: 0 1px 2px rgba(0,0,0,0.5)';
-
-            const color = tc.number || '#FFFFFF';
-
-            if (tc.pattern !== 'solid') {
-                // For patterned shirts, add a semi-transparent circular backdrop
-                const backdrop = this._getBackdropColor(tc);
-                return `color: ${color}; background: ${backdrop}CC; text-shadow: 0 1px 2px rgba(0,0,0,0.15)`;
-            }
-
-            return `color: ${color}; text-shadow: 0 1px 2px rgba(0,0,0,0.2)`;
-        },
-
-        // Pick the team color (primary or secondary) that best contrasts with the number color
-        _getBackdropColor(tc) {
-            const numLum = this._hexLuminance(tc.number);
-            const priLum = this._hexLuminance(tc.primary);
-            const secLum = this._hexLuminance(tc.secondary);
-            return Math.abs(numLum - priLum) >= Math.abs(numLum - secLum) ? tc.primary : tc.secondary;
-        },
-
-        _hexLuminance(hex) {
-            if (!hex || hex.length < 7) return 0.5;
-            const r = parseInt(hex.slice(1, 3), 16) / 255;
-            const g = parseInt(hex.slice(3, 5), 16) / 255;
-            const b = parseInt(hex.slice(5, 7), 16) / 255;
-            return 0.299 * r + 0.587 * g + 0.114 * b;
+            return _getNumberStyle(role, this.teamColors);
         },
 
         // Snapshot all current slot assignments (manual + auto) as manual,
@@ -561,10 +514,7 @@ export default function lineupManager(config) {
         cellToCoords(col, row) {
             const gc = this.gridConfig;
             if (!gc) return null;
-            return {
-                x: col * (100 / gc.cols) + (100 / (gc.cols * 2)),
-                y: row * (100 / gc.rows) + (100 / (gc.rows * 2)),
-            };
+            return _cellToCoords(col, row, gc.cols, gc.rows);
         },
 
         /**
@@ -572,13 +522,9 @@ export default function lineupManager(config) {
          * Falls back to the formation's default coordinate.
          */
         getEffectivePosition(slotId) {
-            const customPos = this.pitchPositions[String(slotId)];
-            if (customPos) {
-                return this.cellToCoords(customPos[0], customPos[1]);
-            }
-            // Fall back to formation default (col/row grid cell)
-            const slot = this.currentSlots.find(s => s.id === slotId);
-            return slot ? this.cellToCoords(slot.col, slot.row) : null;
+            const gc = this.gridConfig;
+            if (!gc) return null;
+            return _getEffectivePosition(slotId, this.pitchPositions, this.currentSlots, gc.cols, gc.rows);
         },
 
         /**
@@ -600,16 +546,7 @@ export default function lineupManager(config) {
          * GK stays locked to its zone; outfield players can go anywhere on the outfield (rows 1-13).
          */
         isValidGridCell(slotLabel, col, row) {
-            const gc = this.gridConfig;
-            if (!gc) return false;
-
-            if (slotLabel === 'GK') {
-                const zone = gc.zones['GK'];
-                if (!zone) return false;
-                return col >= zone[0] && col <= zone[1] && row >= zone[2] && row <= zone[3];
-            }
-
-            return col >= 0 && col < gc.cols && row >= 1 && row < gc.rows;
+            return _isValidGridCell(slotLabel, col, row, this.gridConfig);
         },
 
         /**
@@ -687,13 +624,7 @@ export default function lineupManager(config) {
          * Get the zone highlight color class for a position group.
          */
         getZoneColorClass(role) {
-            switch (role) {
-                case 'Goalkeeper': return 'bg-amber-500/30 border-amber-400/40';
-                case 'Defender': return 'bg-blue-500/30 border-blue-400/40';
-                case 'Midfielder': return 'bg-emerald-500/30 border-emerald-400/40';
-                case 'Forward': return 'bg-red-500/30 border-red-400/40';
-                default: return 'bg-white/20 border-white/30';
-            }
+            return _getZoneColorClass(role);
         },
 
         /**
@@ -743,23 +674,23 @@ export default function lineupManager(config) {
             document.addEventListener('touchmove', this._boundDragMove, { passive: false });
             document.addEventListener('touchend', this._boundDragEnd);
 
-            const coords = this._getEventCoords(event);
-            this._updateDragPosition(coords.clientX, coords.clientY);
+            const coords = _getEventCoords(event);
+            this.dragPosition = getDragPosition(coords.clientX, coords.clientY, this._getPitchElement());
         },
 
         _onDragMove(event) {
             if (this.draggingSlotId === null) return;
             event.preventDefault();
 
-            const coords = this._getEventCoords(event);
-            this._updateDragPosition(coords.clientX, coords.clientY);
+            const coords = _getEventCoords(event);
+            this.dragPosition = getDragPosition(coords.clientX, coords.clientY, this._getPitchElement());
         },
 
         _onDragEnd(event) {
             if (this.draggingSlotId === null) return;
 
-            const coords = this._getEventCoords(event);
-            const cell = this._getCellFromClientCoords(coords.clientX, coords.clientY);
+            const coords = _getEventCoords(event);
+            const cell = getCellFromClientCoords(coords.clientX, coords.clientY, this._getPitchElement(), this.gridConfig);
 
             if (cell) {
                 this.setSlotGridPosition(this.draggingSlotId, cell.col, cell.row);
@@ -773,55 +704,6 @@ export default function lineupManager(config) {
             document.removeEventListener('mouseup', this._boundDragEnd);
             document.removeEventListener('touchmove', this._boundDragMove);
             document.removeEventListener('touchend', this._boundDragEnd);
-        },
-
-        _updateDragPosition(clientX, clientY) {
-            const pitchEl = this._getPitchElement();
-            if (!pitchEl) return;
-
-            const rect = pitchEl.getBoundingClientRect();
-            const x = ((clientX - rect.left) / rect.width) * 100;
-            const y = ((clientY - rect.top) / rect.height) * 100;
-
-            this.dragPosition = {
-                x: Math.max(0, Math.min(100, x)),
-                y: Math.max(0, Math.min(100, y)),
-            };
-        },
-
-        _getCellFromClientCoords(clientX, clientY) {
-            const pitchEl = this._getPitchElement();
-            if (!pitchEl) return null;
-
-            const rect = pitchEl.getBoundingClientRect();
-            const xPct = ((clientX - rect.left) / rect.width) * 100;
-            const yPct = ((clientY - rect.top) / rect.height) * 100;
-
-            // Convert to grid coordinates (y is inverted: top of element = high row)
-            // The pitch renders y=0 at bottom, so top: 100-y%
-            // Screen top = y=100, screen bottom = y=0
-            const pitchY = 100 - yPct;
-
-            const gc = this.gridConfig;
-            if (!gc) return null;
-
-            const col = Math.round((xPct - 100 / (gc.cols * 2)) / (100 / gc.cols));
-            const row = Math.round((pitchY - 100 / (gc.rows * 2)) / (100 / gc.rows));
-
-            return {
-                col: Math.max(0, Math.min(gc.cols - 1, col)),
-                row: Math.max(0, Math.min(gc.rows - 1, row)),
-            };
-        },
-
-        _getEventCoords(event) {
-            if (event.touches && event.touches.length > 0) {
-                return { clientX: event.touches[0].clientX, clientY: event.touches[0].clientY };
-            }
-            if (event.changedTouches && event.changedTouches.length > 0) {
-                return { clientX: event.changedTouches[0].clientX, clientY: event.changedTouches[0].clientY };
-            }
-            return { clientX: event.clientX, clientY: event.clientY };
         },
 
         _getPitchElement() {
@@ -859,7 +741,7 @@ export default function lineupManager(config) {
             event.preventDefault();
 
             // Enter pending state — not yet dragging until 5px threshold
-            const coords = this._getEventCoords(event);
+            const coords = _getEventCoords(event);
             this._listDragPendingId = playerId;
             this._listDragStartCoords = { x: coords.clientX, y: coords.clientY };
             this._listDragMoved = false;
@@ -878,7 +760,7 @@ export default function lineupManager(config) {
             if (!this._listDragPendingId && !this.listDragPlayerId) return;
             event.preventDefault();
 
-            const coords = this._getEventCoords(event);
+            const coords = _getEventCoords(event);
 
             // Check 5px threshold before activating drag
             if (this._listDragPendingId && !this.listDragPlayerId) {
