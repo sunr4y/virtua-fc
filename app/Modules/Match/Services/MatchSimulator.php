@@ -803,6 +803,17 @@ class MatchSimulator
         $homeScore = $this->poissonRandom($homeExpectedGoals);
         $awayScore = $this->poissonRandom($awayExpectedGoals);
 
+        // A team with no players cannot score — force their goals to 0.
+        // This prevents phantom goals that have no events, which would be
+        // lost during resimulation (subs/tactical changes) and cause
+        // incorrect extra time triggers in cup matches.
+        if ($homePlayers->isEmpty()) {
+            $homeScore = 0;
+        }
+        if ($awayPlayers->isEmpty()) {
+            $awayScore = 0;
+        }
+
         if ($homePlayers->isNotEmpty() && $awayPlayers->isNotEmpty()) {
             // Generate cards first using the initial Poisson score for goal-difference bias
             $goalDifference = $homeScore - $awayScore;
@@ -914,6 +925,15 @@ class MatchSimulator
             $events = $this->reassignEventsFromUnavailablePlayers(
                 $events, $homePlayers, $awayPlayers
             );
+        } elseif ($homePlayers->isNotEmpty() || $awayPlayers->isNotEmpty()) {
+            // One team has no players (e.g. lower-division cup opponent).
+            // Generate goal events only for the team with players so that
+            // goals are backed by events and survive resimulation.
+            [$homeScore, $awayScore, $goalEvents] = $this->generateSingleTeamGoalEvents(
+                $homeTeam, $awayTeam, $homePlayers, $awayPlayers,
+                $homeScore, $awayScore, $fromMinute + 1, 93,
+            );
+            $events = $events->merge($goalEvents)->sortBy('minute')->values();
         }
 
         $possession = $this->calculatePossession(
@@ -1149,6 +1169,46 @@ class MatchSimulator
         }
 
         return $candidates->sortByDesc(fn ($p) => $p->overall_score)->first();
+    }
+
+    /**
+     * Generate goal events when only one team has players (the other squad is empty).
+     * Applies max_goals_cap and returns updated scores alongside the events.
+     *
+     * @return array{0: int, 1: int, 2: Collection<MatchEventData>} [homeScore, awayScore, goalEvents]
+     */
+    private function generateSingleTeamGoalEvents(
+        Team $homeTeam,
+        Team $awayTeam,
+        Collection $homePlayers,
+        Collection $awayPlayers,
+        int $homeScore,
+        int $awayScore,
+        int $minMinute,
+        int $maxMinute,
+    ): array {
+        $homeHasPlayers = $homePlayers->isNotEmpty();
+        $scoringPlayers = $homeHasPlayers ? $homePlayers : $awayPlayers;
+        $scoringTeamId = $homeHasPlayers ? $homeTeam->id : $awayTeam->id;
+        $concedingTeamId = $homeHasPlayers ? $awayTeam->id : $homeTeam->id;
+        $goalCount = $homeHasPlayers ? $homeScore : $awayScore;
+
+        $maxGoalsCap = config('match_simulation.max_goals_cap', 0);
+        if ($maxGoalsCap > 0) {
+            $goalCount = min($goalCount, $maxGoalsCap);
+            if ($homeHasPlayers) {
+                $homeScore = $goalCount;
+            } else {
+                $awayScore = $goalCount;
+            }
+        }
+
+        $events = $this->generateGoalEventsInRange(
+            $goalCount, $scoringTeamId, $concedingTeamId,
+            $scoringPlayers, collect(), $minMinute, $maxMinute,
+        );
+
+        return [$homeScore, $awayScore, $events];
     }
 
     /**
@@ -1398,6 +1458,14 @@ class MatchSimulator
         $homeScore = $this->poissonRandom($homeExpectedGoals);
         $awayScore = $this->poissonRandom($awayExpectedGoals);
 
+        // A team with no players cannot score — force their goals to 0.
+        if ($homePlayers->isEmpty()) {
+            $homeScore = 0;
+        }
+        if ($awayPlayers->isEmpty()) {
+            $awayScore = 0;
+        }
+
         // Generate goal events in range [fromMinute+1, 120]
         $minMinute = $fromMinute + 1;
         $maxMinute = 120;
@@ -1419,6 +1487,13 @@ class MatchSimulator
             $events = $this->reassignEventsFromUnavailablePlayers(
                 $events, $homePlayers, $awayPlayers
             );
+        } elseif ($homePlayers->isNotEmpty() || $awayPlayers->isNotEmpty()) {
+            // One team has no players — generate events only for the team with players.
+            [$homeScore, $awayScore, $goalEvents] = $this->generateSingleTeamGoalEvents(
+                $homeTeam, $awayTeam, $homePlayers, $awayPlayers,
+                $homeScore, $awayScore, $minMinute, $maxMinute,
+            );
+            $events = $events->merge($goalEvents)->sortBy('minute')->values();
         }
 
         $possession = $this->calculatePossession(
