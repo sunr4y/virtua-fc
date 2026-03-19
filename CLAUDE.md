@@ -49,13 +49,15 @@ Uses invokable single-action classes instead of traditional controllers:
 - **Actions:** `App\Http\Actions\*` - handle form submissions and game commands (21 classes)
 - **Views:** `App\Http\Views\*` - prepare data for Blade templates (19 classes)
 
+**Views and Actions must stay thin.** They should only orchestrate: validate input, call a service, return a response. Business logic, database queries, and data transformations belong in service classes (`app/Modules/*/Services/` or `app/Services/`). Never put complex queries or domain logic directly in a View or Action class.
+
 Authentication is handled by Laravel Breeze controllers in `App\Http\Controllers\Auth\`.
 
 Example: `ShowGame` → `views/game.blade.php`, `AdvanceMatchday` handles playing matches.
 
 ### Modular Monolith Architecture
 
-The codebase follows a **modular monolith** pattern. Domain logic is organized into 10 modules under `app/Modules/`, each with its own services, contracts, DTOs, and events:
+The codebase follows a **modular monolith** pattern. Domain logic is organized into 11 modules under `app/Modules/`, each with its own services, contracts, DTOs, and events:
 
 | Module | Purpose | Key services |
 |--------|---------|-------------|
@@ -67,6 +69,7 @@ The codebase follows a **modular monolith** pattern. Domain logic is organized i
 | **Competition** | Structure & config | `CountryConfig`, `StandingsCalculator`, `CupDrawService`, handlers config |
 | **Finance** | Economic model | `BudgetProjectionService`, `SeasonSimulationService` |
 | **Season** | Lifecycle orchestration | `SeasonClosingPipeline`, `SeasonSetupPipeline`, `GameCreationService`, 22 processors |
+| **Manager** | Manager profile, trophies & leaderboard | `ManagerProfileService`, `LeaderboardService`, `TrophyRecordingProcessor` |
 | **Notification** | In-game messaging | `NotificationService`, event listeners |
 | **Academy** | Youth development | `YouthAcademyService` |
 
@@ -199,6 +202,9 @@ app/
 │   │   ├── Contracts/    # SeasonProcessor
 │   │   ├── DTOs/         # SeasonTransitionData
 │   │   └── Jobs/         # SetupNewGame, SetupTournamentGame
+│   ├── Manager/          # Manager profile, trophies & leaderboard
+│   │   ├── Services/     # ManagerProfileService, LeaderboardService
+│   │   └── Processors/   # TrophyRecordingProcessor
 │   ├── Notification/     # In-game messaging
 │   │   ├── Services/     # NotificationService
 │   │   └── Listeners/    # SendMatchNotifications, SendCupTieNotifications
