@@ -17,6 +17,7 @@ use App\Http\Actions\DeclineRenewal;
 use App\Http\Actions\ReconsiderRenewal;
 use App\Http\Actions\AdvanceMatchday;
 use App\Http\Actions\SimulateTournament;
+use App\Http\Actions\CancelLoanSearch;
 use App\Http\Actions\CancelScoutSearch;
 use App\Http\Actions\MarkAllNotificationsRead;
 use App\Http\Actions\MarkNotificationRead;
@@ -186,6 +187,7 @@ Route::middleware('auth')->group(function () {
             return redirect()->route('game.transfers.outgoing', $gameId);
         })->name('game.loans');
         Route::post('/game/{gameId}/loans/out/{playerId}', RequestLoan::class)->name('game.loans.out');
+        Route::post('/game/{gameId}/loans/cancel/{playerId}', CancelLoanSearch::class)->name('game.loans.cancel');
 
         // Season End
         Route::get('/game/{gameId}/season-end', ShowSeasonEnd::class)->name('game.season-end');

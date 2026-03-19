@@ -471,11 +471,17 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="text-right">
+                                            <div class="flex items-center gap-3">
                                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent-blue/10 text-accent-blue">
                                                     <span class="w-1.5 h-1.5 bg-accent-blue rounded-full animate-pulse"></span>
                                                     {{ __('transfers.searching_destination') }}
                                                 </span>
+                                                <form method="post" action="{{ route('game.loans.cancel', [$game->id, $gamePlayer->id]) }}">
+                                                    @csrf
+                                                    <x-ghost-button type="submit" color="red" size="xs">
+                                                        {{ __('app.cancel') }}
+                                                    </x-ghost-button>
+                                                </form>
                                             </div>
                                         </div>
                                     </div>

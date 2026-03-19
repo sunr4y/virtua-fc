@@ -30,6 +30,17 @@ class LoanService
     }
 
     /**
+     * Cancel an active loan search for a player.
+     */
+    public function cancelLoanSearch(GamePlayer $player): void
+    {
+        $player->update([
+            'transfer_status' => null,
+            'transfer_listed_at' => null,
+        ]);
+    }
+
+    /**
      * Process all active loan searches each matchday.
      * Returns arrays of found and expired results.
      */

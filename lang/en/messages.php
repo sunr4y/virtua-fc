@@ -35,6 +35,7 @@ return [
     'already_on_loan' => ':player is already on loan.',
     'loan_search_started' => 'A loan destination search has started for :player. You will be notified when a club is found.',
     'loan_search_active' => ':player already has an active loan search.',
+    'loan_search_cancelled' => ':player loan search has been cancelled.',
 
     // Contract messages
     'renewal_agreed' => ':player has accepted a :years-year extension at :wage/yr (effective from next season).',

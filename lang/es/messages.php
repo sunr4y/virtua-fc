@@ -35,6 +35,7 @@ return [
     'already_on_loan' => ':player ya está cedido.',
     'loan_search_started' => 'Se ha iniciado la búsqueda de destino para :player. Se te notificará cuando se encuentre un club.',
     'loan_search_active' => ':player ya tiene una búsqueda de cesión activa.',
+    'loan_search_cancelled' => 'Se ha cancelado la búsqueda de cesión de :player.',
 
     // Contract messages
     'renewal_agreed' => ':player ha aceptado una extensión de :years años a :wage/año (efectivo desde la próxima temporada).',
