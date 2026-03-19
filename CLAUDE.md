@@ -103,6 +103,18 @@ These are non-obvious rules that prevent bugs. Read carefully.
 | Cup terms | `cup.*` | `cup.round` |
 | Notifications | `notifications.*` | `notifications.transfer_complete` |
 
+### Alpine.js: PHP Values in `x-data`
+
+**Never use raw Blade interpolation (`'{{ }}'`) to pass PHP values into Alpine `x-data` expressions.** Use `@js()` instead. Raw interpolation breaks if the value contains quotes, newlines, or special characters, silently corrupting the entire Alpine component.
+
+```blade
+{{-- Bad: breaks on quotes/newlines in user input --}}
+x-data="{ bio: '{{ $user->bio }}' }"
+
+{{-- Good: @js() handles all escaping --}}
+x-data="{ bio: @js($user->bio) }"
+```
+
 ### UI: Design System
 
 The design system (`resources/views/design-system/`) is the source of truth. Before building any UI: check `resources/views/design-system/sections/` for patterns, then `resources/views/components/` for existing components. Reuse exactly as defined. Never invent alternative styles for elements that already have a design system definition. New patterns go in the design system first, then get implemented as components.
