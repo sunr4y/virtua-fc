@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Schedule;
 
+Schedule::command('horizon:snapshot')->everyFiveMinutes();
 Schedule::command('app:cleanup-games')->dailyAt('04:00');
 Schedule::command('app:send-beta-feedback-requests')->hourly();
 Schedule::command('beta:send-invite-reminders')->dailyAt('10:00');
