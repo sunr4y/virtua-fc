@@ -2,7 +2,6 @@
 
 namespace App\Modules\Season\Services;
 
-use App\Models\Player;
 use App\Modules\Competition\Services\CountryConfig;
 use App\Support\Money;
 use Carbon\Carbon;
@@ -54,7 +53,8 @@ class GamePlayerTemplateService
             ->pluck('id', 'transfermarkt_id')
             ->toArray();
 
-        $allPlayers = Player::select('id', 'transfermarkt_id', 'date_of_birth', 'technical_ability', 'physical_ability')
+        $allPlayers = DB::table('players')
+            ->select('id', 'transfermarkt_id', 'date_of_birth', 'technical_ability', 'physical_ability')
             ->get()
             ->keyBy('transfermarkt_id');
 
@@ -62,7 +62,7 @@ class GamePlayerTemplateService
         $competitionIds = $countryConfig->playerInitializationOrder($countryCode);
         $continentalIds = $countryConfig->continentalSupportIds($countryCode);
 
-        $templateRows = [];
+        $totalCount = 0;
 
         // Track already-processed teams (including from prior country runs)
         $processedTeamIds = DB::table('game_player_templates')
@@ -87,29 +87,31 @@ class GamePlayerTemplateService
             }
 
             $rows = $this->generateForCompetition($competitionId, $season, $allTeamIds, $allPlayers, $processedTeamIds, $processedPlayerIds);
-            foreach ($rows as $row) {
-                $templateRows[] = $row;
-                $processedTeamIds[$row['team_id']] = true;
-                $processedPlayerIds[$row['player_id']] = true;
-            }
+            $totalCount += $this->insertAndTrack($rows, $processedTeamIds, $processedPlayerIds);
         }
 
         // Swiss format gap teams (UCL, UEL — teams not already covered)
         $swissIds = $countryConfig->swissFormatCompetitionIds($countryCode);
         foreach ($swissIds as $competitionId) {
             $rows = $this->generateForSwissGapTeams($competitionId, $season, $allTeamIds, $allPlayers, $processedTeamIds, $processedPlayerIds);
-            foreach ($rows as $row) {
-                $templateRows[] = $row;
-                $processedTeamIds[$row['team_id']] = true;
-                $processedPlayerIds[$row['player_id']] = true;
-            }
+            $totalCount += $this->insertAndTrack($rows, $processedTeamIds, $processedPlayerIds);
         }
 
-        foreach (array_chunk($templateRows, 500) as $chunk) {
+        return $totalCount;
+    }
+
+    private function insertAndTrack(array $rows, array &$processedTeamIds, array &$processedPlayerIds): int
+    {
+        foreach ($rows as $row) {
+            $processedTeamIds[$row['team_id']] = true;
+            $processedPlayerIds[$row['player_id']] = true;
+        }
+
+        foreach (array_chunk($rows, 500) as $chunk) {
             DB::table('game_player_templates')->insert($chunk);
         }
 
-        return count($templateRows);
+        return count($rows);
     }
 
     /**
@@ -242,7 +244,8 @@ class GamePlayerTemplateService
         }
 
         $referenceDate = Carbon::parse("{$season}-08-15");
-        $age = (int) $player->date_of_birth->diffInYears($referenceDate);
+        $dob = Carbon::parse($player->date_of_birth);
+        $age = (int) $dob->diffInYears($referenceDate);
         $marketValueCents = Money::parseMarketValue($playerData['marketValue'] ?? null);
         $annualWage = $this->contractService->calculateAnnualWage($marketValueCents, $minimumWage, $age);
 
