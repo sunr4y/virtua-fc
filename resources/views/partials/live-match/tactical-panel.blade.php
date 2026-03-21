@@ -471,7 +471,7 @@
                         <x-secondary-button
                             x-show="!showingConfirmation && selectedPlayerOut && selectedPlayerIn && canAddMoreToPending && subsRemaining > 1"
                             @click="addPendingSub()"
-                            class="gap-1.5"
+                            class="gap-1.5 !bg-teal-600 !border-teal-500 !text-white hover:!bg-teal-500"
                         >
                             {{ __('game.sub_add_another') }}
                         </x-secondary-button>
