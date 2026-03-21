@@ -510,7 +510,7 @@ class MatchResultProcessor
         $ids = [];
         foreach ($updates as $matchId => $subsJson) {
             $escaped = str_replace("'", "''", $subsJson);
-            $cases[] = "WHEN id = '{$matchId}' THEN '{$escaped}'::jsonb";
+            $cases[] = "WHEN id = '{$matchId}' THEN '{$escaped}'::json";
             $ids[] = $matchId;
         }
 
