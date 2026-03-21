@@ -19,6 +19,7 @@ return [
     'Brazil' => 'Brazil',
     'Bulgaria' => 'Bulgaria',
     'Cabo Verde' => 'Cabo Verde',
+    'Cape Verde' => 'Cape Verde',
     'Cameroon' => 'Cameroon',
     'Canada' => 'Canada',
     'Chile' => 'Chile',
