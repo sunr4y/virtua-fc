@@ -37,6 +37,16 @@ final class PlayerAge
     }
 
     /**
+     * Linearly interpolate between YOUNG_END and PRIME_END.
+     *
+     * primePhaseAge(0.0) = YOUNG_END, primePhaseAge(1.0) = PRIME_END.
+     */
+    public static function primePhaseAge(float $t): int
+    {
+        return (int) round(self::YOUNG_END + $t * (self::PRIME_END - self::YOUNG_END));
+    }
+
+    /**
      * Is the player in the growing phase?
      */
     public static function isYoung(int $age): bool

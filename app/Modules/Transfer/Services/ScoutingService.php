@@ -14,6 +14,7 @@ use App\Models\TeamReputation;
 use App\Models\TransferOffer;
 use App\Support\Money;
 use Illuminate\Support\Collection;
+use App\Modules\Player\PlayerAge;
 use App\Modules\Player\Services\PlayerTierService;
 use App\Modules\Transfer\Services\ContractService;
 
@@ -497,7 +498,7 @@ class ScoutingService
         }
 
         $game = $player->game;
-        $yearsLeft = $player->contract_until->diffInYears($game->current_date);
+        $yearsLeft = $game->current_date->diffInYears($player->contract_until);
 
         if ($yearsLeft >= 4) {
             return 1.2;
@@ -520,14 +521,14 @@ class ScoutingService
      */
     private function getAgeModifier(int $age): float
     {
-        if ($age < 23) {
+        if ($age < PlayerAge::YOUNG_END) {
             return 1.15;
         }
-        if ($age <= 31) {
+        if ($age <= PlayerAge::PRIME_END) {
             return 1.0;
         }
 
-        return max(0.5, 1.0 - ($age - 31) * 0.05);
+        return max(0.5, 1.0 - ($age - PlayerAge::PRIME_END) * 0.05);
     }
 
     // =========================================
@@ -542,7 +543,7 @@ class ScoutingService
     /**
      * @return array{result: string, counter_amount: int|null, asking_price: int, message: string}
      */
-    public function evaluateBid(GamePlayer $player, int $bidAmount, ?Game $game = null): array
+    public function evaluateBid(GamePlayer $player, int $bidAmount, ?Game $game = null, ?int $previousCounter = null): array
     {
         // Reputation gate: player may refuse to join a lower-reputation club
         if ($game) {
@@ -558,7 +559,13 @@ class ScoutingService
         }
 
         $askingPrice = $this->calculateAskingPrice($player);
-        $ratio = $bidAmount / max($askingPrice, 1);
+
+        // Use the previous counter as ceiling so the club never raises their demand
+        $ceiling = ($previousCounter !== null && $previousCounter < $askingPrice)
+            ? $previousCounter
+            : $askingPrice;
+
+        $ratio = $bidAmount / max($ceiling, 1);
         $isKeyPlayer = $this->isKeyPlayer($player);
 
         $acceptThreshold = $isKeyPlayer ? 1.05 : 0.95;
@@ -574,7 +581,7 @@ class ScoutingService
         }
 
         if ($ratio >= $counterThreshold) {
-            $counterAmount = (int) (($bidAmount + $askingPrice) / 2);
+            $counterAmount = (int) (($bidAmount + $ceiling) / 2);
             $counterAmount = (int) (round($counterAmount / 10_000_000) * 10_000_000);
 
             // If rounding makes counter equal to bid, just accept the bid
@@ -1004,7 +1011,7 @@ class ScoutingService
 
         // Contract length factor: fewer years left = more willing
         if ($player->contract_until) {
-            $yearsLeft = max(0, $player->contract_until->diffInYears($game->current_date));
+            $yearsLeft = max(0, $game->current_date->diffInYears($player->contract_until));
             if ($yearsLeft <= 1) {
                 $score += 30;
             } elseif ($yearsLeft <= 2) {
@@ -1016,9 +1023,9 @@ class ScoutingService
 
         // Age factor: older players at lower-rep clubs more open
         $age = $player->age($game->current_date);
-        if ($age >= 30) {
+        if ($age >= PlayerAge::PRIME_END) {
             $score += 10;
-        } elseif ($age <= 22) {
+        } elseif ($age < PlayerAge::YOUNG_END) {
             $score += 5; // Young players seeking opportunities
         }
 

@@ -38,7 +38,7 @@ class TransferService
      * Age adjustments for transfer pricing.
      */
     private const AGE_PREMIUM_YOUNG = 1.10;  // Young talent premium
-    private const AGE_PENALTY_PER_YEAR_OVER_29 = 0.05;  // 5% per year
+    private const AGE_DECLINE_PENALTY_PER_YEAR = 0.05;  // 5% per year
 
     /**
      * Offer expiry in days.
@@ -841,9 +841,9 @@ class TransferService
 
         if ($age < PlayerAge::YOUNG_END) {
             $ageModifier = self::AGE_PREMIUM_YOUNG;
-        } elseif ($age > 29) {
-            $yearsOver29 = $age - 29;
-            $ageModifier = max(0.5, 1.0 - ($yearsOver29 * self::AGE_PENALTY_PER_YEAR_OVER_29));
+        } elseif ($age > PlayerAge::primePhaseAge(0.5)) {
+            $yearsOverMidPrime = $age - PlayerAge::primePhaseAge(0.5);
+            $ageModifier = max(0.5, 1.0 - ($yearsOverMidPrime * self::AGE_DECLINE_PENALTY_PER_YEAR));
         }
 
         $finalPrice = (int) ($baseValue * $typeModifier * $ageModifier);
@@ -1224,7 +1224,7 @@ class TransferService
 
         // Transfer player to user's team
         $age = $player->age($game->current_date);
-        $contractYears = $offer->offered_years ?? ($age >= 35 ? 2 : ($age >= 32 ? 3 : rand(3, 5)));
+        $contractYears = $offer->offered_years ?? ($age > PlayerAge::PRIME_END ? 2 : ($age >= PlayerAge::PRIME_END ? 3 : rand(3, 5)));
         $newContractEnd = Carbon::parse($game->current_date)->addYears($contractYears);
 
         $player->update([
@@ -1486,8 +1486,9 @@ class TransferService
             ]);
         }
 
-        // Immediately evaluate
-        $evaluation = $scoutingService->evaluateBid($player, $offer->transfer_fee, $game);
+        // Immediately evaluate — pass previous counter as ceiling so the club never raises
+        $previousCounter = $existing ? $existing->asking_price : null;
+        $evaluation = $scoutingService->evaluateBid($player, $offer->transfer_fee, $game, $previousCounter);
 
         if ($evaluation['result'] === 'accepted') {
             $offer->update([
@@ -1559,7 +1560,7 @@ class TransferService
 
         // Contract length (longer = more reluctant)
         if ($player->contract_until) {
-            $yearsLeft = $player->contract_until->diffInYears($player->game->current_date);
+            $yearsLeft = $player->game->current_date->diffInYears($player->contract_until);
             if ($yearsLeft >= 4) {
                 $disposition -= 0.10;
             } elseif ($yearsLeft <= 1) {
@@ -1576,9 +1577,9 @@ class TransferService
 
         // Age (older = more willing to sell)
         $age = $player->age($player->game->current_date);
-        if ($age >= 32) {
+        if ($age >= PlayerAge::PRIME_END) {
             $disposition += 0.10;
-        } elseif ($age <= 22) {
+        } elseif ($age < PlayerAge::YOUNG_END) {
             $disposition -= 0.05;
         }
 
