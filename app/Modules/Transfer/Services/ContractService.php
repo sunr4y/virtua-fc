@@ -451,11 +451,11 @@ class ContractService
 
         // Age factor
         $age = $player->age($player->game->current_date);
-        if ($age >= 32) {
+        if ($age >= PlayerAge::PRIME_END) {
             $disposition += 0.12;
-        } elseif ($age >= 29) {
+        } elseif ($age >= PlayerAge::primePhaseAge(0.5)) {
             $disposition += 0.05;
-        } elseif ($age <= 23) {
+        } elseif ($age <= PlayerAge::YOUNG_END) {
             $disposition -= 0.08;
         }
 
@@ -584,9 +584,9 @@ class ContractService
         $minimumAcceptable = (int) ($negotiation->player_demand * (1.0 - $flexibility));
 
         // Salary floor: players don't take pay cuts
-        // Exception: veterans (33+) with high morale value stability over money
+        // Exception: veterans with high morale value stability over money
         $age = $player->age($player->game->current_date);
-        if (!($age >= 33 && $player->morale >= 70)) {
+        if (!($age >= PlayerAge::PRIME_END && $player->morale >= 70)) {
             $minimumAcceptable = max($minimumAcceptable, $player->annual_wage);
         }
 
@@ -975,9 +975,9 @@ class ContractService
 
         // Age (older = wants a good final contract)
         $age = $player->age($player->game->current_date);
-        if ($age >= 32) {
+        if ($age >= PlayerAge::PRIME_END) {
             $disposition += 0.10;
-        } elseif ($age <= 23) {
+        } elseif ($age <= PlayerAge::YOUNG_END) {
             $disposition -= 0.05;
         }
 
@@ -1012,7 +1012,7 @@ class ContractService
         $wage = $scoutingService->calculateWageDemand($player);
         $age = $player->age($player->game->current_date);
 
-        $contractYears = $age >= 33 ? 1 : ($age >= 30 ? 2 : 3);
+        $contractYears = $age >= PlayerAge::PRIME_END ? 1 : ($age >= PlayerAge::primePhaseAge(0.6) ? 2 : 3);
 
         return [
             'wage' => $wage,

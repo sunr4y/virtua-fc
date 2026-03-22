@@ -14,6 +14,7 @@ use App\Models\TeamReputation;
 use App\Models\TransferOffer;
 use App\Support\Money;
 use Illuminate\Support\Collection;
+use App\Modules\Player\PlayerAge;
 use App\Modules\Player\Services\PlayerTierService;
 use App\Modules\Transfer\Services\ContractService;
 
@@ -520,14 +521,14 @@ class ScoutingService
      */
     private function getAgeModifier(int $age): float
     {
-        if ($age < 23) {
+        if ($age < PlayerAge::YOUNG_END) {
             return 1.15;
         }
-        if ($age <= 31) {
+        if ($age <= PlayerAge::PRIME_END) {
             return 1.0;
         }
 
-        return max(0.5, 1.0 - ($age - 31) * 0.05);
+        return max(0.5, 1.0 - ($age - PlayerAge::PRIME_END) * 0.05);
     }
 
     // =========================================
@@ -1016,9 +1017,9 @@ class ScoutingService
 
         // Age factor: older players at lower-rep clubs more open
         $age = $player->age($game->current_date);
-        if ($age >= 30) {
+        if ($age >= PlayerAge::PRIME_END) {
             $score += 10;
-        } elseif ($age <= 22) {
+        } elseif ($age < PlayerAge::YOUNG_END) {
             $score += 5; // Young players seeking opportunities
         }
 
