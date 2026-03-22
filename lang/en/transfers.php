@@ -29,15 +29,9 @@ return [
     'loans_out_section' => 'Active Loans (Out)',
     'loan_searches_section' => 'Searching for Loan Destination',
     'loan_searches_help' => 'Players looking for a club to go on loan',
-    'counter_offers_received' => 'Counter Offer(s) Received',
-    'counter_offers_help' => 'Clubs have responded with a different price than you offered',
-
     // Legacy keys kept for compatibility
     'loans' => 'Loans',
 
-    // Pending bids
-    'your_pending_bids' => 'Your Pending Bids',
-    'pending_bids_help' => 'Bids sent that are awaiting a response from the selling club',
     'loan_request' => 'Loan Request',
     'loan_no_fee' => 'Loan (no fee)',
     'free_transfer' => 'Free (no contract)',
@@ -46,8 +40,6 @@ return [
     'sign' => 'Sign',
     'window_closed_for_signing' => 'Transfer window closed — signing unavailable.',
     'wage_exceeds_budget' => 'Wage demand exceeds your wage budget.',
-    'response_next_matchday' => 'Response on the next matchday',
-
     // Rejected bids
     'rejected_bids' => 'Rejected Bids',
     'bid_rejected' => 'Bid rejected',
@@ -122,8 +114,6 @@ return [
     'bid_awaiting_response' => 'Awaiting Response',
     'counter_offer_received' => 'Counter Offer Received',
     'transfer_agreed' => 'Transfer Agreed',
-    'accept_counter' => 'Accept Counter Offer',
-    'reject_counter' => 'Reject',
     'already_bidding' => 'You already have a bid for this player',
     'scouting_assessment' => 'Scouting Assessment',
     'financial_details' => 'Financial Details',
@@ -180,10 +170,6 @@ return [
 
     // Scout search button
     'new_scout_search' => 'New Search',
-
-    // Counter-offer detail
-    'your_bid_amount' => 'Your bid: :amount',
-    'they_ask' => 'They ask: :amount',
 
     // Transfers help text
     'transfers_help_toggle' => 'How do transfers work?',
@@ -316,10 +302,29 @@ return [
     'chat_accept' => 'Accept',
     'chat_user_accepts' => 'Deal!',
     'chat_deal_agreed' => 'Contract agreed',
+    'chat_club_agreement' => 'Club agreement reached',
     'chat_deal_failed' => 'Negotiation failed',
     'chat_continue' => 'Continue',
     'chat_round' => 'Round :current/:max',
     'year_singular' => 'year',
     'year_plural' => 'years',
     'chat_send_offer' => 'Send',
+
+    // Transfer negotiation chat
+    'chat_transfer_title' => 'Transfer Negotiation',
+    'chat_club_demand' => ':team wants :fee for :player.',
+    'chat_club_counter' => ':team insists on :fee.',
+    'chat_club_counter_resume' => ':team is still asking :fee.',
+    'chat_club_accepted' => ':team has accepted :fee for :player!',
+    'chat_club_rejected' => ':team has rejected the offer. Negotiations have broken down.',
+    'chat_your_bid' => 'Your bid',
+    'mood_willing_sell' => 'Willing to sell',
+    'mood_open_sell' => 'Open to offers',
+    'mood_reluctant_sell' => 'Reluctant to sell',
+    'negotiate' => 'Negotiate',
+    'chat_terms_transition' => 'Fee agreed! Now negotiate personal terms with the player.',
+    'chat_player_demand_transfer' => ':player\'s agent wants :wage/year for :years years.',
+    'chat_player_counter_transfer' => ':player\'s agent insists on :wage/year for :years years.',
+    'chat_transfer_complete' => ':player has signed! Welcome to the team.',
+    'chat_terms_rejected' => ':player\'s agent has walked away. The deal is off.',
 ];

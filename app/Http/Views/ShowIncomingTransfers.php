@@ -20,34 +20,10 @@ class ShowIncomingTransfers
         $game = Game::with(['team', 'finances'])->findOrFail($gameId);
         abort_if($game->isTournamentMode(), 404);
 
-        // Incoming transfer data
-        $pendingBids = TransferOffer::with(['gamePlayer.player', 'gamePlayer.team', 'sellingTeam'])
-            ->where('game_id', $gameId)
-            ->where('status', TransferOffer::STATUS_PENDING)
-            ->where('direction', TransferOffer::DIRECTION_INCOMING)
-            ->orderByDesc('game_date')
-            ->get();
-
-        // Separate counter-offers from regular pending bids
-        $counterOffers = $pendingBids->filter(function ($bid) {
-            return $bid->asking_price && $bid->asking_price > $bid->transfer_fee;
-        });
-        $regularPendingBids = $pendingBids->reject(function ($bid) {
-            return $bid->asking_price && $bid->asking_price > $bid->transfer_fee;
-        });
-
         $recentSignings = TransferOffer::with(['gamePlayer.player', 'gamePlayer.team', 'sellingTeam'])
             ->where('game_id', $gameId)
             ->where('status', TransferOffer::STATUS_COMPLETED)
             ->where('direction', TransferOffer::DIRECTION_INCOMING)
-            ->orderByDesc('resolved_at')
-            ->get();
-
-        $rejectedBids = TransferOffer::with(['gamePlayer.player', 'gamePlayer.team', 'sellingTeam'])
-            ->where('game_id', $gameId)
-            ->where('status', TransferOffer::STATUS_REJECTED)
-            ->where('direction', TransferOffer::DIRECTION_INCOMING)
-            ->where('resolved_at', '>=', $game->current_date->subDays(7))
             ->orderByDesc('resolved_at')
             ->get();
 
@@ -64,9 +40,6 @@ class ShowIncomingTransfers
 
         return view('incoming-transfers', [
             'game' => $game,
-            'counterOffers' => $counterOffers,
-            'pendingBids' => $regularPendingBids,
-            'rejectedBids' => $rejectedBids,
             'recentSignings' => $recentSignings,
             'incomingAgreedTransfers' => $incomingAgreedTransfers,
             'loansIn' => $loansIn,

@@ -29,15 +29,9 @@ return [
     'loans_out_section' => 'Cesiones Activas (Salidas)',
     'loan_searches_section' => 'Buscando Destino de Cesión',
     'loan_searches_help' => 'Jugadores buscando un club para ser cedidos',
-    'counter_offers_received' => 'Contraoferta(s) Recibida(s)',
-    'counter_offers_help' => 'Los clubes han respondido con un precio diferente al que ofreciste',
-
     // Legacy keys kept for compatibility
     'loans' => 'Cesiones',
 
-    // Pending bids
-    'your_pending_bids' => 'Tus Ofertas Pendientes',
-    'pending_bids_help' => 'Ofertas enviadas que están esperando respuesta del club vendedor',
     'loan_request' => 'Solicitud de Cesión',
     'loan_no_fee' => 'Cesión (sin coste)',
     'free_transfer' => 'Libre (sin contrato)',
@@ -46,8 +40,6 @@ return [
     'sign' => 'Fichar',
     'window_closed_for_signing' => 'Ventana de fichajes cerrada — no se puede fichar.',
     'wage_exceeds_budget' => 'El salario solicitado supera tu presupuesto salarial.',
-    'response_next_matchday' => 'Respuesta en la próxima jornada',
-
     // Rejected bids
     'rejected_bids' => 'Ofertas Rechazadas',
     'bid_rejected' => 'Oferta rechazada',
@@ -123,8 +115,6 @@ return [
     'bid_awaiting_response' => 'Esperando Respuesta',
     'counter_offer_received' => 'Contraoferta Recibida',
     'transfer_agreed' => 'Fichaje Acordado',
-    'accept_counter' => 'Aceptar Contraoferta',
-    'reject_counter' => 'Rechazar',
     'already_bidding' => 'Ya tienes una oferta por este jugador',
     'scouting_assessment' => 'Evaluación del Ojeador',
     'financial_details' => 'Detalles Financieros',
@@ -185,10 +175,6 @@ return [
 
     // Scout search button
     'new_scout_search' => 'Nueva Búsqueda',
-
-    // Counter-offer detail
-    'your_bid_amount' => 'Tu oferta: :amount',
-    'they_ask' => 'Piden: :amount',
 
     // Transfers help text
     'transfers_help_toggle' => '¿Cómo funcionan los traspasos?',
@@ -320,11 +306,30 @@ return [
     'chat_agent_rejected' => 'El agente de :player ha abandonado la mesa. La negociación ha fracasado.',
     'chat_accept' => 'Aceptar',
     'chat_user_accepts' => '¡Trato!',
-    'chat_deal_agreed' => 'Contrato acordado',
+    'chat_deal_agreed' => 'Fichaje acordado',
+    'chat_club_agreement' => 'Acuerdo entre clubes',
     'chat_deal_failed' => 'Negociación fallida',
     'chat_continue' => 'Continuar',
     'chat_round' => 'Ronda :current/:max',
     'year_singular' => 'año',
     'year_plural' => 'años',
     'chat_send_offer' => 'Enviar',
+
+    // Transfer negotiation chat
+    'chat_transfer_title' => 'Negociación de Traspaso',
+    'chat_club_demand' => ':team pide :fee por :player.',
+    'chat_club_counter' => ':team insiste en :fee.',
+    'chat_club_counter_resume' => ':team sigue pidiendo :fee.',
+    'chat_club_accepted' => '¡:team ha aceptado :fee por :player!',
+    'chat_club_rejected' => ':team ha rechazado la oferta. Las negociaciones se han roto.',
+    'chat_your_bid' => 'Tu oferta',
+    'mood_willing_sell' => 'Dispuesto a vender',
+    'mood_open_sell' => 'Abierto a ofertas',
+    'mood_reluctant_sell' => 'Reticente a vender',
+    'negotiate' => 'Negociar',
+    'chat_terms_transition' => '¡Precio acordado! Ahora negocia las condiciones personales con el jugador.',
+    'chat_player_demand_transfer' => 'El agente de :player pide :wage/año durante :years años.',
+    'chat_player_counter_transfer' => 'El agente de :player insiste en :wage/año durante :years años.',
+    'chat_transfer_complete' => '¡:player ha firmado! Bienvenido al equipo.',
+    'chat_terms_rejected' => 'El agente de :player se ha marchado. El acuerdo se ha roto.',
 ];
