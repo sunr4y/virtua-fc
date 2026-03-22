@@ -10,6 +10,8 @@ use App\Modules\Player\PlayerAge;
 use App\Modules\Player\Services\InjuryService;
 use App\Modules\Player\Services\PlayerDevelopmentService;
 use App\Modules\Transfer\Services\ContractService;
+use App\Modules\Transfer\Services\PlayerDispositionService;
+use App\Modules\Transfer\Services\ScoutingService;
 use App\Support\PositionSlotMapper;
 
 class SquadService
@@ -149,10 +151,11 @@ class SquadService
             $renewalEligible = $allPlayers->filter(fn ($p) => $p->canBeOfferedRenewal($seasonEndDate))
                 ->sortBy('contract_until');
             foreach ($renewalEligible as $player) {
-                $demand = $this->contractService->calculateRenewalDemand($player);
+                $playerDisposition = app(PlayerDispositionService::class);
+                $demand = $playerDisposition->calculateWageDemand($player, 'renewal', app(ScoutingService::class));
                 $midpoint = (int) (ceil(($player->annual_wage + $demand['wage']) / 2 / 100 / 10000) * 10000);
-                $disposition = $this->contractService->calculateDisposition($player);
-                $mood = $this->contractService->getMoodIndicator($disposition);
+                $disposition = $playerDisposition->calculateDisposition($player, 'renewal');
+                $mood = $playerDisposition->getMoodIndicator($disposition);
                 $renewalData[$player->id] = [
                     'demand' => $demand,
                     'midpoint' => $midpoint,
