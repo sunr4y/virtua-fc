@@ -614,6 +614,11 @@ class ContractService
             $counterWage = (int) (($minimumAcceptable + $negotiation->player_demand) / 2);
             $counterWage = (int) (round($counterWage / 10_000_000) * 10_000_000);
 
+            // Never raise above previous counter
+            if ($negotiation->counter_offer !== null && $counterWage > $negotiation->counter_offer) {
+                $counterWage = $negotiation->counter_offer;
+            }
+
             $updateData['status'] = RenewalNegotiation::STATUS_PLAYER_COUNTERED;
             $updateData['counter_offer'] = $counterWage;
 
@@ -1075,6 +1080,11 @@ class ContractService
         if ($effectiveOffer >= $counterThreshold && $offer->terms_round < self::MAX_NEGOTIATION_ROUNDS) {
             $counterWage = (int) (($minimumAcceptable + $offer->player_demand) / 2);
             $counterWage = (int) (round($counterWage / 10_000_000) * 10_000_000);
+
+            // Never raise above previous counter
+            if ($offer->wage_counter_offer !== null && $counterWage > $offer->wage_counter_offer) {
+                $counterWage = $offer->wage_counter_offer;
+            }
 
             $offer->update([
                 'terms_status' => 'countered',

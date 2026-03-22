@@ -302,7 +302,6 @@ class NegotiateTransfer
         $demand = $this->contractService->calculateTransferWageDemand($player, $this->scoutingService);
         $disposition = $this->contractService->calculateTransferDisposition($player, $game);
         $mood = $this->contractService->getMoodIndicator($disposition);
-        $midpoint = $this->calculateMidpointInEuros($player->annual_wage, $demand['wage']);
 
         return response()->json([
             'status' => 'ok',
@@ -321,7 +320,7 @@ class NegotiateTransfer
                     'mood' => $mood,
                 ], [
                     'canAccept' => false,
-                    'suggestedWage' => $midpoint,
+                    'suggestedWage' => (int) ($demand['wage'] / 100),
                     'preferredYears' => $demand['contractYears'],
                 ]),
             ],
