@@ -45,6 +45,10 @@ $tabs = [
         get isMaxed() {
             return this.totalSelected >= this.maxPlayers;
         },
+
+        selectedByGroup(group) {
+            return this.players[group].filter(p => this.selectedIds.includes(p.transfermarkt_id));
+        },
     }" class="min-h-screen pb-32 md:pb-8">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
 
@@ -183,6 +187,17 @@ $tabs = [
                         <span class="text-text-secondary">/ 26</span>
                     </div>
 
+                    {{-- Download --}}
+                    <x-secondary-button
+                        type="button"
+                        x-bind:disabled="!canConfirm"
+                        @click="$dispatch('open-modal', 'squad-download')"
+                        class="shrink-0"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                        <span class="hidden md:inline ml-1.5">{{ __('squad.download_squad') }}</span>
+                    </x-secondary-button>
+
                     {{-- Submit --}}
                     <form method="POST" action="{{ route('game.squad-selection.save', $game->id) }}" class="flex-1 md:flex-none">
                         @csrf
@@ -197,5 +212,36 @@ $tabs = [
                 </div>
             </div>
         </div>
+        {{-- Squad Download Modal --}}
+        <x-modal name="squad-download" maxWidth="md">
+            <x-modal-header modal-name="squad-download">{{ __('squad.squad_list') }}</x-modal-header>
+
+            <div class="max-h-[80vh] overflow-y-auto">
+                <div class="p-4 md:p-6">
+                    {{-- Team Header --}}
+                    <div class="flex items-center gap-3 mb-4">
+                        <x-team-crest :team="$game->team" class="w-10 h-10" />
+                        <h3 class="text-lg font-bold text-text-primary">{{ $game->team->name }}</h3>
+                    </div>
+
+                    {{-- Position Groups --}}
+                    @foreach ($tabs as $groupKey => $label)
+                    <div x-show="selectedByGroup('{{ $groupKey }}').length > 0" class="mb-3 last:mb-0">
+                        <h4 class="text-xs font-semibold text-text-muted uppercase tracking-wider mb-1">{{ $label }}</h4>
+                        <p class="text-sm text-text-primary leading-relaxed"
+                           x-text="selectedByGroup('{{ $groupKey }}').map(p => p.name).join(', ')"></p>
+                    </div>
+                    @endforeach
+
+                    {{-- Brand Footer --}}
+                    <div class="mt-5 pt-4 border-t border-border-default flex flex-col items-center gap-1.5">
+                        <div class="-skew-x-12 bg-red-600 px-2 py-0.5">
+                            <span class="skew-x-12 inline-block text-sm font-extrabold text-white tracking-tight" style="font-family: 'Barlow Semi Condensed', sans-serif;">Virtua FC</span>
+                        </div>
+                        <p class="text-[11px] text-text-muted">Juega a ser seleccionador en virtuafc.com</p>
+                    </div>
+                </div>
+            </div>
+        </x-modal>
     </div>
 </x-app-layout>
