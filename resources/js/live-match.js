@@ -221,7 +221,7 @@ export default function liveMatch(config) {
                 this.phase = 'first_half';
                 this._lastTick = performance.now();
                 this._animFrame = requestAnimationFrame(this.tick.bind(this));
-            }, 1000);
+            }, 1500);
         },
 
         tick(now) {

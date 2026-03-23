@@ -3,7 +3,6 @@
 namespace App\Http\Views;
 
 use App\Modules\Competition\Services\CalendarService;
-use App\Modules\Match\DTOs\MatchdayAdvanceResult;
 use App\Modules\Notification\Services\NotificationService;
 use App\Modules\Season\Jobs\ProcessSeasonTransition;
 use App\Models\CupTie;
@@ -47,6 +46,17 @@ class ShowGame
             ]);
         }
 
+        // Show loading screen while remaining batches are processing in background
+        $game->clearStuckRemainingBatches();
+        if ($game->isProcessingRemainingBatches()) {
+            return view('game-loading', [
+                'game' => $game,
+                'title' => __('game.simulating_matches'),
+                'message' => __('game.simulating_matches_message'),
+                'showCrest' => true,
+            ]);
+        }
+
         // Show loading screen while career actions are processing in background
         $game->clearStuckCareerActions();
         if ($game->isProcessingCareerActions()) {
@@ -57,42 +67,8 @@ class ShowGame
             ]);
         }
 
-        // Matchday advance completed — consume result and redirect
-        if ($advanceResult = $game->matchday_advance_result) {
-            $game->update(['matchday_advance_result' => null]);
-            $result = MatchdayAdvanceResult::fromArray($advanceResult);
-
-            return match ($result->type) {
-                'live_match' => redirect()->route('game.live-match', [
-                    'gameId' => $gameId,
-                    'matchId' => $result->matchId,
-                ]),
-                'season_complete' => redirect()->route('game.season-end', $gameId),
-                'done' => redirect()->route('show-game', $gameId),
-                'blocked' => $result->pendingAction && $result->pendingAction['route']
-                    ? redirect()->route($result->pendingAction['route'], $gameId)->with('warning', __('messages.action_required'))
-                    : redirect()->route('show-game', $gameId)->with('warning', __('messages.action_required')),
-            };
-        }
-
-        // Show loading screen while matchday advance runs in background
-        if ($game->isAdvancingMatchday()) {
-            $nextMatch = $this->loadNextMatch($game);
-
-            if ($nextMatch) {
-                return view('game-loading-matchday', [
-                    'game' => $game,
-                    'nextMatch' => $nextMatch,
-                ]);
-            }
-
-            return view('game-loading', [
-                'game' => $game,
-                'title' => __('game.simulating_matches'),
-                'message' => __('game.simulating_matches_message'),
-                'showCrest' => true,
-            ]);
-        }
+        // Safety net: clear stuck matchday advance flags from pre-deployment in-flight jobs
+        $game->clearStuckMatchdayAdvance();
 
         $nextMatch = $this->loadNextMatch($game);
         $hasRemainingMatches = !$nextMatch && $game->matches()->where('played', false)->exists();

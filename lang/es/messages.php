@@ -106,6 +106,7 @@ return [
     // Pending actions
     'action_required' => 'Hay acciones pendientes que debes resolver antes de continuar.',
     'action_required_short' => 'Acción Requerida',
+    'matchday_advance_failed' => 'Algo salió mal al avanzar la jornada. Por favor, inténtalo de nuevo.',
 
     // Tracking
     'tracking_started' => 'Ahora rastreando a :player.',

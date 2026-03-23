@@ -100,6 +100,43 @@
              })"
              x-on:keydown.escape.window="if (!tacticalPanelOpen) skipToEnd()"
         >
+            {{-- Match Preview Intro Overlay --}}
+            <div x-show="phase === 'pre_match'"
+                 x-transition:leave="transition ease-in duration-500"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 z-50 flex items-start md:items-center justify-center pt-24 md:pt-0 bg-surface-900">
+                <div class="w-full max-w-md px-4 text-center">
+                    {{-- Competition & Round --}}
+                    <x-competition-pill :competition="$match->competition" class="justify-center mb-2" />
+                    <h1 class="text-lg md:text-2xl font-bold text-text-primary">
+                        {{ $match->round_name ? __($match->round_name) : __('game.matchday_n', ['number' => $match->round_number]) }}
+                    </h1>
+                    <p class="text-sm text-text-muted mt-1">
+                        {{ $match->homeTeam->stadium_name ?? '' }} · {{ $match->scheduled_date->locale(app()->getLocale())->translatedFormat('d M Y') }}
+                    </p>
+
+                    {{-- Team Face-Off --}}
+                    <div class="flex items-center justify-center gap-4 md:gap-8 mt-8">
+                        <div class="flex-1 flex flex-col items-center text-center min-w-0">
+                            <x-team-crest :team="$match->homeTeam" class="w-16 h-16 md:w-24 md:h-24 mb-2" />
+                            <h4 class="text-sm md:text-base font-bold text-text-primary truncate max-w-full">
+                                {{ $match->homeTeam->short_name ?? $match->homeTeam->name }}
+                            </h4>
+                        </div>
+                        <div class="shrink-0">
+                            <span class="text-lg md:text-2xl font-black text-text-body tracking-tight">{{ __('game.vs') }}</span>
+                        </div>
+                        <div class="flex-1 flex flex-col items-center text-center min-w-0">
+                            <x-team-crest :team="$match->awayTeam" class="w-16 h-16 md:w-24 md:h-24 mb-2" />
+                            <h4 class="text-sm md:text-base font-bold text-text-primary truncate max-w-full">
+                                {{ $match->awayTeam->short_name ?? $match->awayTeam->name }}
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             @php
                 $compBadge = \App\Support\CompetitionColors::badge($match->competition);
             @endphp
