@@ -1274,6 +1274,7 @@ export default function liveMatch(config) {
                     if (formationChanged) {
                         this.livePitchPositions = {};
                         this._savedPitchPositions = {};
+                        this.manualAssignments = {};
                     }
                 }
                 if (result.mentality) {
@@ -1604,7 +1605,12 @@ export default function liveMatch(config) {
             // Build current active lineup (initial + substitutions applied)
             const activeLineup = this.getActiveLineupPlayers();
 
-            const assignments = assignPlayersToSlots(slots, activeLineup, this.slotCompatibility, this.manualAssignments);
+            // Skip manual assignments when previewing a different formation — slot IDs
+            // are formation-specific, so old mappings would place players incorrectly.
+            // Assignments stay in memory so switching back to the original formation restores them.
+            const effectiveFormation = this.pendingFormation ?? this.activeFormation;
+            const useManualAssignments = (effectiveFormation === this.activeFormation) ? this.manualAssignments : {};
+            const assignments = assignPlayersToSlots(slots, activeLineup, this.slotCompatibility, useManualAssignments);
 
             // Preview pending subs on the pitch: swap out → in
             const allPendingSubs = [...this.pendingSubs];
