@@ -612,4 +612,5 @@
     </div>
 
     <x-player-detail-modal />
+    <x-negotiation-chat-modal />
 </x-app-layout>
