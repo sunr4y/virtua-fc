@@ -132,6 +132,9 @@ return [
     'wage_demand' => 'Salario Solicitado',
     'your_transfer_budget' => 'Tu Presupuesto de Fichajes',
     'transfer_fee_exceeds_budget' => 'El precio de traspaso excede tu presupuesto. No puedes pujar por este jugador.',
+    'transfer_fee_exceeds_budget_loan_available' => 'El precio de traspaso excede tu presupuesto, pero puedes solicitar una cesión.',
+    'loan_fee_exceeds_budget' => 'Tanto el traspaso como la cesión exceden tu presupuesto.',
+    'loan_cost_salary' => 'Coste cesión (salario)',
     'asking_price' => 'Precio pedido',
     'request_loan' => 'Solicitar Cesión',
 
@@ -382,14 +385,14 @@ return [
 
     // Loan negotiation chat
     'chat_loan_title' => 'Negociación de Cesión',
-    'chat_loan_demand' => ':team cedería a :player por una tarifa de :fee.',
-    'chat_loan_counter' => ':team insiste en una tarifa de cesión de :fee.',
-    'chat_loan_accepted_free' => '¡:team acepta ceder a :player sin coste! ¡Bienvenido!',
+    'chat_loan_accepted' => ':team acepta la cesión de :player. Coste: :salary/año.',
     'chat_loan_completed' => '¡:player se ha unido en cesión hasta final de temporada!',
     'chat_loan_agreed' => 'La cesión de :player ha sido acordada. El traspaso se completará cuando abra la ventana de fichajes.',
     'chat_loan_rejected' => ':team ha rechazado la solicitud de cesión. Las negociaciones se han roto.',
     'chat_loan_rejected_key_player' => ':team ha rechazado la solicitud. :player es un jugador clave para ellos.',
-    'chat_loan_rejected_reputation' => ':player no está interesado en unirse a tu club en cesión.',
+    'chat_loan_rejected_reputation' => ':player no está interesado en unirse a tu club en calidad de cedido.',
+    'chat_loan_rejected_player' => ':player no está interesado en unirse a tu club en calidad de cedido.',
+    'chat_loan_confirm' => 'Confirmar cesión',
     'chat_loan_deal' => 'Cesión acordada',
 
     // Chat player info strip
