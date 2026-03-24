@@ -132,6 +132,14 @@ class NegotiateTransfer
             ], 422);
         }
 
+        // Cooldown: must wait at least one matchday after a rejected negotiation
+        if (TransferOffer::hasNegotiationCooldown($game->id, $player->id, $game->team_id, $game->current_date)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('transfers.negotiation_cooldown'),
+            ], 422);
+        }
+
         // New negotiation — show asking price
         $askingPrice = $this->scoutingService->calculateAskingPrice($player);
         $disposition = $this->transferService->calculateClubDisposition($player, $this->scoutingService);
@@ -468,6 +476,10 @@ class NegotiateTransfer
             $this->notificationService->notifyTransferComplete($game, $offer->refresh());
         }
 
+        $messageKey = $completedImmediately
+            ? 'transfers.chat_transfer_complete'
+            : 'transfers.chat_transfer_complete_pending';
+
         return response()->json([
             'status' => 'ok',
             'negotiation_status' => 'completed',
@@ -475,7 +487,7 @@ class NegotiateTransfer
             'max_rounds' => self::MAX_ROUNDS,
             'messages' => [
                 $this->agentMessage('accepted', [
-                    'text' => __('transfers.chat_transfer_complete', [
+                    'text' => __($messageKey, [
                         'player' => $player->name,
                     ]),
                 ]),

@@ -124,6 +124,8 @@ return [
     'counter_offer_received' => 'Contraoferta Recibida',
     'transfer_agreed' => 'Fichaje Acordado',
     'already_bidding' => 'Ya tienes una oferta por este jugador',
+    'negotiation_cooldown' => 'Las negociaciones con este jugador se rompieron recientemente. Espera a la siguiente jornada para intentarlo de nuevo.',
+    'negotiation_cooldown_short' => 'Espera a la próxima jornada',
     'scouting_assessment' => 'Evaluación del Ojeador',
     'financial_details' => 'Detalles Financieros',
     'estimated_asking_price' => 'Precio de Venta Estimado',
@@ -355,6 +357,7 @@ return [
     'chat_player_demand_transfer' => 'El agente de :player pide :wage/año durante :years años.',
     'chat_player_counter_transfer' => 'El agente de :player insiste en :wage/año durante :years años.',
     'chat_transfer_complete' => '¡:player ha firmado! Bienvenido al equipo.',
+    'chat_transfer_complete_pending' => '¡:player ha firmado! El jugador se incorporará al equipo en el próximo mercado de fichajes.',
     'chat_terms_rejected' => 'El agente de :player se ha marchado. El acuerdo se ha roto.',
 
     // Counter-offer negotiation (user selling)
