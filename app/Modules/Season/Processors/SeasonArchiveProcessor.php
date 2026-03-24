@@ -14,6 +14,7 @@ use App\Models\GameStanding;
 use App\Models\GameTransfer;
 use App\Models\MatchEvent;
 use App\Models\SeasonArchive;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Archives season data before stats are reset.
@@ -359,11 +360,21 @@ class SeasonArchiveProcessor implements SeasonProcessor
 
     /**
      * Delete archived data from active tables.
+     *
+     * Match events are deleted in batches to avoid long-running queries
+     * and excessive lock durations on remote PostgreSQL.
      */
     private function deleteArchivedData(Game $game): void
     {
-        // Delete match events
-        MatchEvent::where('game_id', $game->id)->delete();
+        // Delete match events in batches (largest table, thousands of rows per season)
+        DB::table('match_events')
+            ->where('game_id', $game->id)
+            ->orderBy('id')
+            ->chunk(1000, function ($rows) {
+                DB::table('match_events')
+                    ->whereIn('id', $rows->pluck('id'))
+                    ->delete();
+            });
 
         // Delete played matches (keep unplayed fixtures for potential reference)
         GameMatch::where('game_id', $game->id)
