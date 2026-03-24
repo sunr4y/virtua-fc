@@ -27,9 +27,8 @@
     <!-- <meta name="twitter:image" content="https://virtuafc.com/og-image.jpg"> -->
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=barlow-semi-condensed:400,600,800|inter:400,500,600" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
@@ -297,7 +296,7 @@
             inset: 0;
             background:
                 radial-gradient(ellipse 500px 300px at 50% 60%, rgba(245,158,11,0.06) 0%, transparent 70%),
-                linear-gradient(180deg, #0F172A, #0B1120);
+                #0B1120;
             pointer-events: none;
         }
 
@@ -333,6 +332,22 @@
         }
         .trust-item:last-child::after {
             display: none;
+        }
+
+        /* ── Carousel dots ── */
+        .carousel-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 9999px;
+            background: #334155;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 0;
+        }
+        .carousel-dot.active {
+            background: #3B82F6;
+            width: 24px;
         }
 
         /* ── Reduced motion ── */
@@ -505,98 +520,81 @@
         </div>
     </section>
 
-    <!-- ── Angle divider (surface-800 → surface-900) ── -->
-    <div class="h-16 sm:h-20 bg-surface-800 relative">
-        <div class="absolute inset-0" style="background: #0B1120; clip-path: polygon(0 60%, 100% 0, 100% 100%, 0 100%);"></div>
-    </div>
+    <!-- ── Carousel + Angle Divider ── -->
+    <div class="relative bg-surface-800 overflow-x-hidden">
+        <!-- Angle divider background — surface-900 fills the bottom half -->
+        <div class="absolute inset-0 z-0" style="background: #0B1120; clip-path: polygon(0 50%, 100% 20%, 100% 100%, 0 100%);"></div>
 
-    <!-- ── What You Control ── -->
-    <section class="bg-surface-900 py-20 lg:py-32 px-4 sm:px-6" aria-label="Características del juego">
-        <div class="max-w-5xl mx-auto">
-            <!-- Section header -->
-            <div class="text-center mb-14 lg:mb-20 reveal">
-                <span class="font-heading font-semibold text-xs tracking-[0.25em] uppercase text-accent-gold mb-4 block">
-                    Control total
-                </span>
-                <h2 class="font-heading font-bold text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight">
-                    Tú tomas cada decisión
-                </h2>
+        <!-- Carousel floats on top of the divider -->
+        <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 py-16 lg:py-20" aria-label="Capturas del juego">
+            <div class="relative">
+                <div class="carousel-track flex gap-5 transition-transform duration-500 ease-in-out" id="carousel-track">
+                    <!-- Slide 1 — Squad Selection -->
+                    <div class="carousel-slide flex-shrink-0 w-full sm:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)]">
+                        <div class="bg-surface-800 border border-white/5 rounded-2xl overflow-hidden shadow-lg shadow-black/20">
+                            <div class="aspect-video bg-surface-700 flex items-center justify-center">
+                                <span class="text-muted text-xs uppercase tracking-widest">Selección de plantilla</span>
+                            </div>
+                            <div class="p-4">
+                                <p class="text-sm text-secondary leading-relaxed">Elige a tus 26 jugadores entre todos los disponibles de tu nación.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slide 2 — Lineup -->
+                    <div class="carousel-slide flex-shrink-0 w-full sm:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)]">
+                        <div class="bg-surface-800 border border-white/5 rounded-2xl overflow-hidden shadow-lg shadow-black/20">
+                            <div class="aspect-video bg-surface-700 flex items-center justify-center">
+                                <span class="text-muted text-xs uppercase tracking-widest">Formación y once titular</span>
+                            </div>
+                            <div class="p-4">
+                                <p class="text-sm text-secondary leading-relaxed">Define tu táctica, elige tu formación y coloca a tus titulares.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slide 3 — Match Simulation -->
+                    <div class="carousel-slide flex-shrink-0 w-full sm:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)]">
+                        <div class="bg-surface-800 border border-white/5 rounded-2xl overflow-hidden shadow-lg shadow-black/20">
+                            <div class="aspect-video bg-surface-700 flex items-center justify-center">
+                                <span class="text-muted text-xs uppercase tracking-widest">Simulación de partido</span>
+                            </div>
+                            <div class="p-4">
+                                <p class="text-sm text-secondary leading-relaxed">Sigue cada gol, tarjeta y cambio en tiempo real.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slide 4 — Bracket -->
+                    <div class="carousel-slide flex-shrink-0 w-full sm:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)]">
+                        <div class="bg-surface-800 border border-white/5 rounded-2xl overflow-hidden shadow-lg shadow-black/20">
+                            <div class="aspect-video bg-surface-700 flex items-center justify-center">
+                                <span class="text-muted text-xs uppercase tracking-widest">Cuadro eliminatorio</span>
+                            </div>
+                            <div class="p-4">
+                                <p class="text-sm text-secondary leading-relaxed">Avanza ronda a ronda hasta la gran final del campeonato.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation arrows -->
+                <button id="carousel-prev" class="hidden sm:flex absolute -left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-surface-800 border border-white/5 items-center justify-center text-secondary hover:text-white hover:border-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-accent-blue" aria-label="Anterior">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <button id="carousel-next" class="hidden sm:flex absolute -right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-surface-800 border border-white/5 items-center justify-center text-secondary hover:text-white hover:border-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-accent-blue" aria-label="Siguiente">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
             </div>
 
-            <!-- Features 2×2 grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 lg:gap-6">
-
-                <!-- Feature 1 — Tactics -->
-                <div class="feature-card card-blue bg-surface-800 border border-white/5 rounded-2xl p-6 lg:p-8 reveal reveal-delay-1">
-                    <div class="pl-3">
-                        <div class="w-10 h-10 rounded-lg bg-accent-blue/10 flex items-center justify-center mb-4">
-                            <svg class="w-5 h-5 text-accent-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
-                            </svg>
-                        </div>
-                        <h3 class="font-heading font-bold text-base sm:text-lg uppercase tracking-wide mb-2 text-white">
-                            Tácticas y Formación
-                        </h3>
-                        <p class="text-sm text-secondary leading-relaxed">
-                            Define tu formación, elige tu once titular y planifica tus cambios. Cada rival exige un planteamiento diferente.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Feature 2 — Squad -->
-                <div class="feature-card card-green bg-surface-800 border border-white/5 rounded-2xl p-6 lg:p-8 reveal reveal-delay-2">
-                    <div class="pl-3">
-                        <div class="w-10 h-10 rounded-lg bg-accent-green/10 flex items-center justify-center mb-4">
-                            <svg class="w-5 h-5 text-accent-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                            </svg>
-                        </div>
-                        <h3 class="font-heading font-bold text-base sm:text-lg uppercase tracking-wide mb-2 text-white">
-                            Gestión de Plantilla
-                        </h3>
-                        <p class="text-sm text-secondary leading-relaxed">
-                            Controla la forma física y las lesiones durante toda la competición. Rota con cabeza o arriesga perder jugadores clave en el momento decisivo.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Feature 3 — Match Simulation -->
-                <div class="feature-card card-orange bg-surface-800 border border-white/5 rounded-2xl p-6 lg:p-8 reveal reveal-delay-3">
-                    <div class="pl-3">
-                        <div class="w-10 h-10 rounded-lg bg-accent-orange/10 flex items-center justify-center mb-4">
-                            <svg class="w-5 h-5 text-accent-orange" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <h3 class="font-heading font-bold text-base sm:text-lg uppercase tracking-wide mb-2 text-white">
-                            Simulación de Partidos
-                        </h3>
-                        <p class="text-sm text-secondary leading-relaxed">
-                            Cada partido se simula con eventos detallados — goles, tarjetas, cambios, lesiones. Observa cómo tus decisiones cobran vida en tiempo real.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Feature 4 — Knockout Drama -->
-                <div class="feature-card card-red bg-surface-800 border border-white/5 rounded-2xl p-6 lg:p-8 reveal reveal-delay-4">
-                    <div class="pl-3">
-                        <div class="w-10 h-10 rounded-lg bg-accent-red/10 flex items-center justify-center mb-4">
-                            <svg class="w-5 h-5 text-accent-red" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                        </div>
-                        <h3 class="font-heading font-bold text-base sm:text-lg uppercase tracking-wide mb-2 text-white">
-                            Drama de Eliminatorias
-                        </h3>
-                        <p class="text-sm text-secondary leading-relaxed">
-                            Prórroga. Penaltis. Goles en el último minuto. Las eliminatorias traen la tensión que hace grande al fútbol internacional.
-                        </p>
-                    </div>
-                </div>
-            </div>
+            <!-- Dot indicators -->
+            <div class="flex items-center justify-center gap-2 mt-6" id="carousel-dots"></div>
         </div>
-    </section>
+    </div>
 
     <!-- ── Final CTA ── -->
     <section id="cta" class="cta-section py-24 lg:py-36 px-4 sm:px-6" aria-label="Empieza a jugar">
@@ -605,7 +603,7 @@
                 Tu selección te espera.<br>Toma el mando.
             </h2>
             <p class="text-secondary text-sm sm:text-base mb-10 max-w-md mx-auto">
-                Gratis. Sin anuncios. Sin pagar para ganar.
+                Gratis. Sin anuncios. Desde el navegador.
             </p>
             <a href="#" class="cta-btn inline-block bg-accent-blue hover:bg-accent-blue/80 text-white font-heading font-bold text-base sm:text-lg uppercase tracking-wider px-8 sm:px-10 py-3.5 sm:py-4 rounded-lg shadow-lg shadow-accent-blue/20 hover:shadow-accent-blue/30 focus:outline-none focus:ring-2 focus:ring-accent-blue focus:ring-offset-2 focus:ring-offset-surface-900">
                 Juega gratis
@@ -616,12 +614,13 @@
     </main>
 
     <!-- ── Footer ── -->
-    <footer class="border-t border-white/5 py-8 px-4 sm:px-6">
-        <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-faint">
-            <span>&copy; VirtuaFC</span>
-            <div class="flex items-center gap-6">
-                <a href="#" class="hover:text-secondary transition-colors">Privacidad</a>
-                <a href="#" class="hover:text-secondary transition-colors">Términos</a>
+    <footer class="max-w-7xl mx-auto px-6 py-12 border-t border-white/10">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="-skew-x-12 bg-accent-red px-3 py-1">
+                <span class="skew-x-12 inline-block font-heading text-xl font-bold text-white tracking-tight">Virtua FC</span>
+            </div>
+            <div class="text-xs text-muted">
+                &copy; 2026 Pablo Román · <a href="https://app.virtuafc.com/legal" class="hover:text-secondary transition-colors">Aviso Legal</a> · <a href="https://github.com/pabloroman/virtua-fc" target="_blank" class="hover:text-secondary transition-colors">GitHub</a>
             </div>
         </div>
     </footer>
@@ -637,6 +636,73 @@
         }, { threshold: 0.12 });
 
         document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    </script>
+
+    <!-- ── Carousel JS ── -->
+    <script>
+        (function() {
+            const track = document.getElementById('carousel-track');
+            const dots = document.getElementById('carousel-dots');
+            const prev = document.getElementById('carousel-prev');
+            const next = document.getElementById('carousel-next');
+            const slides = track.querySelectorAll('.carousel-slide');
+            let current = 0;
+            let autoTimer;
+
+            function slidesPerView() {
+                if (window.innerWidth >= 1024) return 3;
+                if (window.innerWidth >= 640) return 2;
+                return 1;
+            }
+
+            function maxIndex() {
+                return Math.max(0, slides.length - slidesPerView());
+            }
+
+            function buildDots() {
+                dots.innerHTML = '';
+                const count = maxIndex() + 1;
+                for (let i = 0; i < count; i++) {
+                    const dot = document.createElement('button');
+                    dot.className = 'carousel-dot' + (i === current ? ' active' : '');
+                    dot.setAttribute('aria-label', 'Ir a slide ' + (i + 1));
+                    dot.addEventListener('click', () => goTo(i));
+                    dots.appendChild(dot);
+                }
+            }
+
+            function goTo(index) {
+                current = Math.max(0, Math.min(index, maxIndex()));
+                const slide = slides[0];
+                const gap = 20;
+                const offset = current * (slide.offsetWidth + gap);
+                track.style.transform = 'translateX(-' + offset + 'px)';
+                buildDots();
+                resetAuto();
+            }
+
+            function resetAuto() {
+                clearInterval(autoTimer);
+                autoTimer = setInterval(() => {
+                    goTo(current >= maxIndex() ? 0 : current + 1);
+                }, 5000);
+            }
+
+            prev.addEventListener('click', () => goTo(current - 1));
+            next.addEventListener('click', () => goTo(current + 1));
+
+            window.addEventListener('resize', () => {
+                if (current > maxIndex()) current = maxIndex();
+                goTo(current);
+            });
+
+            buildDots();
+            resetAuto();
+
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                clearInterval(autoTimer);
+            }
+        })();
     </script>
 
 </body>
