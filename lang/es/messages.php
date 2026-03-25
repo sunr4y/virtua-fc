@@ -97,8 +97,6 @@ return [
 
     // Squad cap
     'squad_full' => 'Tu plantilla ya tiene el máximo de :max jugadores. Libera o vende un jugador primero.',
-    'pre_contract_rejected_squad_full' => 'Fichaje cancelado: :player',
-    'pre_contract_rejected_squad_full_detail' => 'El precontrato de :player ha sido cancelado porque tu plantilla ya tiene :max jugadores.',
     'squad_trim_required' => 'Tu plantilla tiene :count jugadores. Debes liberar al menos :excess para cumplir el límite de :max jugadores.',
     'cannot_loan_free_agent' => 'No se puede ceder a un jugador libre. Fíchalo directamente.',
 

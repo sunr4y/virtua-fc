@@ -2,8 +2,6 @@
 
 namespace App\Modules\Transfer\Services;
 
-use App\Models\GameNotification;
-use App\Modules\Notification\Services\NotificationService;
 use App\Modules\Player\PlayerAge;
 use App\Modules\Transfer\Services\ContractService;
 use App\Modules\Transfer\Services\ScoutingService;
@@ -1260,17 +1258,6 @@ class TransferService
         // Safety net: reject if squad is full (skipped for season-close pre-contracts)
         if (!$skipSquadCheck && ContractService::isSquadFull($game)) {
             $offer->update(['status' => TransferOffer::STATUS_REJECTED, 'resolved_at' => $game->current_date]);
-
-            $playerName = $offer->gamePlayer->player->name ?? $offer->gamePlayer->name;
-            app(NotificationService::class)->create(
-                game: $game,
-                type: GameNotification::TYPE_TRANSFER_COMPLETE,
-                title: __('messages.pre_contract_rejected_squad_full', ['player' => $playerName]),
-                message: __('messages.pre_contract_rejected_squad_full_detail', ['player' => $playerName, 'max' => ContractService::MAX_SQUAD_SIZE]),
-                priority: GameNotification::PRIORITY_WARNING,
-                metadata: ['offer_id' => $offer->id, 'player_id' => $offer->game_player_id],
-            );
-
             return;
         }
 
