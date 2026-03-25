@@ -26,7 +26,6 @@ class MatchdayService
         'home_playing_style', 'away_playing_style',
         'home_pressing', 'away_pressing',
         'home_defensive_line', 'away_defensive_line',
-        'home_slot_assignment', 'away_slot_assignment',
         'cup_tie_id', 'played',
         'home_score', 'away_score',
         'substitutions',
