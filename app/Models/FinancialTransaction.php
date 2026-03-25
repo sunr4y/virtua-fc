@@ -70,6 +70,8 @@ class FinancialTransaction extends Model
     public const CATEGORY_LOAN = 'loan';                     // Loan salary expense
     public const CATEGORY_SEVERANCE = 'severance';           // Contract termination payment
     public const CATEGORY_INFRASTRUCTURE = 'infrastructure'; // Mid-season infrastructure upgrade
+    public const CATEGORY_BUDGET_LOAN = 'budget_loan';       // Budget loan received
+    public const CATEGORY_LOAN_REPAYMENT = 'loan_repayment'; // Budget loan repayment
 
     public function game(): BelongsTo
     {
@@ -117,6 +119,8 @@ class FinancialTransaction extends Model
             self::CATEGORY_LOAN => __('finances.category_loan'),
             self::CATEGORY_SEVERANCE => __('finances.category_severance'),
             self::CATEGORY_INFRASTRUCTURE => __('finances.category_infrastructure'),
+            self::CATEGORY_BUDGET_LOAN => __('finances.category_budget_loan'),
+            self::CATEGORY_LOAN_REPAYMENT => __('finances.category_loan_repayment'),
             default => ucfirst(str_replace('_', ' ', $this->category)),
         };
     }
