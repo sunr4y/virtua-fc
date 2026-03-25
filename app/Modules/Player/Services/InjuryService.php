@@ -14,13 +14,13 @@ class InjuryService
     /**
      * Base injury chance per player per match (percentage).
      */
-    private const BASE_INJURY_CHANCE = 1.2;
+    private const BASE_INJURY_CHANCE = 1.0;
 
     /**
      * Base training injury chance per player per matchday (percentage).
      * Applies to all squad members (playing and non-playing).
      */
-    private const TRAINING_INJURY_CHANCE = 1.5;
+    private const TRAINING_INJURY_CHANCE = 1.05;
 
     /**
      * Medical tier multipliers for injury prevention.
@@ -144,25 +144,20 @@ class InjuryService
      * Durability multipliers based on player's hidden durability attribute (1-100).
      */
     private const DURABILITY_THRESHOLDS = [
-        ['max' => 20, 'multiplier' => 2.0],   // Very injury prone
-        ['max' => 40, 'multiplier' => 1.5],   // Injury prone
+        ['max' => 20, 'multiplier' => 1.8],   // Very injury prone
+        ['max' => 40, 'multiplier' => 1.4],   // Injury prone
         ['max' => 60, 'multiplier' => 1.0],   // Average
         ['max' => 80, 'multiplier' => 0.7],   // Resilient
         ['max' => 100, 'multiplier' => 0.4],  // Ironman
     ];
 
     /**
-     * Age multipliers for injury risk, derived from PlayerAge boundaries.
-     * Young (still developing) and veteran players are more injury-prone.
-     */
-
-    /**
      * Fitness multipliers for injury risk.
      */
     private const FITNESS_THRESHOLDS = [
-        ['max' => 30, 'multiplier' => 2.5],   // Exhausted
-        ['max' => 50, 'multiplier' => 2.0],   // Very tired
-        ['max' => 70, 'multiplier' => 1.5],   // Tired
+        ['max' => 30, 'multiplier' => 2.25],  // Exhausted
+        ['max' => 50, 'multiplier' => 1.75],  // Very tired
+        ['max' => 70, 'multiplier' => 1.35],  // Tired
         ['max' => 85, 'multiplier' => 1.0],   // Normal
         ['max' => 100, 'multiplier' => 0.8],  // Fresh
     ];
@@ -301,9 +296,9 @@ class InjuryService
     private function getAgeMultiplier(int $age): float
     {
         return match (true) {
-            $age <= PlayerAge::ACADEMY_END => 1.3,  // Young, still developing
+            $age <= PlayerAge::ACADEMY_END => 1.2,  // Young, still developing
             $age <= PlayerAge::PRIME_END => 1.0,    // Prime years
-            default => 1.5,                          // Veteran
+            default => 1.4,                          // Veteran
         };
     }
 
@@ -333,11 +328,11 @@ class InjuryService
         $daysSinceLastMatch = $lastMatchDate->diffInDays($currentMatchDate);
 
         if ($daysSinceLastMatch <= 2) {
-            return 2.0; // Back-to-back games
+            return 1.8; // Back-to-back games
         } elseif ($daysSinceLastMatch <= 3) {
-            return 1.5; // Very congested
+            return 1.4; // Very congested
         } elseif ($daysSinceLastMatch <= 4) {
-            return 1.2; // Slightly congested
+            return 1.15; // Slightly congested
         }
 
         return 1.0; // Normal rest
