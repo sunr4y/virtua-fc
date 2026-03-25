@@ -505,11 +505,6 @@ class Game extends Model
     /**
      * Winter transfer window: January 1 - January 31
      * Mid-season transfer period.
-     *
-     * Also accounts for the gap between the last December match and the first
-     * January match: current_date only advances when matches are played, so
-     * when it's still December but the next match is in January, the calendar
-     * has progressed past January 1st and the window should be open.
      */
     public function isWinterWindowOpen(): bool
     {
@@ -517,18 +512,7 @@ class Game extends Model
             return false;
         }
 
-        if ($this->current_date->month === 1) {
-            return true;
-        }
-
-        if ($this->current_date->month === 12) {
-            $nextMatch = $this->next_match;
-            if ($nextMatch && $nextMatch->scheduled_date->month === 1) {
-                return true;
-            }
-        }
-
-        return false;
+        return $this->current_date->month === 1;
     }
 
     /**
@@ -537,6 +521,23 @@ class Game extends Model
     public function isTransferWindowOpen(): bool
     {
         return $this->isSummerWindowOpen() || $this->isWinterWindowOpen();
+    }
+
+    /**
+     * Advance current_date to the next match's scheduled date.
+     *
+     * Called after all matchday batches are processed but before career actions
+     * run, so that career actions (transfers, wages, etc.) see the correct
+     * calendar date instead of the date of the last played match.
+     */
+    public function advanceToNextMatchDate(): void
+    {
+        $nextMatch = $this->next_match;
+
+        if ($nextMatch && $this->current_date && $nextMatch->scheduled_date->gt($this->current_date)) {
+            $this->update(['current_date' => $nextMatch->scheduled_date->toDateString()]);
+            $this->refresh();
+        }
     }
 
     /**
@@ -556,8 +557,6 @@ class Game extends Model
     /**
      * Check if we've just entered the winter window (January 1).
      * Used to trigger one-time events like wage payments.
-     *
-     * Also accounts for the December→January gap (see isWinterWindowOpen).
      */
     public function isStartOfWinterWindow(): bool
     {
@@ -565,20 +564,7 @@ class Game extends Model
             return false;
         }
 
-        // First week of January
-        if ($this->current_date->month === 1 && $this->current_date->day <= 7) {
-            return true;
-        }
-
-        // December→January gap: next match is in early January
-        if ($this->current_date->month === 12) {
-            $nextMatch = $this->next_match;
-            if ($nextMatch && $nextMatch->scheduled_date->month === 1 && $nextMatch->scheduled_date->day <= 7) {
-                return true;
-            }
-        }
-
-        return false;
+        return $this->current_date->month === 1 && $this->current_date->day <= 7;
     }
 
     /**
@@ -664,8 +650,6 @@ class Game extends Model
     /**
      * Check if we're in the pre-contract offer period (January through May).
      * Players in their last year of contract can be approached for a free transfer.
-     *
-     * Also accounts for the December→January gap (see isWinterWindowOpen).
      */
     public function isPreContractPeriod(): bool
     {
@@ -675,18 +659,7 @@ class Game extends Model
 
         $month = $this->current_date->month;
 
-        if ($month >= 1 && $month <= 5) {
-            return true;
-        }
-
-        if ($month === 12) {
-            $nextMatch = $this->next_match;
-            if ($nextMatch && $nextMatch->scheduled_date->month === 1) {
-                return true;
-            }
-        }
-
-        return false;
+        return $month >= 1 && $month <= 5;
     }
 
     // ==========================================

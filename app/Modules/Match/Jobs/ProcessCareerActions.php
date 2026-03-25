@@ -40,6 +40,11 @@ class ProcessCareerActions implements ShouldQueue, ShouldBeUnique
             return;
         }
 
+        // Advance game clock to the next match's date so career actions
+        // (transfers, wages, etc.) see the correct calendar date rather
+        // than the date of the last played match.
+        $game->advanceToNextMatchDate();
+
         for ($i = 0; $i < $this->ticks; $i++) {
             if ($i > 0) {
                 $game->refresh();
