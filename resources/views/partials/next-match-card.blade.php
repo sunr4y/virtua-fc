@@ -41,7 +41,7 @@
                 <x-team-crest :team="$nextMatch->homeTeam" class="w-14 h-14 md:w-20 md:h-20 mb-2" />
                 <h4 class="text-sm md:text-xl font-bold text-text-primary truncate max-w-full">{{ $nextMatch->homeTeam->name }}</h4>
                 @if(!$isPreseason)
-                    @if($homeStanding)
+                    @if($homeStanding && !$cupTie)
                     <div class="text-xs text-text-muted mt-1.5">
                         {{ $homeStanding->position }}{{ $homeStanding->position == 1 ? 'st' : ($homeStanding->position == 2 ? 'nd' : ($homeStanding->position == 3 ? 'rd' : 'th')) }} &middot; {{ $homeStanding->points }} {{ __('game.pts') }}
                     </div>
@@ -72,7 +72,7 @@
                 <x-team-crest :team="$nextMatch->awayTeam" class="w-14 h-14 md:w-20 md:h-20 mb-2" />
                 <h4 class="text-sm md:text-xl font-bold text-text-primary truncate max-w-full">{{ $nextMatch->awayTeam->name }}</h4>
                 @if(!$isPreseason)
-                    @if($awayStanding)
+                    @if($awayStanding && !$cupTie)
                     <div class="text-xs text-text-muted mt-1.5">
                         {{ $awayStanding->position }}{{ $awayStanding->position == 1 ? 'st' : ($awayStanding->position == 2 ? 'nd' : ($awayStanding->position == 3 ? 'rd' : 'th')) }} &middot; {{ $awayStanding->points }} {{ __('game.pts') }}
                     </div>
