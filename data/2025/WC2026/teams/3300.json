@@ -13,32 +13,24 @@
       "position": "Goalkeeper"
     },
     {
-      "contract": "Nov 16, 2023",
-      "dateOfBirth": "Jan 17, 1993",
-      "foot": "right",
-      "height": "1,92m",
-      "id": "249994",
-      "marketValue": "€8.00m",
-      "name": "José Sá",
-      "position": "Goalkeeper"
-    },
-    {
       "contract": "Jun 9, 2021",
       "dateOfBirth": "Feb 7, 1994",
       "foot": "left",
       "height": "1,91m",
       "id": "234811",
-      "marketValue": "€5.00m",
+      "marketValue": "€7.00m",
       "name": "Rui Silva",
       "number": "22",
       "position": "Goalkeeper"
     },
     {
-      "dateOfBirth": "Apr 9, 2004",
+      "contract": "Nov 16, 2023",
+      "dateOfBirth": "Jan 17, 1993",
       "foot": "right",
-      "height": "1,89m",
-      "id": "929868",
-      "name": "João Carvalho",
+      "height": "1,92m",
+      "id": "249994",
+      "marketValue": "€5.00m",
+      "name": "José Sá",
       "position": "Goalkeeper"
     },
     {
@@ -52,14 +44,34 @@
       "position": "Centre-Back"
     },
     {
+      "dateOfBirth": "Aug 20, 1998",
+      "foot": "right",
+      "height": "1,88m",
+      "id": "527026",
+      "marketValue": "€2.50m",
+      "name": "Ricardo Velho",
+      "position": "Goalkeeper"
+    },
+    {
       "contract": "Mar 23, 2023",
       "dateOfBirth": "Aug 25, 2001",
       "foot": "left",
       "height": "1,86m",
       "id": "549006",
-      "marketValue": "€45.00m",
+      "marketValue": "€40.00m",
       "name": "Gonçalo Inácio",
       "number": "14",
+      "position": "Centre-Back"
+    },
+    {
+      "contract": "Nov 18, 2024",
+      "dateOfBirth": "May 16, 2002",
+      "foot": "right",
+      "height": "1,87m",
+      "id": "504087",
+      "marketValue": "€28.00m",
+      "name": "Tomás Araújo",
+      "number": "3",
       "position": "Centre-Back"
     },
     {
@@ -68,7 +80,7 @@
       "foot": "right",
       "height": "1,87m",
       "id": "650568",
-      "marketValue": "€38.00m",
+      "marketValue": "€28.00m",
       "name": "António Silva",
       "number": "4",
       "position": "Centre-Back"
@@ -79,7 +91,7 @@
       "foot": "left",
       "height": "1,90m",
       "id": "805714",
-      "marketValue": "€10.00m",
+      "marketValue": "€25.00m",
       "name": "Renato Veiga",
       "number": "13",
       "position": "Centre-Back"
@@ -90,7 +102,7 @@
       "foot": "left",
       "height": "1,80m",
       "id": "616341",
-      "marketValue": "€55.00m",
+      "marketValue": "€75.00m",
       "name": "Nuno Mendes",
       "position": "Left-Back"
     },
@@ -105,25 +117,25 @@
       "position": "Left-Back"
     },
     {
-      "contract": "Jun 23, 2021",
-      "dateOfBirth": "Mar 18, 1999",
-      "foot": "right",
-      "height": "1,83m",
-      "id": "357147",
-      "marketValue": "€40.00m",
-      "name": "Diogo Dalot",
-      "number": "5",
-      "position": "Right-Back"
-    },
-    {
       "contract": "Oct 9, 2021",
       "dateOfBirth": "Aug 27, 1998",
       "foot": "right",
       "height": "1,83m",
       "id": "601883",
-      "marketValue": "€40.00m",
+      "marketValue": "€45.00m",
       "name": "Matheus Nunes",
       "number": "15",
+      "position": "Right-Back"
+    },
+    {
+      "contract": "Jun 23, 2021",
+      "dateOfBirth": "Mar 18, 1999",
+      "foot": "right",
+      "height": "1,83m",
+      "id": "357147",
+      "marketValue": "€30.00m",
+      "name": "Diogo Dalot",
+      "number": "5",
       "position": "Right-Back"
     },
     {
@@ -132,7 +144,7 @@
       "foot": "right",
       "height": "1,82m",
       "id": "182712",
-      "marketValue": "€18.00m",
+      "marketValue": "€9.00m",
       "name": "João Cancelo",
       "position": "Right-Back"
     },
@@ -152,7 +164,7 @@
       "foot": "right",
       "height": "1,72m",
       "id": "487469",
-      "marketValue": "€55.00m",
+      "marketValue": "€110.00m",
       "name": "Vitinha",
       "number": "23",
       "position": "Defensive Midfield"
@@ -173,9 +185,20 @@
       "foot": "right",
       "height": "1,80m",
       "id": "225161",
-      "marketValue": "€28.00m",
+      "marketValue": "€25.00m",
       "name": "Rúben Neves",
       "number": "21",
+      "position": "Defensive Midfield"
+    },
+    {
+      "contract": "Oct 12, 2024",
+      "dateOfBirth": "Nov 27, 2000",
+      "foot": "left",
+      "height": "1,85m",
+      "id": "657430",
+      "marketValue": "€15.00m",
+      "name": "Samú Costa",
+      "number": "6",
       "position": "Defensive Midfield"
     },
     {
@@ -184,7 +207,7 @@
       "foot": "right",
       "height": "1,74m",
       "id": "670681",
-      "marketValue": "€60.00m",
+      "marketValue": "€110.00m",
       "name": "João Neves",
       "number": "15",
       "position": "Central Midfield"
@@ -200,12 +223,21 @@
       "position": "Attacking Midfield"
     },
     {
+      "dateOfBirth": "Jul 10, 2004",
+      "foot": "right",
+      "height": "1,80m",
+      "id": "880245",
+      "marketValue": "€35.00m",
+      "name": "Mateus Fernandes",
+      "position": "Central Midfield"
+    },
+    {
       "contract": "Nov 10, 2017",
       "dateOfBirth": "Sep 8, 1994",
       "foot": "right",
       "height": "1,79m",
       "id": "240306",
-      "marketValue": "€55.00m",
+      "marketValue": "€40.00m",
       "name": "Bruno Fernandes",
       "number": "8",
       "position": "Attacking Midfield"
@@ -216,7 +248,7 @@
       "foot": "left",
       "height": "1,84m",
       "id": "412669",
-      "marketValue": "€27.00m",
+      "marketValue": "€35.00m",
       "name": "Francisco Trincão",
       "number": "16",
       "position": "Attacking Midfield"
@@ -241,33 +273,35 @@
       "position": "Left Winger"
     },
     {
-      "contract": "Nov 14, 2019",
-      "dateOfBirth": "Dec 4, 1996",
-      "foot": "right",
-      "height": "1,78m",
-      "id": "340950",
-      "marketValue": "€50.00m",
-      "name": "Diogo Jota",
-      "position": "Left Winger"
-    },
-    {
       "contract": "Jun 4, 2021",
       "dateOfBirth": "Jun 28, 1998",
       "foot": "right",
       "height": "1,73m",
       "id": "426620",
-      "marketValue": "€32.00m",
+      "marketValue": "€28.00m",
       "name": "Pedro Gonçalves",
       "position": "Left Winger"
     },
     {
-      "contract": "Nov 16, 2025",
-      "dateOfBirth": "Mar 19, 2004",
-      "foot": "left",
-      "height": "1,69m",
-      "id": "742451",
-      "marketValue": "€8.00m",
-      "name": "Carlos Forbs",
+      "contract": "Sep 7, 2014",
+      "dateOfBirth": "Sep 15, 1994",
+      "foot": "right",
+      "height": "1,73m",
+      "id": "261927",
+      "marketValue": "€10.00m",
+      "name": "Ricardo Horta",
+      "number": "15",
+      "position": "Left Winger"
+    },
+    {
+      "contract": "Nov 14, 2015",
+      "dateOfBirth": "Nov 29, 1996",
+      "foot": "right",
+      "height": "1,79m",
+      "id": "225122",
+      "marketValue": "€6.00m",
+      "name": "Gonçalo Guedes",
+      "number": "17",
       "position": "Left Winger"
     },
     {
@@ -276,7 +310,7 @@
       "foot": "left",
       "height": "1,74m",
       "id": "487465",
-      "marketValue": "€55.00m",
+      "marketValue": "€60.00m",
       "name": "Pedro Neto",
       "position": "Right Winger"
     },
@@ -286,7 +320,7 @@
       "foot": "left",
       "height": "1,70m",
       "id": "487474",
-      "marketValue": "€36.00m",
+      "marketValue": "€30.00m",
       "name": "Francisco Conceição",
       "number": "20",
       "position": "Right Winger"
@@ -306,7 +340,7 @@
       "foot": "right",
       "height": "1,81m",
       "id": "462250",
-      "marketValue": "€30.00m",
+      "marketValue": "€25.00m",
       "name": "João Félix",
       "number": "11",
       "position": "Second Striker"
@@ -317,7 +351,7 @@
       "foot": "right",
       "height": "1,85m",
       "id": "550550",
-      "marketValue": "€50.00m",
+      "marketValue": "€35.00m",
       "name": "Gonçalo Ramos",
       "number": "9",
       "position": "Centre-Forward"
@@ -330,6 +364,16 @@
       "id": "8198",
       "marketValue": "€12.00m",
       "name": "Cristiano Ronaldo",
+      "position": "Centre-Forward"
+    },
+    {
+      "contract": "Nov 11, 2020",
+      "dateOfBirth": "Nov 9, 1992",
+      "foot": "left",
+      "height": "1,88m",
+      "id": "211072",
+      "marketValue": "€6.00m",
+      "name": "Paulinho",
       "position": "Centre-Forward"
     }
   ],

@@ -142,7 +142,7 @@ return [
     'wc_knockout_r16_v2' => 'Entre las 16 últimas. El nivel de los rivales sube a partir de aquí.',
     'wc_knockout_r16_v3' => 'QUEDAN 16. Octavos de final del Mundial.',
 
-    'wc_knockout_qf_v1' => 'Cuartos de final. Cuatro partidos os separan del título.',
+    'wc_knockout_qf_v1' => 'Has llegado a cuartos de final. Sólo tres partidos te separan del título.',
     'wc_knockout_qf_v2' => 'Entre los ocho mejores. En juego un puesto en semifinales.',
     'wc_knockout_qf_v3' => 'TERRITORIO DE ÉLITE. Solo quedan ocho selecciones en el torneo.',
 
