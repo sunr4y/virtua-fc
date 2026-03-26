@@ -31,7 +31,9 @@
     <div class="w-10 shrink-0 text-center">
         <div class="text-[11px] font-medium text-text-body leading-tight">{{ $match->scheduled_date->locale(app()->getLocale())->translatedFormat('d') }}</div>
         <div class="text-[9px] text-text-faint uppercase">{{ $match->scheduled_date->locale(app()->getLocale())->translatedFormat('M') }}</div>
-        <div class="w-3 h-0.5 rounded-full {{ $compDot }} mx-auto mt-1"></div>
+        @unless($game->isTournamentMode())
+            <div class="w-3 h-0.5 rounded-full {{ $compDot }} mx-auto mt-1"></div>
+        @endunless
     </div>
 
     {{-- Home/Away indicator --}}
@@ -45,11 +47,13 @@
         <span class="text-xs truncate {{ $isNextMatch ? 'text-text-primary font-medium' : 'text-text-body' }}">{{ $opponent->name }}</span>
     </div>
 
-    {{-- Competition pill: short name on mobile, full on desktop --}}
-    <div class="shrink-0">
-        <span class="md:hidden"><x-competition-pill :competition="$match->competition" :short="true" class="scale-90 origin-right" /></span>
-        <span class="hidden md:inline"><x-competition-pill :competition="$match->competition" class="scale-90 origin-right" /></span>
-    </div>
+    {{-- Competition pill: short name on mobile, full on desktop (hidden in tournament mode) --}}
+    @unless($game->isTournamentMode())
+        <div class="shrink-0">
+            <span class="md:hidden"><x-competition-pill :competition="$match->competition" :short="true" class="scale-90 origin-right" /></span>
+            <span class="hidden md:inline"><x-competition-pill :competition="$match->competition" class="scale-90 origin-right" /></span>
+        </div>
+    @endunless
 
     {{-- Result / Status --}}
     <div class="shrink-0 text-right">
