@@ -162,4 +162,5 @@ return [
     'copied_to_clipboard' => 'Copied!',
     'your_squad_stats' => 'Your Squad Stats',
     'download_season' => 'Download season',
+    'download_summary' => 'Download summary',
 ];

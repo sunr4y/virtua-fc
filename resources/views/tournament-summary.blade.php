@@ -95,6 +95,7 @@ $awayGoalLines = $formatGoalGroup($awayGoals);
 
 <x-app-layout :hide-footer="true">
     <div class="min-h-screen bg-surface-900" x-data="tournamentSummary({
+        gameId: @js($summary->id),
         teamName: @js($playerTeam->name ?? ''),
         teamCrestUrl: @js($playerTeam->image ?? ''),
         resultLabel: @js(__('season.result_' . $resultLabel)),
@@ -719,7 +720,7 @@ $awayGoalLines = $formatGoalGroup($awayGoals);
                         class="px-6 py-4 text-base"
                     >
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-                        <span class="ml-1.5">{{ __('squad.download_squad') }}</span>
+                        <span class="ml-1.5">{{ __('season.download_summary') }}</span>
                     </x-secondary-button>
                     <x-primary-button-link href="{{ route('select-team') }}" color="green" class="px-8 py-4 text-lg font-bold">
                         {{ __('season.play_again') }}

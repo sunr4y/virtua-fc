@@ -162,4 +162,5 @@ return [
     'copied_to_clipboard' => '¡Copiado!',
     'your_squad_stats' => 'Estadísticas de tu plantilla',
     'download_season' => 'Descargar temporada',
+    'download_summary' => 'Descargar resumen',
 ];

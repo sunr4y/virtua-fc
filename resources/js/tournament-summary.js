@@ -10,6 +10,7 @@ import {
 
 export default function tournamentSummary(config) {
     return {
+        gameId: config.gameId,
         teamName: config.teamName,
         teamCrestUrl: config.teamCrestUrl,
         resultLabel: config.resultLabel,
@@ -98,7 +99,7 @@ export default function tournamentSummary(config) {
             }
 
             y = drawBrandFooter(ctx, width, y);
-            trimAndDownload(canvas, y, this.teamName.replace(/[^a-zA-Z0-9]/g, '_') + '_tournament.png');
+            trimAndDownload(canvas, y, 'virtuafc_' + this.gameId + '.png');
         },
     };
 }
