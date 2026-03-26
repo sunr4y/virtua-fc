@@ -714,7 +714,6 @@ class ContractService
             'round' => $nextRound,
             'user_offer' => $newOfferWage,
             'offered_years' => $offeredYears,
-            'counter_offer' => null,
         ]);
 
         return $negotiation;
@@ -1109,7 +1108,6 @@ class ContractService
                 'terms_round' => min(($offer->terms_round ?? 1) + 1, self::MAX_NEGOTIATION_ROUNDS),
                 'offered_wage' => $offerWageCents,
                 'offered_years' => $offeredYears,
-                'wage_counter_offer' => null,
             ]);
         } else {
             // New terms negotiation
@@ -1265,7 +1263,6 @@ class ContractService
                 'terms_round' => min(($offer->terms_round ?? 1) + 1, self::MAX_NEGOTIATION_ROUNDS),
                 'offered_wage' => $offerWageCents,
                 'offered_years' => $offeredYears,
-                'wage_counter_offer' => null,
             ]);
         } else {
             // New terms negotiation
@@ -1374,7 +1371,6 @@ class ContractService
                 'terms_round' => min(($offer->terms_round ?? 1) + 1, self::MAX_NEGOTIATION_ROUNDS),
                 'offered_wage' => $offerWageCents,
                 'offered_years' => $offeredYears,
-                'wage_counter_offer' => null,
             ]);
         } else {
             $demand = $this->calculateFreeAgentWageDemand($player, $scoutingService);
