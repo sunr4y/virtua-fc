@@ -57,6 +57,17 @@
       "position": "Centre-Back"
     },
     {
+      "contract": "Jun 30, 2027",
+      "dateOfBirth": "Jan 18, 1998",
+      "foot": "left",
+      "height": "1,75m",
+      "id": "480762",
+      "marketValue": "€35.00m",
+      "name": "Lisandro Martínez",
+      "number": "6",
+      "position": "Centre-Back"
+    },
+    {
       "contract": "Oct 13, 2020",
       "dateOfBirth": "May 28, 1999",
       "foot": "left",
@@ -395,6 +406,16 @@
       "name": "Gianluca Prestianni",
       "number": "25",
       "position": "Right Winger"
+    },
+    {
+      "contract": "Jun 30, 2029",
+      "dateOfBirth": "Aug 22, 1997",
+      "foot": "right",
+      "height": "1,74m",
+      "id": "406625",
+      "marketValue": "€85.00m",
+      "name": "Lautaro Martínez",
+      "position": "Centre-Forward"
     },
     {
       "contract": "Jun 4, 2021",
