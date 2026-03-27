@@ -25,34 +25,36 @@
         </div>
     </div>
 
-    @if($pending > 0 && config('beta.enabled'))
-        <form method="POST" action="{{ route('admin.bulk-waitlist-invite') }}" class="mb-4">
-            @csrf
-            <x-ghost-button
-                type="submit"
-                color="green"
-                size="xs"
-                x-on:click.prevent="if (confirm(@js(__('admin.waitlist_bulk_invite_confirm')))) $el.closest('form').submit()"
-            >
-                {{ __('admin.waitlist_bulk_invite') }}
-            </x-ghost-button>
+    <div class="flex items-center gap-3 mb-4">
+        <form method="GET" action="{{ route('admin.waitlist') }}" class="flex-1 max-w-xs">
+            <div class="relative">
+                <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-muted pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ $search ?? '' }}"
+                    placeholder="{{ __('admin.search_waitlist_placeholder') }}"
+                    class="w-full bg-surface-700 border border-border-default rounded-md text-xs text-text-primary placeholder-slate-500 pl-8 pr-3 py-1.5 focus:outline-hidden focus:border-accent-blue/50 min-h-[44px]"
+                />
+            </div>
         </form>
-    @endif
 
-    <form method="GET" action="{{ route('admin.waitlist') }}" class="mb-4">
-        <div class="relative max-w-xs">
-            <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-muted pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-                type="text"
-                name="search"
-                value="{{ $search ?? '' }}"
-                placeholder="{{ __('admin.search_waitlist_placeholder') }}"
-                class="w-full bg-surface-700 border border-border-default rounded-md text-xs text-text-primary placeholder-slate-500 pl-8 pr-3 py-1.5 focus:outline-hidden focus:border-accent-blue/50 min-h-[44px]"
-            />
-        </div>
-    </form>
+        @if($pending > 0 && config('beta.enabled'))
+            <form
+                method="POST"
+                action="{{ route('admin.bulk-waitlist-invite') }}"
+                x-data="{ confirmMsg: @js(__('admin.waitlist_bulk_invite_confirm')) }"
+                x-on:submit.prevent="if (confirm(confirmMsg)) $el.submit()"
+            >
+                @csrf
+                <x-ghost-button type="submit" color="green" size="xs">
+                    {{ __('admin.waitlist_bulk_invite') }}
+                </x-ghost-button>
+            </form>
+        @endif
+    </div>
 
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-border-default">
