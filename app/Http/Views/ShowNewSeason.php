@@ -29,10 +29,11 @@ class ShowNewSeason
             if ($game->created_at->lt(now()->subMinutes(2))) {
                 $game->redispatchSetupJob();
             }
+            $isTournament = $game->isTournamentMode();
             return view('game-loading', [
                 'game' => $game,
-                'title' => __('game.preparing_season'),
-                'message' => __('game.setup_loading_message'),
+                'title' => $isTournament ? __('game.preparing_tournament') : __('game.preparing_season'),
+                'message' => $isTournament ? __('game.setup_tournament_loading_message') : __('game.setup_loading_message'),
                 'showCrest' => true,
             ]);
         }

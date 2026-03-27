@@ -230,6 +230,8 @@ return [
     // Setup loading
     'preparing_season' => 'Preparing your season...',
     'setup_loading_message' => 'We are setting up teams, players and competitions. This will only take a few seconds.',
+    'preparing_tournament' => 'Preparing the tournament...',
+    'setup_tournament_loading_message' => 'Loading national teams and players. This will only take a few seconds.',
     'processing_actions' => 'Processing...',
     'processing_career_actions' => 'Processing game actions...',
     'processing_career_actions_message' => 'Transfers, contracts, and other actions are being processed.',
