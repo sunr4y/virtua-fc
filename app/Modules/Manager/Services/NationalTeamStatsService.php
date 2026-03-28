@@ -93,16 +93,31 @@ class NationalTeamStatsService
         }
 
         $playerAgg = [];
+        $nameToId = []; // Maps player_name → player_id for merging legacy entries
 
         foreach ($summaries as $summary) {
             $squadStats = $summary->summary_data['your_squad_stats'] ?? [];
 
             foreach ($squadStats as $player) {
-                $key = $player['player_id'] ?? $player['player_name'];
+                $playerId = $player['player_id'] ?? null;
+                $playerName = $player['player_name'];
+
+                if ($playerId) {
+                    // If we previously aggregated this player by name, merge into the ID key
+                    if (isset($playerAgg[$playerName]) && !isset($playerAgg[$playerId])) {
+                        $playerAgg[$playerId] = $playerAgg[$playerName];
+                        unset($playerAgg[$playerName]);
+                    }
+                    $nameToId[$playerName] = $playerId;
+                    $key = $playerId;
+                } else {
+                    // Legacy entry without player_id — use ID if we've seen this name before
+                    $key = $nameToId[$playerName] ?? $playerName;
+                }
 
                 if (!isset($playerAgg[$key])) {
                     $playerAgg[$key] = [
-                        'player_name' => $player['player_name'],
+                        'player_name' => $playerName,
                         'position' => $player['position'],
                         'times_selected' => 0,
                         'total_appearances' => 0,

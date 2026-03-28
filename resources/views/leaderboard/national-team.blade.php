@@ -68,17 +68,12 @@
                                         {{ __('season.result_' . $result['label']) }}
                                     </span>
                                     <div class="flex-1 h-5 bg-surface-700 rounded-full overflow-hidden">
-                                        <div class="h-full {{ $resultColors[$result['label']] ?? 'bg-surface-600' }} rounded-full transition-all flex items-center justify-end pr-2"
+                                        <div class="h-full {{ $resultColors[$result['label']] ?? 'bg-surface-600' }} rounded-full"
                                              style="width: {{ max($result['percentage'], 4) }}%">
-                                            @if($result['percentage'] >= 15)
-                                                <span class="text-[10px] font-semibold text-white">{{ $result['count'] }}</span>
-                                            @endif
                                         </div>
                                     </div>
-                                    @if($result['percentage'] < 15)
-                                        <span class="text-xs text-text-muted w-6 text-right shrink-0">{{ $result['count'] }}</span>
-                                    @endif
-                                    <span class="text-[10px] text-text-faint w-10 text-right shrink-0">{{ $result['percentage'] }}%</span>
+                                    <span class="text-xs text-text-muted w-8 text-right shrink-0 tabular-nums">{{ $result['count'] }}</span>
+                                    <span class="text-[10px] text-text-faint w-10 text-right shrink-0 tabular-nums">{{ $result['percentage'] }}%</span>
                                 </div>
                             @endif
                         @endforeach
@@ -95,8 +90,9 @@
                         <p class="px-4 pt-3 text-xs text-text-muted">{{ __('leaderboard.player_frequency_subtitle') }}</p>
 
                         <div class="divide-y divide-border-default">
-                            @foreach($playerFrequency as $player)
+                            @foreach($playerFrequency as $index => $player)
                                 @php
+                                    $isTop10 = $index < 10;
                                     $barColor = $player['percentage'] >= 80 ? 'bg-accent-green' : ($player['percentage'] >= 50 ? 'bg-accent-gold' : 'bg-accent-blue');
                                     $textColor = $player['percentage'] >= 80 ? 'text-accent-green' : ($player['percentage'] >= 50 ? 'text-accent-gold' : 'text-text-secondary');
                                 @endphp
@@ -104,6 +100,9 @@
                                 {{-- Mobile Layout --}}
                                 <div class="md:hidden px-4 py-3 space-y-2">
                                     <div class="flex items-center gap-3">
+                                        @if($isTop10)
+                                            <span class="font-heading text-sm font-bold w-5 text-center shrink-0 {{ $index < 3 ? 'text-amber-500' : 'text-text-muted' }}">{{ $index + 1 }}</span>
+                                        @endif
                                         <x-position-badge :position="$player['position']" size="sm" />
                                         <span class="text-sm font-medium text-text-primary flex-1 truncate">{{ $player['player_name'] }}</span>
                                         <span class="text-sm font-semibold {{ $textColor }} shrink-0">{{ $player['percentage'] }}%</span>
@@ -114,7 +113,12 @@
                                 </div>
 
                                 {{-- Desktop Layout --}}
-                                <div class="hidden md:flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-surface-700/30">
+                                <div class="hidden md:flex items-center gap-3 px-4 py-2.5">
+                                    @if($isTop10)
+                                        <span class="font-heading text-sm font-bold w-5 text-center shrink-0 {{ $index < 3 ? 'text-amber-500' : 'text-text-muted' }}">{{ $index + 1 }}</span>
+                                    @else
+                                        <span class="w-5 shrink-0"></span>
+                                    @endif
                                     <x-position-badge :position="$player['position']" size="sm" />
                                     <span class="text-sm font-medium text-text-primary w-44 shrink-0 truncate">{{ $player['player_name'] }}</span>
                                     <div class="flex-1 h-1.5 bg-surface-700 rounded-full overflow-hidden">
