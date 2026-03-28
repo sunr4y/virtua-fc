@@ -121,6 +121,7 @@ class MatchSimulator
         ?Collection $homeBenchPlayers = null,
         ?Collection $awayBenchPlayers = null,
         string $matchSeed = '',
+        bool $neutralVenue = false,
     ): MatchSimulationOutput {
         return $this->simulateRemainder(
             $homeTeam, $awayTeam,
@@ -138,6 +139,7 @@ class MatchSimulator
             homeBenchPlayers: $homeBenchPlayers,
             awayBenchPlayers: $awayBenchPlayers,
             matchSeed: $matchSeed,
+            neutralVenue: $neutralVenue,
         );
     }
 
@@ -717,9 +719,10 @@ class MatchSimulator
         Mentality $awayMentality,
         float $baseGoals,
         float $matchFraction,
+        bool $neutralVenue = false,
     ): array {
         $skillDominance = config('match_simulation.skill_dominance', 2.0);
-        $homeAdvantageGoals = config('match_simulation.home_advantage_goals', 0.15);
+        $homeAdvantageGoals = $neutralVenue ? 0.0 : config('match_simulation.home_advantage_goals', 0.15);
 
         $strengthRatio = $awayStrength > 0 ? $homeStrength / $awayStrength : 1.0;
 
@@ -859,6 +862,7 @@ class MatchSimulator
         string $matchSeed = '',
         int $homeExistingSubstitutions = 0,
         int $awayExistingSubstitutions = 0,
+        bool $neutralVenue = false,
     ): MatchSimulationOutput {
         $this->matchPerformance = [];
 
@@ -892,6 +896,7 @@ class MatchSimulator
             $homeFormation, $awayFormation,
             $homeMentality, $awayMentality,
             $baseGoals, $matchFraction,
+            $neutralVenue,
         );
 
         $effectiveMinute = $fromMinute + (93 - $fromMinute) / 2;
@@ -985,6 +990,7 @@ class MatchSimulator
                     $homeFormation, $awayFormation,
                     $homeMentality, $awayMentality,
                     $baseGoals, $matchFraction,
+                    $neutralVenue,
                 );
 
                 [$homeExpectedGoals, $awayExpectedGoals] = $this->applyTacticalModifiers(
@@ -1023,6 +1029,7 @@ class MatchSimulator
                     $homeEntryMinutes, $awayEntryMinutes,
                     $homeTacticalDrain, $awayTacticalDrain,
                     $fromMinute, $baseGoals, $homeRedCard, $awayRedCard,
+                    $neutralVenue,
                 );
                 $events = $events->merge($goalEvents);
             } else {
@@ -1109,6 +1116,7 @@ class MatchSimulator
         float $baseGoals,
         ?MatchEventData $homeRedCard,
         ?MatchEventData $awayRedCard,
+        bool $neutralVenue = false,
     ): array {
         $splitMinute = min(
             $homeRedCard ? $homeRedCard->minute : 94,
@@ -1124,6 +1132,7 @@ class MatchSimulator
             $homeFormation, $awayFormation,
             $homeMentality, $awayMentality,
             $baseGoals, $fraction1,
+            $neutralVenue,
         );
 
         [$homeXG1, $awayXG1] = $this->applyTacticalModifiers(
@@ -1173,6 +1182,7 @@ class MatchSimulator
             $homeFormation, $awayFormation,
             $homeMentality, $awayMentality,
             $baseGoals, $fraction2,
+            $neutralVenue,
         );
 
         [$homeXG2, $awayXG2] = $this->applyTacticalModifiers(
@@ -1540,6 +1550,7 @@ class MatchSimulator
         ?PressingIntensity $awayPressing = null,
         ?DefensiveLineHeight $homeDefLine = null,
         ?DefensiveLineHeight $awayDefLine = null,
+        bool $neutralVenue = false,
     ): MatchResult {
         $events = collect();
 
@@ -1574,6 +1585,7 @@ class MatchSimulator
             $homeMentality, $awayMentality,
             $baseGoals * 0.8, // 20% fatigue reduction
             $etFraction,
+            $neutralVenue,
         );
 
         $etEffectiveMinute = $fromMinute + ($etMinutesRemaining / 2);

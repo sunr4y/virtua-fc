@@ -417,6 +417,7 @@ class MatchdayOrchestrator
             $homeBenchPlayers,
             $awayBenchPlayers,
             matchSeed: $match->id,
+            neutralVenue: $match->competition_id === 'WC2026',
         );
 
         $result = $output->result;

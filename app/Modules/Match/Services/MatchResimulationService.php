@@ -155,6 +155,7 @@ class MatchResimulationService
             $awayBenchPlayers,
             homeExistingSubstitutions: $homeExistingSubs,
             awayExistingSubstitutions: $awayExistingSubs,
+            neutralVenue: $match->competition_id === 'WC2026',
         );
 
         // 10. Calculate new final score
@@ -264,6 +265,7 @@ class MatchResimulationService
                 awayPressing: $awayPressing,
                 homeDefLine: $homeDefLine,
                 awayDefLine: $awayDefLine,
+                neutralVenue: $match->competition_id === 'WC2026',
             );
 
             // 8. Calculate new ET score

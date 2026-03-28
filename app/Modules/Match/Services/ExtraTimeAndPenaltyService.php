@@ -58,6 +58,7 @@ class ExtraTimeAndPenaltyService
             awayFormation: $awayFormation,
             homeMentality: $homeMentality,
             awayMentality: $awayMentality,
+            neutralVenue: $match->competition_id === 'WC2026',
         );
 
         $match->update([
