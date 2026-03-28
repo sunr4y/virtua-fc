@@ -106,11 +106,12 @@ class SimulateMatch extends Command
             ['Parameter', 'Value'],
             [
                 ['base_goals', config('match_simulation.base_goals', 1.3)],
-                ['ratio_exponent', config('match_simulation.ratio_exponent', 2.0)],
+                ['skill_dominance', config('match_simulation.skill_dominance', 2.0)],
                 ['home_advantage_goals', config('match_simulation.home_advantage_goals', 0.15)],
                 ['performance_std_dev', config('match_simulation.performance_std_dev', 0.05)],
                 ['performance_min', config('match_simulation.performance_min', 0.90)],
                 ['performance_max', config('match_simulation.performance_max', 1.10)],
+                ['dixon_coles_rho', config('match_simulation.dixon_coles_rho', -0.13)],
             ]
         );
 
