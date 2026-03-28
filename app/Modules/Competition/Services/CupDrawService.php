@@ -2,7 +2,9 @@
 
 namespace App\Modules\Competition\Services;
 
+use App\Modules\Competition\Contracts\CupDrawPairingStrategy;
 use App\Modules\Competition\DTOs\PlayoffRoundConfig;
+use App\Modules\Competition\Services\Draw\RandomPairing;
 use App\Models\Competition;
 use App\Models\CompetitionEntry;
 use App\Models\CupTie;
@@ -15,6 +17,10 @@ use App\Modules\Competition\Services\LeagueFixtureGenerator;
 
 class CupDrawService
 {
+    public function __construct(
+        private readonly CountryConfig $countryConfig,
+    ) {}
+
     /**
      * Conduct a draw for a specific cup round.
      *
@@ -34,13 +40,7 @@ class CupDrawService
         // Get all teams eligible for this round
         $teams = $this->getTeamsForRound($gameId, $competitionId, $season, $roundNumber);
 
-        // Shuffle teams for random pairing
-        $shuffledTeams = $teams->shuffle();
-
-        $teamCount = $shuffledTeams->count();
-        $pairCount = intdiv($teamCount, 2);
-
-        if ($pairCount === 0) {
+        if (intdiv($teams->count(), 2) === 0) {
             return collect();
         }
 
@@ -49,8 +49,15 @@ class CupDrawService
             && $competition->role === Competition::ROLE_DOMESTIC_CUP;
 
         $teamTierMap = $applyHomeAdvantageRule
-            ? $this->getTeamTierMap($gameId, $shuffledTeams)
+            ? $this->getTeamTierMap($gameId, $teams)
             : [];
+
+        // Use competition-specific pairing strategy (or default random)
+        $strategy = $this->resolvePairingStrategy($competitionId);
+        $shuffledTeams = $strategy->pairTeams($teams, $teamTierMap);
+
+        $teamCount = $shuffledTeams->count();
+        $pairCount = intdiv($teamCount, 2);
 
         // Phase 1: Pre-generate all UUIDs and build row arrays
         $tieRows = [];
@@ -291,6 +298,20 @@ class CupDrawService
         }
 
         return null;
+    }
+
+    /**
+     * Resolve the pairing strategy for a competition.
+     */
+    private function resolvePairingStrategy(string $competitionId): CupDrawPairingStrategy
+    {
+        $className = $this->countryConfig->drawPairingClassForCompetition($competitionId);
+
+        if ($className && class_exists($className)) {
+            return new $className();
+        }
+
+        return new RandomPairing();
     }
 
     /**
