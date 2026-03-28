@@ -15,7 +15,7 @@ class BudgetAllocationService
     /**
      * Prepare budget allocation data for display (finances, tiers, minimums).
      *
-     * @return array{finances: \App\Models\GameFinances, investment: ?GameInvestment, availableSurplus: int, tiers: array, minTiers: array, reputationLevel: string}
+     * @return array{finances: \App\Models\GameFinances, investment: ?GameInvestment, availableSurplus: int, tiers: array, reputationLevel: string}
      */
     public function prepareBudgetData(Game $game): array
     {
@@ -47,19 +47,11 @@ class BudgetAllocationService
             $tiers = GameInvestment::defaultTiersForReputation($reputationLevel, $availableSurplus);
         }
 
-        $minTiers = $previousInvestment ? [
-            'youth_academy' => $previousInvestment->youth_academy_tier,
-            'medical' => $previousInvestment->medical_tier,
-            'scouting' => $previousInvestment->scouting_tier,
-            'facilities' => $previousInvestment->facilities_tier,
-        ] : ['youth_academy' => 1, 'medical' => 1, 'scouting' => 1, 'facilities' => 1];
-
         return [
             'finances' => $finances,
             'investment' => $investment,
             'availableSurplus' => $availableSurplus,
             'tiers' => $tiers,
-            'minTiers' => $minTiers,
             'reputationLevel' => $reputationLevel,
         ];
     }
@@ -95,18 +87,6 @@ class BudgetAllocationService
 
         if ($youthTier < 1 || $medicalTier < 1 || $scoutingTier < 1 || $facilitiesTier < 1) {
             throw new \InvalidArgumentException('messages.budget_minimum_tier');
-        }
-
-        // Infrastructure tiers are permanent — cannot drop below previous season's levels
-        $previousInvestment = $game->previousSeasonInvestment();
-        if ($previousInvestment) {
-            if ($youthTier < $previousInvestment->youth_academy_tier
-                || $medicalTier < $previousInvestment->medical_tier
-                || $scoutingTier < $previousInvestment->scouting_tier
-                || $facilitiesTier < $previousInvestment->facilities_tier
-            ) {
-                throw new \InvalidArgumentException('messages.budget_tier_below_previous');
-            }
         }
 
         return GameInvestment::updateOrCreate(

@@ -243,7 +243,6 @@
                 <x-budget-allocation
                     :available-surplus="$availableSurplus"
                     :tiers="$tiers"
-                    :min-tiers="$minTiers"
                     :tier-thresholds="$tierThresholds"
                     :form-action="route('game.new-season.complete', $game->id)"
                     :submit-label="__('game.begin_season')"

@@ -2,7 +2,6 @@
     'availableSurplus',
     'tiers',
     'tierThresholds',
-    'minTiers' => ['youth_academy' => 1, 'medical' => 1, 'scouting' => 1, 'facilities' => 1],
     'isLocked' => false,
     'formAction',
     'submitLabel' => null,
@@ -16,7 +15,6 @@ $submitLabel = $submitLabel ?? __('finances.confirm_budget_allocation');
 <div x-data="{
     availableSurplus: {{ $availableSurplus }},
     thresholds: {{ json_encode($tierThresholds) }},
-    minTiers: @js($minTiers),
     youth_academy_tier: {{ $tiers['youth_academy'] }},
     medical_tier: {{ $tiers['medical'] }},
     scouting_tier: {{ $tiers['scouting'] }},
@@ -45,10 +43,7 @@ $submitLabel = $submitLabel ?? __('finances.confirm_budget_allocation');
     },
 
     get meetsMinimumRequirements() {
-        return this.youth_academy_tier >= this.minTiers.youth_academy
-            && this.medical_tier >= this.minTiers.medical
-            && this.scouting_tier >= this.minTiers.scouting
-            && this.facilities_tier >= this.minTiers.facilities;
+        return this.youth_academy_tier >= 1 && this.medical_tier >= 1 && this.scouting_tier >= 1 && this.facilities_tier >= 1;
     },
 
     formatMoney(cents) {
@@ -65,16 +60,6 @@ $submitLabel = $submitLabel ?? __('finances.confirm_budget_allocation');
         return colors[t] || 'text-text-secondary';
     },
 
-    init() {
-        ['youth_academy', 'medical', 'scouting', 'facilities'].forEach(area => {
-            this.$watch(area + '_tier', (value) => {
-                const min = this.minTiers[area] || 0;
-                if (parseInt(value) < min) {
-                    this[area + '_tier'] = min;
-                }
-            });
-        });
-    }
 }">
 
     {{-- Allocation Summary --}}
