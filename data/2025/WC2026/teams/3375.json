@@ -156,6 +156,27 @@
       "position": "Left-Back"
     },
     {
+      "contract": "Jun 30, 2028",
+      "dateOfBirth": "Oct 18, 2003",
+      "foot": "left",
+      "height": "1,77m",
+      "id": "636688",
+      "marketValue": "€55.00m",
+      "name": "Alejandro Balde",
+      "position": "Left-Back"
+    },
+    {
+      "contract": "Jun 30, 2031",
+      "dateOfBirth": "Mar 23, 2003",
+      "foot": "left",
+      "height": "1,86m",
+      "id": "811778",
+      "marketValue": "€60.00m",
+      "name": "Álvaro Carreras",
+      "number": "18",
+      "position": "Left-Back"
+    },
+    {
       "contract": "Sep 4, 2014",
       "dateOfBirth": "Jan 11, 1992",
       "foot": "right",
