@@ -62,6 +62,23 @@ class SubstitutionService
         // Pre-load all suspended player IDs for this competition (single query)
         $suspendedPlayerIds = PlayerSuspension::suspendedPlayerIdsForCompetition($match->competition_id);
 
+        // Pre-load red-carded player IDs up to this minute (single query instead of N)
+        $playerOutIds = array_column($newSubstitutions, 'playerOutId');
+        $redCardedPlayerIds = MatchEvent::where('game_match_id', $match->id)
+            ->whereIn('game_player_id', $playerOutIds)
+            ->where('event_type', 'red_card')
+            ->where('minute', '<=', $minute)
+            ->pluck('game_player_id')
+            ->all();
+
+        // Pre-load all player-in candidates for the batch (single query instead of N)
+        $playerInIds = array_column($newSubstitutions, 'playerInId');
+        $playerInRecords = GamePlayer::where('game_id', $game->id)
+            ->where('team_id', $game->team_id)
+            ->whereIn('id', $playerInIds)
+            ->get()
+            ->keyBy('id');
+
         // Validate each sub in the batch
         $batchOutIds = [];
         $batchInIds = [];
@@ -82,21 +99,12 @@ class SubstitutionService
             }
 
             // Prevent substituting a red-carded player
-            $wasRedCarded = MatchEvent::where('game_match_id', $match->id)
-                ->where('game_player_id', $playerOutId)
-                ->where('event_type', 'red_card')
-                ->where('minute', '<=', $minute)
-                ->exists();
-
-            if ($wasRedCarded) {
+            if (in_array($playerOutId, $redCardedPlayerIds)) {
                 throw new \InvalidArgumentException('game.sub_error_player_sent_off');
             }
 
             // Validate player-in belongs to team and exists
-            $playerIn = GamePlayer::where('id', $playerInId)
-                ->where('game_id', $game->id)
-                ->where('team_id', $game->team_id)
-                ->first();
+            $playerIn = $playerInRecords->get($playerInId);
 
             if (! $playerIn) {
                 throw new \InvalidArgumentException('game.sub_error_invalid_player');
