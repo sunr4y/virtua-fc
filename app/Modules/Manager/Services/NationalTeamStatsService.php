@@ -68,7 +68,7 @@ class NationalTeamStatsService
             ->pluck('count', 'result_label');
 
         $total = $results->sum();
-        $allLabels = ['champion', 'runner_up', 'semi_finalist', 'quarter_finalist', 'round_of_16', 'group_stage'];
+        $allLabels = ['champion', 'runner_up', 'semi_finalist', 'quarter_finalist', 'round_of_16', 'round_of_32', 'group_stage'];
 
         return collect($allLabels)->map(fn ($label) => [
             'label' => $label,

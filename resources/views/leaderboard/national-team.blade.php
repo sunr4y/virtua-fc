@@ -48,6 +48,7 @@
                                 'semi_finalist' => 'bg-accent-blue',
                                 'quarter_finalist' => 'bg-violet-500',
                                 'round_of_16' => 'bg-surface-600',
+                                'round_of_32' => 'bg-surface-600',
                                 'group_stage' => 'bg-surface-600',
                             ];
                             $resultTextColors = [
@@ -56,6 +57,7 @@
                                 'semi_finalist' => 'text-accent-blue',
                                 'quarter_finalist' => 'text-violet-400',
                                 'round_of_16' => 'text-text-secondary',
+                                'round_of_32' => 'text-text-muted',
                                 'group_stage' => 'text-text-muted',
                             ];
                         @endphp
