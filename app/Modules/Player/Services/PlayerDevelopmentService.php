@@ -105,8 +105,8 @@ class PlayerDevelopmentService
      */
     private function calculateQualityGapBonus(int $currentAbility, int $potential, int $age): float
     {
-        // Only applies to growing players (under 28)
-        if ($age >= 28) {
+        // Only applies to growing players (under 30)
+        if ($age >= 30) {
             return 1.0;
         }
 
@@ -116,9 +116,9 @@ class PlayerDevelopmentService
             return 1.0; // Already close to potential
         }
 
-        // Gap bonus: up to 50% faster development for players with 20+ point gap
-        // 10 point gap = 25% bonus, 20 point gap = 50% bonus
-        return min(1.3, 1.0 + ($gap / 50));
+        // Gap bonus: up to 50% faster development for players with large gap
+        // 10 point gap = ~29% bonus, 18+ point gap = 50% bonus (capped)
+        return min(1.5, 1.0 + ($gap / 35));
     }
 
     /**
@@ -145,14 +145,14 @@ class PlayerDevelopmentService
         // Calculate potential range based on age
         if ($age <= PlayerAge::ACADEMY_END) {
             // Young players: high potential ceiling
-            // Base range 8-20, plus value bonus for proven youngsters
-            $basePotentialRange = rand(8, 20);
+            // Base range 10-25, plus value bonus for proven youngsters
+            $basePotentialRange = rand(10, 25);
             $potentialRange = $basePotentialRange + $valueBonus;
-            $uncertainty = rand(5, 10); // Higher uncertainty for young players
+            $uncertainty = rand(5, 12); // Higher uncertainty for young players
         } elseif ($age <= 24) {
             // Developing players: moderate potential
-            // Base range 4-12, plus reduced value bonus
-            $basePotentialRange = rand(4, 12);
+            // Base range 5-15, plus reduced value bonus
+            $basePotentialRange = rand(5, 15);
             $potentialRange = $basePotentialRange + (int) ($valueBonus * 0.6);
             $uncertainty = rand(4, 7);
         } elseif ($age <= PlayerAge::PRIME_END) {

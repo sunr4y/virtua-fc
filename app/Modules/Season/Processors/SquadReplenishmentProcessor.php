@@ -49,10 +49,21 @@ class SquadReplenishmentProcessor implements SeasonProcessor
     private const YOUTH_INTAKE_SQUAD_CAP = 28;
 
     /**
-     * Youth ability factor range (multiplied by team average ability).
+     * Ability ranges corresponding to each player tier (mirrors YouthAcademyService).
+     * Youth intake uses absolute tier-based ranges to prevent deflationary spirals.
      */
-    private const YOUTH_ABILITY_FACTOR_MIN = 0.55;
-    private const YOUTH_ABILITY_FACTOR_MAX = 0.75;
+    private const TIER_ABILITY_RANGES = [
+        1 => [40, 57],   // Developing (< €1M)
+        2 => [58, 67],   // Average (€1M-€5M)
+        3 => [68, 77],   // Good (€5M-€20M)
+        4 => [78, 83],   // Excellent (€20M-€50M)
+        5 => [84, 90],   // World Class (€50M+)
+    ];
+
+    /**
+     * Percentage chance per youth intake of generating a wonderkid.
+     */
+    private const WONDERKID_CHANCE = 8;
 
     /**
      * Position weights for youth intake (mirrors realistic academy output).
@@ -165,10 +176,12 @@ class SquadReplenishmentProcessor implements SeasonProcessor
                 $releaseIds = array_merge($releaseIds, $candidates);
             }
 
+            $teamMedianTier = $this->calculateTeamMedianTier($players);
+
             for ($i = 0; $i < $youthCount; $i++) {
                 $position = $this->selectWeightedYouthPosition();
                 $playerData = $this->buildYouthPlayerData(
-                    $game, $teamId, $position, $teamAvgAbility, $data->newSeason,
+                    $game, $teamId, $position, $teamMedianTier, $data->newSeason,
                 );
                 $bulkData[] = $playerData;
                 $bulkMeta[] = ['teamId' => $teamId, 'type' => 'youth_intake'];
@@ -271,21 +284,42 @@ class SquadReplenishmentProcessor implements SeasonProcessor
 
     /**
      * Build a GeneratedPlayerData for a youth player (does not insert to DB).
+     *
+     * Uses tier-based ability ranges (absolute brackets) instead of team average
+     * percentages. This prevents deflationary spirals where declining team averages
+     * produce ever-weaker youth intake over many seasons.
      */
     private function buildYouthPlayerData(
         Game $game,
         string $teamId,
         string $position,
-        int $teamAvgAbility,
+        int $teamMedianTier,
         string $newSeason,
     ): GeneratedPlayerData {
-        $factor = self::YOUTH_ABILITY_FACTOR_MIN
-            + (mt_rand(0, 100) / 100) * (self::YOUTH_ABILITY_FACTOR_MAX - self::YOUTH_ABILITY_FACTOR_MIN);
-        $baseAbility = max(30, min(70, (int) round($teamAvgAbility * $factor)));
+        $isWonderkid = mt_rand(1, 100) <= self::WONDERKID_CHANCE;
+
+        if ($isWonderkid) {
+            // Wonderkid: ability at team's median tier, potential up to 2 tiers above
+            $targetTier = $teamMedianTier;
+            $ceilingTier = min(5, $teamMedianTier + 2);
+        } else {
+            // Regular youth: ability 1 tier below median, potential up to 1 tier above
+            $targetTier = max(1, $teamMedianTier - 1);
+            $ceilingTier = min(5, $teamMedianTier + 1);
+        }
+
+        $abilityRange = self::TIER_ABILITY_RANGES[$targetTier];
+        $ceilingRange = self::TIER_ABILITY_RANGES[$ceilingTier];
 
         $techBias = mt_rand(-5, 5);
-        $technical = max(25, min(75, $baseAbility + $techBias));
-        $physical = max(25, min(75, $baseAbility - $techBias));
+        $technical = mt_rand($abilityRange[0], $abilityRange[1]) + $techBias;
+        $physical = mt_rand($abilityRange[0], $abilityRange[1]) - $techBias;
+        $technical = max(30, min(95, $technical));
+        $physical = max(30, min(95, $physical));
+
+        // Potential spans from top of target tier to top of ceiling tier
+        $potential = mt_rand($abilityRange[1], $ceilingRange[1]);
+        $potential = min(95, max($potential, max($technical, $physical)));
 
         $ageRoll = mt_rand(1, 100);
         $age = match (true) {
@@ -308,6 +342,7 @@ class SquadReplenishmentProcessor implements SeasonProcessor
             physical: $physical,
             dateOfBirth: $dateOfBirth,
             contractYears: mt_rand(3, 5),
+            potential: $potential,
         );
     }
 
@@ -447,6 +482,34 @@ class SquadReplenishmentProcessor implements SeasonProcessor
         });
 
         return (int) round($totalAbility / $players->count());
+    }
+
+    /**
+     * Calculate the median player tier for a team's roster.
+     *
+     * Uses market value to derive tiers from the already-loaded player collection,
+     * avoiding additional DB queries. Falls back to tier 2 for empty squads.
+     */
+    private function calculateTeamMedianTier(Collection $players): int
+    {
+        if ($players->isEmpty()) {
+            return 2;
+        }
+
+        $abilities = $players->map(function ($player) {
+            return (int) round(($player->game_technical_ability + $player->game_physical_ability) / 2);
+        })->sort()->values();
+
+        $medianAbility = $abilities[intdiv($abilities->count(), 2)];
+
+        // Map ability to approximate tier using TIER_ABILITY_RANGES boundaries
+        return match (true) {
+            $medianAbility >= 84 => 5,
+            $medianAbility >= 78 => 4,
+            $medianAbility >= 68 => 3,
+            $medianAbility >= 58 => 2,
+            default => 1,
+        };
     }
 
     /**

@@ -29,31 +29,34 @@ final class DevelopmentCurve
     /**
      * Age-based development multipliers for technical and physical abilities.
      *
-     * - 16-20: High growth (multipliers > 1.2)
-     * - 21-24: Moderate growth (multipliers 1.0-1.1)
-     * - 25-31: Peak years (stable, technical ~1.0, physical starts declining)
-     * - 32+: Veteran decline (physical declines faster than technical)
+     * - 16-21: High growth (multipliers > 1.1)
+     * - 22-26: Moderate growth / plateau (multipliers 1.0-1.05)
+     * - 27-30: Early decline (physical faster than technical)
+     * - 31+: Veteran decline (accelerating)
+     *
+     * Reflects real-world football: technical peaks ~28-30 (experience),
+     * physical peaks ~24-26 (athleticism), overall peak ~27-29.
      */
     public const AGE_CURVES = [
         16 => ['technical' => 1.4, 'physical' => 1.5],
         17 => ['technical' => 1.3, 'physical' => 1.4],
         18 => ['technical' => 1.2, 'physical' => 1.3],
         19 => ['technical' => 1.15, 'physical' => 1.2],
-        20 => ['technical' => 1.1, 'physical' => 1.1],
+        20 => ['technical' => 1.1, 'physical' => 1.15],
         21 => ['technical' => 1.1, 'physical' => 1.1],
-        22 => ['technical' => 1.05, 'physical' => 1.0],
-        23 => ['technical' => 1.0, 'physical' => 1.0],
+        22 => ['technical' => 1.05, 'physical' => 1.05],
+        23 => ['technical' => 1.05, 'physical' => 1.0],
         24 => ['technical' => 1.0, 'physical' => 1.0],
-        25 => ['technical' => 1.0, 'physical' => 0.95],
-        26 => ['technical' => 1.0, 'physical' => 0.9],
-        27 => ['technical' => 0.95, 'physical' => 0.85],
-        28 => ['technical' => 0.9, 'physical' => 0.8],
-        29 => ['technical' => 0.85, 'physical' => 0.7],
-        30 => ['technical' => 0.8, 'physical' => 0.6],
-        31 => ['technical' => 0.7, 'physical' => 0.5],
-        32 => ['technical' => 0.6, 'physical' => 0.4],
-        33 => ['technical' => 0.5, 'physical' => 0.3],
-        34 => ['technical' => 0.4, 'physical' => 0.2],
+        25 => ['technical' => 1.0, 'physical' => 1.0],
+        26 => ['technical' => 1.0, 'physical' => 1.0],
+        27 => ['technical' => 1.0, 'physical' => 0.95],
+        28 => ['technical' => 1.0, 'physical' => 0.9],
+        29 => ['technical' => 0.95, 'physical' => 0.85],
+        30 => ['technical' => 0.95, 'physical' => 0.8],
+        31 => ['technical' => 0.9, 'physical' => 0.7],
+        32 => ['technical' => 0.85, 'physical' => 0.6],
+        33 => ['technical' => 0.75, 'physical' => 0.45],
+        34 => ['technical' => 0.65, 'physical' => 0.35],
     ];
 
     /**
