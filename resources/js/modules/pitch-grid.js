@@ -87,11 +87,13 @@ export function createPitchGrid(ctx, options) {
 
     /**
      * Find the slot occupying a cell (excluding a given slot).
+     * @param {boolean} includeEmpty - If true, also match slots with no player assigned.
      */
-    function _findSlotAtCell(col, row, excludeSlotId) {
+    function _findSlotAtCell(col, row, excludeSlotId, includeEmpty = false) {
         const assignments = ctx().slotAssignments;
         for (const slot of assignments) {
-            if (slot.id === excludeSlotId || !slot.player) continue;
+            if (slot.id === excludeSlotId) continue;
+            if (!includeEmpty && !slot.player) continue;
             const cell = getSlotCell(slot.id);
             if (cell && cell.col === col && cell.row === row) return slot;
         }
@@ -141,7 +143,10 @@ export function createPitchGrid(ctx, options) {
 
         if (!isValidGridCell(slot.label, col, row, state.gridConfig)) return;
 
-        const occupying = _findSlotAtCell(col, row, slotId);
+        // When onSwap is provided, also detect empty slots at the target cell
+        // so we can move the player into the empty slot instead of just
+        // repositioning the grid cell (which would cause two slots to overlap).
+        const occupying = _findSlotAtCell(col, row, slotId, !!options.onSwap);
 
         // Block swap with GK if not allowed
         if (occupying && !options.allowGkSwap && occupying.role === 'Goalkeeper') return;

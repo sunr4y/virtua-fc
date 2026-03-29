@@ -143,6 +143,8 @@ export default function lineupManager(config) {
                 onPositionChanged: null,
                 onSwap: (draggedSlot, occupyingSlot) => {
                     // Swap player assignments: each player takes the other's slot.
+                    // When the target slot is empty, the dragged player simply
+                    // moves there and the source slot becomes empty.
                     // Snapshot current assignments first so auto-assigned players
                     // don't reshuffle when we update manualAssignments.
                     this._preserveCurrentAssignments(null);
@@ -150,7 +152,12 @@ export default function lineupManager(config) {
                     const draggedPlayer = draggedSlot.player?.id;
                     const occupyingPlayer = occupyingSlot.player?.id;
                     if (draggedPlayer) newAssignments[occupyingSlot.id] = draggedPlayer;
-                    if (occupyingPlayer) newAssignments[draggedSlot.id] = occupyingPlayer;
+                    if (occupyingPlayer) {
+                        newAssignments[draggedSlot.id] = occupyingPlayer;
+                    } else {
+                        // Target was empty — clear the source slot
+                        delete newAssignments[draggedSlot.id];
+                    }
                     this.manualAssignments = newAssignments;
                 },
                 pitchElementId: 'pitch-field',
@@ -317,8 +324,15 @@ export default function lineupManager(config) {
             // If an empty slot is waiting for assignment, assign this player to it
             if (this.assigningSlotId !== null && !this.isSelected(id)) {
                 if (this.selectedCount < 11) {
-                    this.selectedPlayers.push(id);
+                    // Freeze existing auto-assignments so adding the new player
+                    // doesn't reshuffle everyone else into "better" slots.
+                    // Set manualAssignments BEFORE pushing to selectedPlayers —
+                    // the push triggers a reactive recompute of slotAssignments,
+                    // and the manual assignment must already be in place so the
+                    // player lands in the user-chosen slot, not a "better fit".
+                    this._preserveCurrentAssignments(null);
                     this.manualAssignments = { ...this.manualAssignments, [this.assigningSlotId]: id };
+                    this.selectedPlayers.push(id);
                 }
                 this.assigningSlotId = null;
                 return;
@@ -516,15 +530,14 @@ export default function lineupManager(config) {
 
             event.preventDefault();
 
-            // Enter pending state — not yet dragging until 5px threshold
+            // Enter pending state — not yet dragging until 5px threshold.
+            // Don't clear assigningSlotId here — it fires on mousedown before
+            // the click handler (toggle), which needs assigningSlotId intact.
+            // Interaction modes are cleared when the drag actually activates.
             const coords = _getEventCoords(event);
             this._listDragPendingId = playerId;
             this._listDragStartCoords = { x: coords.clientX, y: coords.clientY };
             this._listDragMoved = false;
-
-            // Clear other interaction modes
-            this.assigningSlotId = null;
-            this.positioningSlotId = null;
 
             document.addEventListener('mousemove', this._boundListDragMove);
             document.addEventListener('mouseup', this._boundListDragEnd);
@@ -544,7 +557,9 @@ export default function lineupManager(config) {
                 const dy = coords.clientY - this._listDragStartCoords.y;
                 if (Math.sqrt(dx * dx + dy * dy) < 5) return;
 
-                // Activate drag
+                // Activate drag — clear other interaction modes now (not on mousedown)
+                this.assigningSlotId = null;
+                this.positioningSlotId = null;
                 this.listDragPlayerId = this._listDragPendingId;
                 this._listDragPendingId = null;
                 this._listDragMoved = true;
