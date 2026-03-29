@@ -31,14 +31,10 @@ class CupDrawService
         $competition = Competition::find($competitionId);
         $season = $competition->season ?? '2025';
 
-        // Get all teams eligible for this round
-        $teams = $this->getTeamsForRound($gameId, $competitionId, $season, $roundNumber);
+        // Get all teams eligible for this round, paired by bracket structure
+        $pairedTeams = $this->getPairedTeamsForRound($gameId, $competitionId, $season, $roundNumber);
 
-        // Shuffle teams for random pairing
-        $shuffledTeams = $teams->shuffle();
-
-        $teamCount = $shuffledTeams->count();
-        $pairCount = intdiv($teamCount, 2);
+        $pairCount = $pairedTeams->count();
 
         if ($pairCount === 0) {
             return collect();
@@ -48,8 +44,9 @@ class CupDrawService
         $applyHomeAdvantageRule = $competition->scope === Competition::SCOPE_DOMESTIC
             && $competition->role === Competition::ROLE_DOMESTIC_CUP;
 
+        $allTeamIds = $pairedTeams->flatten();
         $teamTierMap = $applyHomeAdvantageRule
-            ? $this->getTeamTierMap($gameId, $shuffledTeams)
+            ? $this->getTeamTierMap($gameId, $allTeamIds)
             : [];
 
         // Phase 1: Pre-generate all UUIDs and build row arrays
@@ -58,8 +55,7 @@ class CupDrawService
         $secondLegRows = [];
 
         for ($i = 0; $i < $pairCount; $i++) {
-            $homeTeamId = $shuffledTeams[$i * 2];
-            $awayTeamId = $shuffledTeams[$i * 2 + 1];
+            [$homeTeamId, $awayTeamId] = $pairedTeams[$i];
 
             // Lower-category team (higher tier number) gets home advantage
             if ($applyHomeAdvantageRule) {
@@ -80,6 +76,7 @@ class CupDrawService
                 'game_id' => $gameId,
                 'competition_id' => $competitionId,
                 'round_number' => $roundNumber,
+                'bracket_position' => $i,
                 'home_team_id' => $homeTeamId,
                 'away_team_id' => $awayTeamId,
                 'first_leg_match_id' => $firstLegId,
@@ -142,35 +139,74 @@ class CupDrawService
     }
 
     /**
-     * Get all team IDs eligible for a specific round.
+     * Get paired teams for a round, maintaining bracket structure.
      *
-     * @return Collection<string>
+     * For the first round, teams are shuffled randomly and paired.
+     * For later rounds, winners from the previous round are paired by
+     * bracket_position (0↔1 → pair 0, 2↔3 → pair 1, etc.), preserving
+     * the bracket tree so the display connects logically between rounds.
+     *
+     * @return Collection<array{0: string, 1: string}>
      */
-    private function getTeamsForRound(string $gameId, string $competitionId, string $season, int $roundNumber): Collection
+    private function getPairedTeamsForRound(string $gameId, string $competitionId, string $season, int $roundNumber): Collection
     {
-        $teams = collect();
-
         // Teams entering at this specific round
         $enteringTeams = CompetitionEntry::where('game_id', $gameId)
             ->where('competition_id', $competitionId)
             ->where('entry_round', $roundNumber)
             ->pluck('team_id');
 
-        $teams = $teams->merge($enteringTeams);
+        if ($roundNumber === 1 || $this->isFirstDrawnRound($gameId, $competitionId, $roundNumber)) {
+            // First drawn round: shuffle randomly and pair sequentially
+            $teams = $enteringTeams->shuffle();
+            $pairs = collect();
 
-        // Winners from previous round
-        if ($roundNumber > 1) {
-            $previousWinners = CupTie::where('game_id', $gameId)
-                ->where('competition_id', $competitionId)
-                ->where('round_number', $roundNumber - 1)
-                ->where('completed', true)
-                ->whereNotNull('winner_id')
-                ->pluck('winner_id');
+            for ($i = 0; $i + 1 < $teams->count(); $i += 2) {
+                $pairs->push([$teams[$i], $teams[$i + 1]]);
+            }
 
-            $teams = $teams->merge($previousWinners);
+            return $pairs;
         }
 
-        return $teams->unique()->values();
+        // Later rounds: pair based on bracket_position from previous round
+        $previousTies = CupTie::where('game_id', $gameId)
+            ->where('competition_id', $competitionId)
+            ->where('round_number', $roundNumber - 1)
+            ->where('completed', true)
+            ->whereNotNull('winner_id')
+            ->orderBy('bracket_position')
+            ->orderBy('id')
+            ->get();
+
+        $pairs = collect();
+
+        // Pair consecutive previous-round winners: positions 0↔1, 2↔3, etc.
+        for ($i = 0; $i + 1 < $previousTies->count(); $i += 2) {
+            $pairs->push([$previousTies[$i]->winner_id, $previousTies[$i + 1]->winner_id]);
+        }
+
+        // If there are new entrants at this round, shuffle and pair them,
+        // then append to the bracket
+        if ($enteringTeams->isNotEmpty()) {
+            $shuffledEntrants = $enteringTeams->shuffle()->values();
+
+            for ($i = 0; $i + 1 < $shuffledEntrants->count(); $i += 2) {
+                $pairs->push([$shuffledEntrants[$i], $shuffledEntrants[$i + 1]]);
+            }
+        }
+
+        return $pairs;
+    }
+
+    /**
+     * Check if this is the first round that gets a draw (no previous rounds exist).
+     */
+    private function isFirstDrawnRound(string $gameId, string $competitionId, int $roundNumber): bool
+    {
+        return !CupTie::where('game_id', $gameId)
+            ->where('competition_id', $competitionId)
+            ->where('round_number', '<', $roundNumber)
+            ->exists();
     }
 
     /**

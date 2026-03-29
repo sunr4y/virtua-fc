@@ -124,6 +124,8 @@ class CompetitionViewService
         return CupTie::with(['homeTeam', 'awayTeam', 'winner', 'firstLegMatch', 'secondLegMatch', 'competition'])
             ->where('game_id', $game->id)
             ->where('competition_id', $competition->id)
+            ->orderBy('bracket_position')
+            ->orderBy('id')
             ->get()
             ->groupBy('round_number');
     }
