@@ -102,8 +102,6 @@ class PreseasonSuspensionTest extends TestCase
         $processor = app(MatchResultProcessor::class);
         $processor->processAll(
             $this->game->id,
-            1,
-            '2024-07-16',
             [$matchResult],
         );
 
@@ -234,8 +232,6 @@ class PreseasonSuspensionTest extends TestCase
         $processor = app(MatchResultProcessor::class);
         $processor->processAll(
             $this->game->id,
-            1,
-            '2024-07-16',
             [$matchResult],
         );
 

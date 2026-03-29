@@ -142,6 +142,19 @@ class MatchdayOrchestrator
         $matchday = $batch['matchday'];
         $currentDate = $batch['currentDate'];
 
+        // Advance current_date and current_matchday to the upcoming match BEFORE
+        // simulation. This ensures calendar-dependent logic (transfer windows,
+        // offer expiry) sees the correct date. Only advance forward to prevent
+        // background batches from regressing a date already set by the player's batch.
+        $newDate = Carbon::parse($currentDate);
+        $updateData = ['current_matchday' => $matchday];
+        if (! $game->current_date || $newDate->gte($game->current_date)) {
+            $updateData['current_date'] = $newDate->toDateString();
+            $game->current_date = $newDate;
+        }
+        Game::where('id', $game->id)->update($updateData);
+        $game->current_matchday = $matchday;
+
         // When playerMatchOnly is true, filter batch to only the player's match
         // (sibling AI matches in the same batch are deferred to background processing)
         $playerMatch = $matches->first(fn ($m) => $m->involvesTeam($game->team_id));
@@ -241,7 +254,7 @@ class MatchdayOrchestrator
         $deferMatchId = $playerMatch?->id;
 
         // --- Process results ---
-        $this->matchResultProcessor->processAll($game->id, $matchday, $currentDate, $matchResults, $deferMatchId, $allPlayers);
+        $this->matchResultProcessor->processAll($game->id, $matchResults, $deferMatchId, $allPlayers);
 
         // --- Recalculate positions ---
         $this->recalculateLeaguePositions($game->id, $matches);
