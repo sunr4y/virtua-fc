@@ -49,16 +49,20 @@ class MatchFinalizationService
         // 4. Dispatch MatchFinalized for standings, GK stats, and notifications
         MatchFinalized::dispatch($match, $game, $competition);
 
-        // 5. Clear the pending flag and advance current_date to the next upcoming match.
-        // This keeps current_date forward-looking between finalization and the next advance.
-        $nextMatch = GameMatch::where('game_id', $game->id)
+        // 5. Clear the pending flag and advance current_date to the next upcoming
+        // match for the player's team. We specifically filter by the player's team
+        // because sibling AI matches from the same batch may still be unplayed
+        // (deferred to background processing) and would return the current date.
+        $nextPlayerMatch = GameMatch::where('game_id', $game->id)
             ->where('played', false)
+            ->where(fn ($q) => $q->where('home_team_id', $game->team_id)
+                ->orWhere('away_team_id', $game->team_id))
             ->orderBy('scheduled_date')
             ->first();
 
         $updateData = ['pending_finalization_match_id' => null];
-        if ($nextMatch && $nextMatch->scheduled_date->gte($game->current_date)) {
-            $updateData['current_date'] = $nextMatch->scheduled_date->toDateString();
+        if ($nextPlayerMatch && $nextPlayerMatch->scheduled_date->gt($game->current_date)) {
+            $updateData['current_date'] = $nextPlayerMatch->scheduled_date->toDateString();
         }
         $game->update($updateData);
 
