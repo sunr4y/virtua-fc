@@ -49,8 +49,18 @@ class MatchFinalizationService
         // 4. Dispatch MatchFinalized for standings, GK stats, and notifications
         MatchFinalized::dispatch($match, $game, $competition);
 
-        // 5. Clear the pending flag
-        $game->update(['pending_finalization_match_id' => null]);
+        // 5. Clear the pending flag and advance current_date to the next upcoming match.
+        // This keeps current_date forward-looking between finalization and the next advance.
+        $nextMatch = GameMatch::where('game_id', $game->id)
+            ->where('played', false)
+            ->orderBy('scheduled_date')
+            ->first();
+
+        $updateData = ['pending_finalization_match_id' => null];
+        if ($nextMatch && $nextMatch->scheduled_date->gte($game->current_date)) {
+            $updateData['current_date'] = $nextMatch->scheduled_date->toDateString();
+        }
+        $game->update($updateData);
 
         // 6. Generate any pending knockout/playoff fixtures now that standings are final.
         // This covers both league matches (where standings determine playoff seedings)
