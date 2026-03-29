@@ -30,11 +30,22 @@ class MatchResultProcessor
      *
      * @param  string|null  $deferMatchId  Match ID to skip standings and GK stats for (deferred to finalization)
      */
-    public function processAll(string $gameId, array $matchResults, ?string $deferMatchId = null, $allPlayers = null): void
+    public function processAll(string $gameId, int $matchday, string $currentDate, array $matchResults, ?string $deferMatchId = null, $allPlayers = null): void
     {
+        // Load game once for previous date capture and date guard
         $game = Game::find($gameId);
 
-        // 1. Bulk update match records (scores + played)
+        // 1. Update game state (replaces onMatchdayAdvanced projector)
+        // Only advance current_date forward — background batch processing must not
+        // regress the date that was already set by the player's batch.
+        $newDate = Carbon::parse($currentDate);
+        $updateData = ['current_matchday' => $matchday];
+        if (! $game->current_date || $newDate->gte($game->current_date)) {
+            $updateData['current_date'] = $newDate->toDateString();
+        }
+        Game::where('id', $gameId)->update($updateData);
+
+        // 2. Bulk update match records (scores + played)
         $this->bulkUpdateMatchScores($matchResults);
 
         // Reload game with post-update state for the rest of the method
@@ -46,7 +57,7 @@ class MatchResultProcessor
         $competitionIds = collect($matchResults)->pluck('competitionId')->unique();
         $competitions = Competition::whereIn('id', $competitionIds)->get()->keyBy('id');
 
-        // 2. Serve suspensions for all matches (batch, using pre-loaded player IDs)
+        // 3. Serve suspensions for all matches (batch, using pre-loaded player IDs)
         // Exclude players from the deferred match's teams — their suspensions
         // will be served during finalization, so they remain ineligible for
         // substitution while the user plays the live match.
@@ -66,26 +77,26 @@ class MatchResultProcessor
         }
         $this->batchServeSuspensions($matches, $matchResults, $preLoadedPlayerIds, $allPlayers);
 
-        // 3. Bulk insert all match events across all matches
+        // 4. Bulk insert all match events across all matches
         $this->bulkInsertMatchEvents($gameId, $matchResults);
 
-        // 4. Batch process player stats across all matches
+        // 5. Batch process player stats across all matches
         $this->batchProcessPlayerStats($game, $matchResults, $matches, $competitions, $deferMatchId, $allPlayers);
 
-        // 5. Bulk update appearances across all matches (including auto-subbed-in players)
+        // 6. Bulk update appearances across all matches (including auto-subbed-in players)
         $this->bulkUpdateAppearances($matches, $matchResults);
 
         // 6b. Record auto-substitutions in match substitutions JSON
         $this->recordAutoSubstitutions($matches, $matchResults);
 
-        // 6. Batch update conditions (exclude deferred match — finalization handles it)
+        // 7. Batch update conditions (exclude deferred match — finalization handles it)
         $conditionMatches = $deferMatchId ? $matches->except($deferMatchId) : $matches;
         $conditionResults = $deferMatchId
             ? array_filter($matchResults, fn ($r) => $r['matchId'] !== $deferMatchId)
             : $matchResults;
         $this->batchUpdateConditions($conditionMatches, $conditionResults, $allPlayers ?? collect());
 
-        // 7. Batch update goalkeeper stats (skip deferred match)
+        // 8. Batch update goalkeeper stats (skip deferred match)
         $gkResults = $deferMatchId
             ? array_filter($matchResults, fn ($r) => $r['matchId'] !== $deferMatchId)
             : $matchResults;
@@ -94,7 +105,7 @@ class MatchResultProcessor
             : $matches;
         $this->batchUpdateGoalkeeperStats($gkMatches, $gkResults, $allPlayers);
 
-        // 8. Update standings per league in bulk (skip deferred match)
+        // 9. Update standings per league in bulk (skip deferred match)
         $leagueResultsByCompetition = [];
         foreach ($matchResults as $result) {
             if ($result['matchId'] === $deferMatchId) {
