@@ -149,15 +149,15 @@ return [
     */
     'formations' => [
         '4-4-2'   => ['attack' => 1.00, 'defense' => 1.00],   // Balanced baseline
-        '4-3-3'   => ['attack' => 1.08, 'defense' => 1.04],   // Attacking, slightly open
-        '4-2-3-1' => ['attack' => 1.03, 'defense' => 0.97],   // Solid and creative
-        '3-4-3'   => ['attack' => 1.12, 'defense' => 1.08],   // Very attacking, exposed
-        '3-5-2'   => ['attack' => 1.00, 'defense' => 0.96],   // Midfield control
-        '4-1-4-1' => ['attack' => 0.95, 'defense' => 0.92],   // Defensive midfield shield
-        '5-3-2'   => ['attack' => 0.88, 'defense' => 0.88],   // Defensive, hard to break
-        '5-4-1'   => ['attack' => 0.80, 'defense' => 0.86],   // Park the bus
-        '4-1-2-3' => ['attack' => 1.10, 'defense' => 1.02],   // Attacking with DM anchor
-        '4-3-2-1' => ['attack' => 1.05, 'defense' => 0.98],   // Creative, narrow attack
+        '4-3-3'   => ['attack' => 1.06, 'defense' => 1.06],   // Attacking, equally open
+        '4-2-3-1' => ['attack' => 1.03, 'defense' => 1.02],   // Slight attack, slight opening
+        '3-4-3'   => ['attack' => 1.12, 'defense' => 1.10],   // Very attacking, very exposed
+        '3-5-2'   => ['attack' => 0.97, 'defense' => 0.96],   // Midfield control, conservative
+        '4-1-4-1' => ['attack' => 0.95, 'defense' => 0.93],   // Defensive midfield shield
+        '5-3-2'   => ['attack' => 0.90, 'defense' => 0.88],   // Defensive, hard to break
+        '5-4-1'   => ['attack' => 0.84, 'defense' => 0.82],   // Park the bus
+        '4-1-2-3' => ['attack' => 1.08, 'defense' => 1.07],   // Attacking with DM anchor
+        '4-3-2-1' => ['attack' => 1.04, 'defense' => 1.03],   // Creative, narrow attack
     ],
 
     /*
@@ -171,9 +171,9 @@ return [
     |
     */
     'mentalities' => [
-        'defensive' => ['own_goals' => 0.80, 'opponent_goals' => 0.78],
+        'defensive' => ['own_goals' => 0.82, 'opponent_goals' => 0.78],
         'balanced'  => ['own_goals' => 1.00, 'opponent_goals' => 1.00],
-        'attacking' => ['own_goals' => 1.15, 'opponent_goals' => 1.10],
+        'attacking' => ['own_goals' => 1.15, 'opponent_goals' => 1.12],
     ],
 
     /*
@@ -187,10 +187,10 @@ return [
     |
     */
     'playing_styles' => [
-        'possession'     => ['own_xg' => 1.05, 'opp_xg' => 0.95, 'energy_drain' => 1.10],
+        'possession'     => ['own_xg' => 1.03, 'opp_xg' => 0.98, 'energy_drain' => 1.12],
         'balanced'       => ['own_xg' => 1.00, 'opp_xg' => 1.00, 'energy_drain' => 1.00],
-        'counter_attack' => ['own_xg' => 0.92, 'opp_xg' => 0.95, 'energy_drain' => 0.95],
-        'direct'         => ['own_xg' => 1.02, 'opp_xg' => 1.03, 'energy_drain' => 1.00],
+        'counter_attack' => ['own_xg' => 0.94, 'opp_xg' => 0.92, 'energy_drain' => 0.93],
+        'direct'         => ['own_xg' => 1.03, 'opp_xg' => 1.03, 'energy_drain' => 1.00],
     ],
 
     /*
@@ -206,9 +206,9 @@ return [
     |
     */
     'pressing' => [
-        'high_press' => ['own_xg' => 1.00, 'opp_xg' => 0.90, 'energy_drain' => 1.15, 'fade_after' => 60, 'fade_opp_xg' => 0.97],
+        'high_press' => ['own_xg' => 1.00, 'opp_xg' => 0.92, 'energy_drain' => 1.20, 'fade_after' => 55, 'fade_opp_xg' => 1.00],
         'standard'   => ['own_xg' => 1.00, 'opp_xg' => 1.00, 'energy_drain' => 1.00, 'fade_after' => null, 'fade_opp_xg' => null],
-        'low_block'  => ['own_xg' => 0.94, 'opp_xg' => 0.94, 'energy_drain' => 0.92, 'fade_after' => null, 'fade_opp_xg' => null],
+        'low_block'  => ['own_xg' => 0.95, 'opp_xg' => 0.92, 'energy_drain' => 0.92, 'fade_after' => null, 'fade_opp_xg' => null],
     ],
 
     /*
@@ -223,9 +223,9 @@ return [
     |
     */
     'defensive_line' => [
-        'high_line' => ['own_xg' => 1.03, 'opp_xg' => 0.94, 'physical_threshold' => 80],
+        'high_line' => ['own_xg' => 1.03, 'opp_xg' => 0.97, 'physical_threshold' => 75],
         'normal'    => ['own_xg' => 1.00, 'opp_xg' => 1.00, 'physical_threshold' => 0],
-        'deep'      => ['own_xg' => 0.94, 'opp_xg' => 0.92, 'physical_threshold' => 0],
+        'deep'      => ['own_xg' => 0.96, 'opp_xg' => 0.93, 'physical_threshold' => 0],
     ],
 
     /*
@@ -282,6 +282,8 @@ return [
             '4-1-4-1' => 2,
             '5-3-2' => 0,
             '5-4-1' => 1,
+            '4-1-2-3' => 1,
+            '4-3-2-1' => 2,
         ],
         'strength_max_bonus' => 5,
         'noise_range' => 3,
