@@ -187,10 +187,10 @@ return [
     |
     */
     'playing_styles' => [
-        'possession'     => ['own_xg' => 1.03, 'opp_xg' => 0.98, 'energy_drain' => 1.12],
+        'possession'     => ['own_xg' => 0.99, 'opp_xg' => 0.94, 'energy_drain' => 0.93],
         'balanced'       => ['own_xg' => 1.00, 'opp_xg' => 1.00, 'energy_drain' => 1.00],
-        'counter_attack' => ['own_xg' => 0.94, 'opp_xg' => 0.92, 'energy_drain' => 0.93],
-        'direct'         => ['own_xg' => 1.03, 'opp_xg' => 1.03, 'energy_drain' => 1.00],
+        'counter_attack' => ['own_xg' => 0.98, 'opp_xg' => 0.93, 'energy_drain' => 1.08],
+        'direct'         => ['own_xg' => 1.03, 'opp_xg' => 1.03, 'energy_drain' => 1.02],
     ],
 
     /*
@@ -206,9 +206,9 @@ return [
     |
     */
     'pressing' => [
-        'high_press' => ['own_xg' => 1.00, 'opp_xg' => 0.92, 'energy_drain' => 1.20, 'fade_after' => 55, 'fade_opp_xg' => 1.00],
+        'high_press' => ['own_xg' => 1.04, 'opp_xg' => 0.93, 'energy_drain' => 1.20, 'fade_after' => 55, 'fade_opp_xg' => 1.00],
         'standard'   => ['own_xg' => 1.00, 'opp_xg' => 1.00, 'energy_drain' => 1.00, 'fade_after' => null, 'fade_opp_xg' => null],
-        'low_block'  => ['own_xg' => 0.95, 'opp_xg' => 0.92, 'energy_drain' => 0.92, 'fade_after' => null, 'fade_opp_xg' => null],
+        'low_block'  => ['own_xg' => 0.95, 'opp_xg' => 0.92, 'energy_drain' => 0.90, 'fade_after' => null, 'fade_opp_xg' => null],
     ],
 
     /*
