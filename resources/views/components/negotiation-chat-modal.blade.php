@@ -332,7 +332,7 @@
             </div>
 
             {{-- Input area: Wage + years mode (renewal, personal terms, and pre-contract) --}}
-            <div class="shrink-0 border-t border-border-strong px-5 py-3 space-y-2.5" x-show="(mode === 'renewal' || mode === 'personal_terms' || mode === 'pre_contract') && !isTerminal && !loading">
+            <div class="shrink-0 border-t border-border-strong px-5 py-3 space-y-2.5" x-show="(mode === 'renewal' || mode === 'personal_terms' || mode === 'pre_contract' || mode === 'free_agent') && !isTerminal && !loading">
                 <div class="flex items-end gap-2">
                     {{-- Wage stepper --}}
                     <div class="flex-1 min-w-0">
