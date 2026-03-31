@@ -27,11 +27,26 @@ return new class extends Migration
             Schema::table('shortlisted_players', fn ($t) => $t->dropForeign('shortlisted_players_game_player_id_foreign'));
             Schema::table('game_transfers', fn ($t) => $t->dropForeign('game_transfers_game_player_id_foreign'));
             Schema::table('game_matches', fn ($t) => $t->dropForeign(['mvp_player_id']));
+            Schema::table('financial_transactions', fn ($t) => $t->dropForeign('financial_transactions_related_player_id_foreign'));
 
             $expectedCount = DB::table('game_players')->count();
 
-            // --- Step 2: Rename existing table ---
+            // --- Step 2: Rename existing table and drop its indexes ---
+            // PostgreSQL keeps original index names after table rename, which
+            // would conflict with the identically-named indexes on the new table.
             Schema::rename('game_players', 'game_players_old');
+
+            // PostgreSQL keeps original index names after table rename, which
+            // would conflict with the identically-named indexes on the new table.
+            // Unique indexes back constraints and must be dropped via ALTER TABLE.
+            DB::statement('ALTER TABLE game_players_old DROP CONSTRAINT IF EXISTS game_players_pkey CASCADE');
+            DB::statement('ALTER TABLE game_players_old DROP CONSTRAINT IF EXISTS game_players_game_id_player_id_unique CASCADE');
+            DB::statement('ALTER TABLE game_players_old DROP CONSTRAINT IF EXISTS game_players_squad_number_unique CASCADE');
+            DB::statement('DROP INDEX IF EXISTS game_players_game_id_team_id_index');
+            DB::statement('DROP INDEX IF EXISTS game_players_game_id_team_id_position_index');
+            DB::statement('DROP INDEX IF EXISTS game_players_game_id_tier_index');
+            DB::statement('DROP INDEX IF EXISTS game_players_player_id_index');
+            DB::statement('DROP INDEX IF EXISTS game_players_game_id_team_id_transfer_status_index');
 
             // --- Step 3: Create partitioned table ---
             DB::statement("
@@ -97,7 +112,9 @@ return new class extends Migration
             DB::statement('ALTER TABLE game_players ADD CONSTRAINT game_players_team_id_foreign FOREIGN KEY (team_id) REFERENCES teams(id)');
 
             // --- Step 7: Migrate data and verify row count ---
-            DB::statement('INSERT INTO game_players SELECT * FROM game_players_old');
+            // Use explicit column list because column order may differ between old and new tables
+            $columns = 'id, game_id, player_id, team_id, number, position, market_value, market_value_cents, contract_until, annual_wage, pending_annual_wage, fitness, morale, durability, injury_until, injury_type, suspended_until_matchday, appearances, goals, own_goals, assists, yellow_cards, red_cards, goals_conceded, clean_sheets, game_technical_ability, game_physical_ability, tier, potential, potential_low, potential_high, season_appearances, transfer_status, transfer_listed_at, retiring_at_season';
+            DB::statement("INSERT INTO game_players ({$columns}) SELECT {$columns} FROM game_players_old");
 
             $actualCount = DB::table('game_players')->count();
             if ($actualCount !== $expectedCount) {
