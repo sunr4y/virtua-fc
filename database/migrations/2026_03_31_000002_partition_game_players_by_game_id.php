@@ -1,12 +1,13 @@
 <?php
 
-use App\Support\PartitionService;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    private const PARTITION_COUNT = 64;
+
     public function up(): void
     {
         // Partitioning is PostgreSQL-only; skip on other drivers (e.g. SQLite in tests)
@@ -66,11 +67,15 @@ return new class extends Migration
                 transfer_listed_at TIMESTAMP(0) WITHOUT TIME ZONE,
                 retiring_at_season VARCHAR(255),
                 PRIMARY KEY (id, game_id)
-            ) PARTITION BY LIST (game_id)
+            ) PARTITION BY HASH (game_id)
         ");
 
-        // --- Step 4: Create default partition (safety net) ---
-        DB::statement('CREATE TABLE game_players_default PARTITION OF game_players DEFAULT');
+        // --- Step 4: Create 64 hash partitions ---
+        for ($i = 0; $i < self::PARTITION_COUNT; $i++) {
+            DB::statement(
+                "CREATE TABLE game_players_p{$i} PARTITION OF game_players FOR VALUES WITH (MODULUS ".self::PARTITION_COUNT.", REMAINDER {$i})"
+            );
+        }
 
         // --- Step 5: Indexes ---
         DB::statement('CREATE UNIQUE INDEX game_players_game_id_player_id_unique ON game_players (game_id, player_id)');
@@ -86,15 +91,7 @@ return new class extends Migration
         DB::statement('ALTER TABLE game_players ADD CONSTRAINT game_players_player_id_foreign FOREIGN KEY (player_id) REFERENCES players(id)');
         DB::statement('ALTER TABLE game_players ADD CONSTRAINT game_players_team_id_foreign FOREIGN KEY (team_id) REFERENCES teams(id)');
 
-        // --- Step 7: Create partitions for existing data and migrate ---
-        $gameIds = DB::table('game_players_old')
-            ->distinct()
-            ->pluck('game_id');
-
-        foreach ($gameIds as $gameId) {
-            PartitionService::createPartition('game_players', $gameId);
-        }
-
+        // --- Step 7: Migrate data ---
         DB::statement('INSERT INTO game_players SELECT * FROM game_players_old');
 
         // --- Step 8: Drop old table ---

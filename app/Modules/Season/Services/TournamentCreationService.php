@@ -7,7 +7,6 @@ use App\Modules\Season\Jobs\SetupTournamentGame;
 use App\Models\Game;
 use App\Models\GameTactics;
 use App\Models\Team;
-use App\Support\PartitionService;
 use Ramsey\Uuid\Uuid;
 
 class TournamentCreationService
@@ -31,9 +30,6 @@ class TournamentCreationService
             'needs_new_season_setup' => true,
             'setup_completed_at' => null,
         ]);
-
-        // Create partition for game_players before any player rows are inserted
-        PartitionService::createPartition('game_players', $gameId);
 
         // Create default tactical settings
         GameTactics::create(['game_id' => $gameId, 'default_formation' => Formation::F_4_3_3->value]);

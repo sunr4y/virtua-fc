@@ -10,7 +10,6 @@ use App\Models\CompetitionTeam;
 use App\Models\Game;
 use App\Models\GameTactics;
 use App\Models\Team;
-use App\Support\PartitionService;
 use Ramsey\Uuid\Uuid;
 
 class GameCreationService
@@ -54,9 +53,6 @@ class GameCreationService
             'season_goal' => null,
             'setup_completed_at' => null,
         ]);
-
-        // Create partition for game_players before any player rows are inserted
-        PartitionService::createPartition('game_players', $gameId);
 
         // Create default tactical settings
         GameTactics::create(['game_id' => $gameId, 'default_formation' => Formation::F_4_3_3->value]);
