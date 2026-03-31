@@ -121,6 +121,28 @@ return [
     'career_mode_requires_invite' => 'Career mode requires an invitation. Play the World Cup for free!',
     'tournament_mode_requires_access' => 'Tournament mode requires access. Contact an admin to get started.',
 
+    // Pre-match confirmation
+    'pre_match_title' => 'Pre-Match',
+    'pre_match_no_lineup' => 'You don\'t have a lineup configured.',
+    'pre_match_incomplete' => 'Your lineup has fewer than 11 players.',
+    'pre_match_unavailable_injured' => 'You have an injured player in your lineup.',
+    'pre_match_unavailable_suspended' => 'You have a suspended player in your lineup.',
+    'pre_match_unavailable_multiple' => 'You have unavailable players in your lineup.',
+    'pre_match_auto_explanation' => 'If you don\'t change it, your coaching staff will pick the best lineup from available players.',
+    'pre_match_warning_title' => 'Your lineup needs attention',
+    'pre_match_play' => 'Play Match',
+    'pre_match_continue' => 'Continue',
+    'pre_match_edit_lineup' => 'Edit Lineup',
+    'pre_match_reason_injured' => 'injured',
+    'pre_match_reason_suspended' => 'suspended',
+    'pre_match_starting_xi' => 'Starting XI',
+    'pre_match_no_lineup_set' => 'No lineup configured',
+    'pre_match_auto_lineup' => 'Let the coaching staff automatically adjust the lineup when there are unavailable players.',
+    'pre_match_auto_select_done' => 'The best lineup has been automatically selected from available players.',
+
+    // Matchday advance
+    'advance_failed' => 'Something went wrong advancing the matchday. Please try again.',
+
     // Budget loan messages
     'budget_loan_approved' => 'Loan of :amount approved and added to your transfer budget.',
     'loan_not_available' => 'A budget loan is not available right now.',

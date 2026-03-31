@@ -121,6 +121,28 @@ return [
     'career_mode_requires_invite' => '¡El modo carrera requiere una invitación. Juega el Mundial gratis!',
     'tournament_mode_requires_access' => 'El modo torneo requiere acceso. Contacta con un administrador para empezar.',
 
+    // Pre-match confirmation
+    'pre_match_title' => 'Previa del Partido',
+    'pre_match_no_lineup' => 'No tienes una alineación configurada.',
+    'pre_match_incomplete' => 'Tu alineación tiene menos de 11 jugadores.',
+    'pre_match_unavailable_injured' => 'Tienes un jugador lesionado en tu alineación.',
+    'pre_match_unavailable_suspended' => 'Tienes un jugador sancionado en tu alineación.',
+    'pre_match_unavailable_multiple' => 'Tienes jugadores no disponibles en tu alineación.',
+    'pre_match_auto_explanation' => 'Si no lo cambias, tu cuerpo técnico elegirá la mejor alineación entre los jugadores disponibles.',
+    'pre_match_warning_title' => 'Tu alineación necesita atención',
+    'pre_match_play' => 'Jugar Partido',
+    'pre_match_continue' => 'Continuar',
+    'pre_match_edit_lineup' => 'Editar Alineación',
+    'pre_match_reason_injured' => 'lesionado',
+    'pre_match_reason_suspended' => 'sancionado',
+    'pre_match_starting_xi' => 'Once Titular',
+    'pre_match_no_lineup_set' => 'Alineación no configurada',
+    'pre_match_auto_lineup' => 'Dejar al cuerpo técnico modificar la alineación automáticamente cuando haya jugadores no disponibles.',
+    'pre_match_auto_select_done' => 'Se ha seleccionado automáticamente la mejor alineación entre los jugadores disponibles.',
+
+    // Matchday advance
+    'advance_failed' => 'Error al avanzar la jornada. Inténtalo de nuevo.',
+
     // Budget loan messages
     'budget_loan_approved' => 'Préstamo de :amount aprobado y añadido a tu presupuesto de fichajes.',
     'loan_not_available' => 'Un préstamo presupuestario no está disponible ahora mismo.',
