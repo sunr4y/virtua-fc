@@ -55,10 +55,10 @@ class EligibilityService
         foreach ($injuries as $injury) {
             $id = $injury['playerId'];
             $type = str_replace("'", "''", $injury['injuryType']);
-            $until = $injury['injuryUntil']->toDateTimeString();
+            $until = $injury['injuryUntil']->toDateString();
             $ids[] = "'{$id}'";
             $typeCases[] = "WHEN id = '{$id}' THEN '{$type}'";
-            $untilCases[] = "WHEN id = '{$id}' THEN '{$until}'";
+            $untilCases[] = "WHEN id = '{$id}' THEN '{$until}'::date";
         }
 
         $idList = implode(',', $ids);

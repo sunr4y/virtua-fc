@@ -224,18 +224,17 @@
             }
             this.content = '';
             this.loading = true;
-            this.$dispatch('open-modal', 'pre-match');
             fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
                 .then(r => {
                     const contentType = r.headers.get('content-type') || '';
                     if (contentType.includes('application/json')) {
                         return r.json().then(data => {
                             if (data.lineupReady) {
-                                this.$dispatch('close-modal', 'pre-match');
                                 this.$refs.autoAdvanceForm.submit();
                             }
                         });
                     }
+                    this.$dispatch('open-modal', 'pre-match');
                     return r.text().then(html => { this.content = html; this.loading = false; });
                 })
                 .catch(() => { this.loading = false; });
