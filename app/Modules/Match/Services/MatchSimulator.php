@@ -1612,6 +1612,17 @@ class MatchSimulator
                 $events = $events->merge($homeGoalEvents)->merge($awayGoalEvents);
             }
 
+            // Generate atmosphere events (shots, fouls) using xG and tactical settings
+            $atmosphereEvents = $this->generateAtmosphereEventsInRange(
+                $homeTeam->id, $awayTeam->id,
+                $homePlayers, $awayPlayers,
+                $homeExpectedGoals, $awayExpectedGoals,
+                $fromMinute + 1, $toMinute, $matchFraction,
+                $homePressing, $awayPressing,
+                $homeMentality, $awayMentality,
+            );
+            $events = $events->merge($atmosphereEvents);
+
             $events = $events->sortBy('minute')->values();
 
             $events = $this->reassignEventsFromUnavailablePlayers(
@@ -1641,6 +1652,97 @@ class MatchSimulator
             new MatchResult($homeScore, $awayScore, $events, $possession['home'], $possession['away']),
             $this->matchPerformance,
         );
+    }
+
+    /**
+     * Generate atmosphere events (shots and fouls) distributed at random minutes.
+     *
+     * Shot counts are derived from xG; foul counts from pressing/mentality config.
+     * These events are cosmetic — they don't affect match outcome.
+     *
+     * @return Collection<MatchEventData>
+     */
+    private function generateAtmosphereEventsInRange(
+        string $homeTeamId,
+        string $awayTeamId,
+        Collection $homePlayers,
+        Collection $awayPlayers,
+        float $homeXG,
+        float $awayXG,
+        int $minMinute,
+        int $maxMinute,
+        float $matchFraction,
+        PressingIntensity $homePressing,
+        PressingIntensity $awayPressing,
+        Mentality $homeMentality,
+        Mentality $awayMentality,
+    ): Collection {
+        if ($homePlayers->isEmpty() && $awayPlayers->isEmpty()) {
+            return collect();
+        }
+
+        $cfg = config('match_simulation.atmosphere');
+        $events = collect();
+        $usedMinutes = [];
+
+        // --- Shots (per team, derived from xG) ---
+        $onTargetRatio = $cfg['on_target_ratio'] ?? 0.38;
+        $shotsPerXG = $cfg['shots_per_xg'] ?? 8.0;
+
+        foreach ([[$homeTeamId, $homePlayers, $homeXG], [$awayTeamId, $awayPlayers, $awayXG]] as [$teamId, $players, $xG]) {
+            if ($players->isEmpty()) {
+                continue;
+            }
+
+            $totalShots = (int) round($xG * $shotsPerXG);
+            $onTarget = (int) round($totalShots * $onTargetRatio);
+            $offTarget = $totalShots - $onTarget;
+
+            for ($i = 0; $i < $onTarget; $i++) {
+                $minute = $this->generateUniqueMinuteInRange($usedMinutes, $minMinute, $maxMinute);
+                $usedMinutes[] = $minute;
+                $player = $this->pickPlayerByPosition($players, self::GOAL_SCORING_WEIGHTS);
+                if ($player) {
+                    $events->push(MatchEventData::shotOnTarget($teamId, $player->id, $minute));
+                }
+            }
+
+            for ($i = 0; $i < $offTarget; $i++) {
+                $minute = $this->generateUniqueMinuteInRange($usedMinutes, $minMinute, $maxMinute);
+                $usedMinutes[] = $minute;
+                $player = $this->pickPlayerByPosition($players, self::GOAL_SCORING_WEIGHTS);
+                if ($player) {
+                    $events->push(MatchEventData::shotOffTarget($teamId, $player->id, $minute));
+                }
+            }
+        }
+
+        // --- Fouls (per team, derived from pressing & mentality) ---
+        $foulsBase = $cfg['fouls_base_per_team'] ?? 6.0;
+
+        foreach ([[$homeTeamId, $homePlayers, $homePressing, $homeMentality], [$awayTeamId, $awayPlayers, $awayPressing, $awayMentality]] as [$teamId, $players, $pressing, $mentality]) {
+            if ($players->isEmpty()) {
+                continue;
+            }
+
+            $pressingKey = 'fouls_pressing_' . $pressing->value;
+            $mentalityKey = 'fouls_mentality_' . $mentality->value;
+            $pressingMod = $cfg[$pressingKey] ?? 1.0;
+            $mentalityMod = $cfg[$mentalityKey] ?? 1.0;
+
+            $fouls = (int) round($foulsBase * $pressingMod * $mentalityMod * $matchFraction);
+
+            for ($i = 0; $i < $fouls; $i++) {
+                $minute = $this->generateUniqueMinuteInRange($usedMinutes, $minMinute, $maxMinute);
+                $usedMinutes[] = $minute;
+                $player = $this->pickPlayerByPosition($players, self::CARD_WEIGHTS);
+                if ($player) {
+                    $events->push(MatchEventData::foul($teamId, $player->id, $minute));
+                }
+            }
+        }
+
+        return $events;
     }
 
     /**
@@ -2192,6 +2294,17 @@ class MatchSimulator
             );
 
             $events = $events->merge($homeGoalEvents)->merge($awayGoalEvents);
+
+            $atmosphereEvents = $this->generateAtmosphereEventsInRange(
+                $homeTeam->id, $awayTeam->id,
+                $homePlayers, $awayPlayers,
+                $homeExpectedGoals, $awayExpectedGoals,
+                $minMinute, $maxMinute, $etFraction,
+                $homePressing, $awayPressing,
+                $homeMentality, $awayMentality,
+            );
+            $events = $events->merge($atmosphereEvents);
+
             $events = $events->sortBy('minute')->values();
 
             $events = $this->reassignEventsFromUnavailablePlayers(

@@ -856,6 +856,10 @@ export default function liveMatch(config) {
             return event.type === 'goal' || event.type === 'own_goal';
         },
 
+        isAtmosphereEvent(event) {
+            return event.type === 'shot_on_target' || event.type === 'shot_off_target' || event.type === 'foul';
+        },
+
         // =====================================================================
         // Pitch Visualization (shared with lineup page)
         // =====================================================================

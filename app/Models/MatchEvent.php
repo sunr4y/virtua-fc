@@ -66,6 +66,9 @@ class MatchEvent extends Model
     public const TYPE_RED_CARD = 'red_card';
     public const TYPE_INJURY = 'injury';
     public const TYPE_SUBSTITUTION = 'substitution';
+    public const TYPE_SHOT_ON_TARGET = 'shot_on_target';
+    public const TYPE_SHOT_OFF_TARGET = 'shot_off_target';
+    public const TYPE_FOUL = 'foul';
 
     public function game(): BelongsTo
     {
@@ -103,6 +106,11 @@ class MatchEvent extends Model
         return in_array($this->event_type, [self::TYPE_YELLOW_CARD, self::TYPE_RED_CARD]);
     }
 
+    public function isAtmosphere(): bool
+    {
+        return in_array($this->event_type, [self::TYPE_SHOT_ON_TARGET, self::TYPE_SHOT_OFF_TARGET, self::TYPE_FOUL]);
+    }
+
     /**
      * Get the player name via relationship.
      */
@@ -126,6 +134,9 @@ class MatchEvent extends Model
             self::TYPE_YELLOW_CARD => "{$minute} Yellow Card - {$player}",
             self::TYPE_RED_CARD => "{$minute} Red Card - {$player}",
             self::TYPE_INJURY => "{$minute} Injury - {$player}",
+            self::TYPE_SHOT_ON_TARGET => "{$minute} Shot on target - {$player}",
+            self::TYPE_SHOT_OFF_TARGET => "{$minute} Shot off target - {$player}",
+            self::TYPE_FOUL => "{$minute} Foul - {$player}",
             default => "{$minute} {$this->event_type} - {$player}",
         };
     }

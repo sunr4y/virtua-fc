@@ -429,7 +429,7 @@
                             {{-- ET Second half events --}}
                             <template x-for="(event, idx) in etSecondHalfEvents" :key="'etsh-' + idx">
                                 <div class="flex gap-3 py-2.5 px-3 rounded-lg transition-all duration-300"
-                                     :class="[isGoalEvent(event) ? 'bg-goal-highlight border-l-2 border-l-accent-gold' : 'border-l-2 border-l-transparent', event.type === 'substitution_group' ? 'items-start' : 'items-center']"
+                                     :class="[isGoalEvent(event) ? 'bg-goal-highlight border-l-2 border-l-accent-gold' : 'border-l-2 border-l-transparent', event.type === 'substitution_group' ? 'items-start' : 'items-center', isAtmosphereEvent(event) ? 'opacity-50' : '']"
                                      x-transition:enter="transition ease-out duration-300"
                                      x-transition:enter-start="opacity-0 -translate-y-2"
                                      x-transition:enter-end="opacity-100 translate-y-0"
@@ -450,7 +450,7 @@
                             {{-- ET First half events --}}
                             <template x-for="(event, idx) in etFirstHalfEvents" :key="'etfh-' + idx">
                                 <div class="flex gap-3 py-2.5 px-3 rounded-lg transition-all duration-300"
-                                     :class="[isGoalEvent(event) ? 'bg-goal-highlight border-l-2 border-l-accent-gold' : 'border-l-2 border-l-transparent', event.type === 'substitution_group' ? 'items-start' : 'items-center']"
+                                     :class="[isGoalEvent(event) ? 'bg-goal-highlight border-l-2 border-l-accent-gold' : 'border-l-2 border-l-transparent', event.type === 'substitution_group' ? 'items-start' : 'items-center', isAtmosphereEvent(event) ? 'opacity-50' : '']"
                                      x-transition:enter="transition ease-out duration-300"
                                      x-transition:enter-start="opacity-0 -translate-y-2"
                                      x-transition:enter-end="opacity-100 translate-y-0"
@@ -471,7 +471,7 @@
                             {{-- Second half events (newest first) --}}
                             <template x-for="(event, idx) in secondHalfEvents" :key="'sh-' + idx">
                                 <div class="flex gap-3 py-2.5 px-3 rounded-lg transition-all duration-300"
-                                     :class="[isGoalEvent(event) ? 'bg-goal-highlight border-l-2 border-l-accent-gold' : 'border-l-2 border-l-transparent', event.type === 'substitution_group' ? 'items-start' : 'items-center']"
+                                     :class="[isGoalEvent(event) ? 'bg-goal-highlight border-l-2 border-l-accent-gold' : 'border-l-2 border-l-transparent', event.type === 'substitution_group' ? 'items-start' : 'items-center', isAtmosphereEvent(event) ? 'opacity-50' : '']"
                                      x-transition:enter="transition ease-out duration-300"
                                      x-transition:enter-start="opacity-0 -translate-y-2"
                                      x-transition:enter-end="opacity-100 translate-y-0"
@@ -492,7 +492,7 @@
                             {{-- First half events (newest first) --}}
                             <template x-for="(event, idx) in firstHalfEvents" :key="'fh-' + idx">
                                 <div class="flex gap-3 py-2.5 px-3 rounded-lg transition-all duration-300"
-                                     :class="[isGoalEvent(event) ? 'bg-goal-highlight border-l-2 border-l-accent-gold' : 'border-l-2 border-l-transparent', event.type === 'substitution_group' ? 'items-start' : 'items-center']"
+                                     :class="[isGoalEvent(event) ? 'bg-goal-highlight border-l-2 border-l-accent-gold' : 'border-l-2 border-l-transparent', event.type === 'substitution_group' ? 'items-start' : 'items-center', isAtmosphereEvent(event) ? 'opacity-50' : '']"
                                      x-transition:enter="transition ease-out duration-300"
                                      x-transition:enter-start="opacity-0 -translate-y-2"
                                      x-transition:enter-end="opacity-100 translate-y-0"
@@ -582,6 +582,33 @@
                                 <span class="font-heading font-bold text-sm text-text-primary tabular-nums" x-text="homeScore"></span>
                                 <span class="text-[10px] text-text-muted uppercase tracking-wider">{{ __('game.live_stat_goals') }}</span>
                                 <span class="font-heading font-bold text-sm text-text-primary tabular-nums" x-text="awayScore"></span>
+                            </div>
+                        </div>
+
+                        {{-- Shots --}}
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-baseline gap-1">
+                                    <span class="font-heading font-bold text-sm text-text-primary tabular-nums" x-text="getStatCount('shot_on_target', 'home') + getStatCount('shot_off_target', 'home')"></span>
+                                    <span class="text-[10px] text-text-muted tabular-nums" x-text="'(' + getStatCount('shot_on_target', 'home') + ')'"></span>
+                                </div>
+                                <div class="text-center">
+                                    <span class="text-[10px] text-text-muted uppercase tracking-wider">{{ __('game.live_stat_shots') }}</span>
+                                    <div class="text-[9px] text-text-muted">{{ __('game.live_stat_shots_on_target') }}</div>
+                                </div>
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-[10px] text-text-muted tabular-nums" x-text="'(' + getStatCount('shot_on_target', 'away') + ')'"></span>
+                                    <span class="font-heading font-bold text-sm text-text-primary tabular-nums" x-text="getStatCount('shot_on_target', 'away') + getStatCount('shot_off_target', 'away')"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Fouls --}}
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-heading font-bold text-sm text-text-primary tabular-nums" x-text="getStatCount('foul', 'home')"></span>
+                                <span class="text-[10px] text-text-muted uppercase tracking-wider">{{ __('game.live_stat_fouls') }}</span>
+                                <span class="font-heading font-bold text-sm text-text-primary tabular-nums" x-text="getStatCount('foul', 'away')"></span>
                             </div>
                         </div>
 

@@ -24,13 +24,25 @@
       x-show="event.type === 'substitution' || event.type === 'substitution_group'">
     <svg class="w-3.5 h-3.5 text-accent-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
 </span>
+<span class="w-6 text-center shrink-0 flex items-center justify-center"
+      x-show="event.type === 'shot_on_target'">
+    <svg class="w-3 h-3 text-accent-green opacity-50" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/></svg>
+</span>
+<span class="w-6 text-center shrink-0 flex items-center justify-center"
+      x-show="event.type === 'shot_off_target'">
+    <svg class="w-3 h-3 text-text-muted opacity-50" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/></svg>
+</span>
+<span class="w-6 text-center shrink-0 flex items-center justify-center"
+      x-show="event.type === 'foul'">
+    <svg class="w-3 h-3 text-accent-gold opacity-50" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2v12M2 8h12"/></svg>
+</span>
 <img :src="getEventSide(event) === 'home' ? homeTeamImage : awayTeamImage"
      class="w-5 h-5 shrink-0 object-contain"
      :alt="getEventSide(event) === 'home' ? 'Home' : 'Away'">
 <div class="flex-1 min-w-0">
     <template x-if="event.type !== 'substitution_group'">
         <div>
-            <span class="font-semibold text-xs text-text-primary" x-text="event.type === 'substitution' ? event.playerInName : event.playerName"></span>
+            <span :class="['shot_on_target', 'shot_off_target', 'foul'].includes(event.type) ? 'text-xs text-text-muted' : 'font-semibold text-xs text-text-primary'" x-text="event.type === 'substitution' ? event.playerInName : event.playerName"></span>
             <template x-if="event.type === 'goal'">
                 <span class="text-[10px] text-text-muted ml-1">{{ __('game.live_goal') }}</span>
             </template>
@@ -45,6 +57,15 @@
             </template>
             <template x-if="event.type === 'injury'">
                 <span class="text-[10px] text-accent-orange ml-1">{{ __('game.live_injury') }}</span>
+            </template>
+            <template x-if="event.type === 'shot_on_target'">
+                <span class="text-[10px] text-text-muted ml-1">{{ __('game.live_shot_on_target') }}</span>
+            </template>
+            <template x-if="event.type === 'shot_off_target'">
+                <span class="text-[10px] text-text-muted ml-1">{{ __('game.live_shot_off_target') }}</span>
+            </template>
+            <template x-if="event.type === 'foul'">
+                <span class="text-[10px] text-text-muted ml-1">{{ __('game.live_foul') }}</span>
             </template>
             <template x-if="event.type === 'substitution'">
                 <div class="text-[10px] text-text-secondary"><span class="text-[10px] text-accent-red font-semibold">OFF</span> <span x-text="event.playerName"></span></div>

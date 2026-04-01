@@ -78,6 +78,21 @@ readonly class MatchEventData
         ]);
     }
 
+    public static function shotOnTarget(string $teamId, string $gamePlayerId, int $minute): self
+    {
+        return new self($teamId, $gamePlayerId, $minute, 'shot_on_target');
+    }
+
+    public static function shotOffTarget(string $teamId, string $gamePlayerId, int $minute): self
+    {
+        return new self($teamId, $gamePlayerId, $minute, 'shot_off_target');
+    }
+
+    public static function foul(string $teamId, string $gamePlayerId, int $minute): self
+    {
+        return new self($teamId, $gamePlayerId, $minute, 'foul');
+    }
+
     public function toArray(): array
     {
         return [

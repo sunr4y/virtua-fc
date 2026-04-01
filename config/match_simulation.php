@@ -360,4 +360,25 @@ return [
         'losing_attack_bias' => 0.70,       // probability of preferring attackers when losing
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Atmosphere Events
+    |--------------------------------------------------------------------------
+    |
+    | Shots and fouls sprinkled throughout the match to give tactical feedback.
+    | Counts are derived from xG (shots) and pressing/mentality (fouls).
+    |
+    */
+    'atmosphere' => [
+        'shots_per_xg' => 8.0,                    // total shots = xG × this value
+        'on_target_ratio' => 0.38,                 // fraction of shots that are on target
+        'fouls_base_per_team' => 6.0,              // base fouls per team per full match
+        'fouls_pressing_high_press' => 1.30,
+        'fouls_pressing_standard' => 1.00,
+        'fouls_pressing_low_block' => 0.80,
+        'fouls_mentality_defensive' => 1.15,
+        'fouls_mentality_balanced' => 1.00,
+        'fouls_mentality_attacking' => 0.90,
+    ],
+
 ];
