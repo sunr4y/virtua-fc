@@ -52,16 +52,16 @@ class YouthAcademyService
      * Standard deviation for the ability normal distribution.
      * Uniform across all tiers — only the mean differentiates them.
      */
-    private const ABILITY_STD_DEV = 7;
+    private const ABILITY_STD_DEV = 6;
 
     /**
      * Average potential upside (points above current ability) per academy tier.
      */
     private const POTENTIAL_UPSIDE_MEAN = [
         0 => 0,
-        1 => 10,
-        2 => 12,
-        3 => 12,
+        1 => 15,
+        2 => 15,
+        3 => 10,
         4 => 10,
     ];
 
@@ -442,7 +442,7 @@ class YouthAcademyService
      */
     private function clampAbility(float $value): int
     {
-        return max(35, min(90, (int) round($value)));
+        return max(50, min(90, (int) round($value)));
     }
 
     /**
