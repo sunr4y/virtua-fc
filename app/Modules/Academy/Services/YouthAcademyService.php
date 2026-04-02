@@ -309,6 +309,10 @@ class YouthAcademyService
      */
     public function promoteOveragePlayers(Game $game): Collection
     {
+        if (! $game->current_date) {
+            return collect();
+        }
+
         $cutoff = PlayerAge::dateOfBirthCutoff(PlayerAge::ACADEMY_END, $game->current_date);
 
         $overagePlayers = AcademyPlayer::where('game_id', $game->id)
