@@ -155,31 +155,11 @@ class SquadReplenishmentTest extends TestCase
         $this->assertGreaterThanOrEqual(3, $gkAfter);
     }
 
-    public function test_user_team_is_replenished_when_below_minimum(): void
+    public function test_user_team_is_not_replenished_by_squad_replenishment_processor(): void
     {
-        // Create user team with only 10 players (well below minimum)
+        // User team replenishment is handled by YouthAcademyPromotionProcessor (setup pipeline),
+        // not by SquadReplenishmentProcessor (closing pipeline)
         $this->createSquadForTeam($this->userTeam, 10);
-
-        $processor = app(SquadReplenishmentProcessor::class);
-        $data = new SeasonTransitionData(oldSeason: '2024', newSeason: '2025', competitionId: 'ESP1');
-
-        $result = $processor->process($this->game, $data);
-
-        $finalCount = GamePlayer::where('game_id', $this->game->id)
-            ->where('team_id', $this->userTeam->id)
-            ->count();
-        // Should be replenished to MIN_SQUAD_SIZE (22)
-        $this->assertEquals(22, $finalCount);
-
-        $generated = $result->getMetadata('squadReplenishment');
-        $emergencyEntries = array_filter($generated, fn ($e) => $e['type'] === 'emergency_replenishment');
-        $this->assertCount(12, $emergencyEntries);
-    }
-
-    public function test_user_team_at_or_above_minimum_is_not_replenished(): void
-    {
-        // Create user team with 22 players (at minimum) — should NOT be replenished
-        $this->createSquadForTeam($this->userTeam, 22);
 
         $processor = app(SquadReplenishmentProcessor::class);
         $data = new SeasonTransitionData(oldSeason: '2024', newSeason: '2025', competitionId: 'ESP1');
@@ -189,7 +169,8 @@ class SquadReplenishmentTest extends TestCase
         $finalCount = GamePlayer::where('game_id', $this->game->id)
             ->where('team_id', $this->userTeam->id)
             ->count();
-        $this->assertEquals(22, $finalCount);
+        // Should remain at 10 — this processor no longer touches the user's team
+        $this->assertEquals(10, $finalCount);
     }
 
     public function test_generated_players_fill_depleted_positions(): void
