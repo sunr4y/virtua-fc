@@ -35,6 +35,7 @@ class CareerActionProcessor
         if ($game->isTransferWindowOpen()) {
             $completedOutgoing = $this->transferService->completeAgreedTransfers($game);
             $completedIncoming = $this->transferService->completeIncomingTransfers($game);
+
             foreach ($completedOutgoing->merge($completedIncoming) as $offer) {
                 $this->notificationService->notifyTransferComplete($game, $offer);
             }

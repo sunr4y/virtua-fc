@@ -891,7 +891,7 @@ class TransferService
      * Complete all agreed incoming transfers (user buying/loaning players).
      * Called when transfer window opens.
      */
-    public function completeIncomingTransfers(Game $game): Collection
+    public function completeIncomingTransfers(Game $game, bool $skipSquadCheck = false): Collection
     {
         $agreedIncoming = TransferOffer::with(['gamePlayer.player', 'sellingTeam'])
             ->where('game_id', $game->id)
@@ -913,7 +913,7 @@ class TransferService
             if ($offer->offer_type === TransferOffer::TYPE_LOAN_IN) {
                 $this->loanService->completeLoanIn($offer, $game);
             } else {
-                $this->completeIncomingTransfer($offer, $game);
+                $this->completeIncomingTransfer($offer, $game, $skipSquadCheck);
             }
             $completedTransfers->push($offer);
         }
