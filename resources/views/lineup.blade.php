@@ -126,7 +126,7 @@
                     <div class="border-t border-border-default"></div>
 
                     {{-- Saved tactical presets --}}
-                    <div class="flex items-center gap-2 overflow-x-auto scrollbar-hide" x-show="presets.length > 0 || {{ $tacticalPresets->count() < 3 ? 'true' : 'false' }}">
+                    <div class="flex items-center gap-2 overflow-x-auto scrollbar-hide">
                         <span class="text-[10px] text-text-muted uppercase tracking-wider shrink-0">{{ __('squad.presets') }}</span>
                         <div class="flex gap-1.5">
                             <template x-for="preset in presets" :key="preset.id">
@@ -156,15 +156,13 @@
                                     </button>
                                 </div>
                             </template>
-                            @if($tacticalPresets->count() < 3)
-                                <button type="button"
-                                    @click="$dispatch('open-modal', 'save-preset')"
-                                    x-bind:disabled="selectedCount !== 11"
-                                    class="flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-dashed border-border-default text-sm text-text-muted hover:text-text-body hover:border-border-strong transition-colors shrink-0 min-h-[36px] disabled:opacity-40 disabled:cursor-not-allowed">
-                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                                    {{ __('squad.save_preset') }}
-                                </button>
-                            @endif
+                            <button type="button"
+                                @click="$dispatch('open-modal', 'save-preset')"
+                                x-bind:disabled="selectedCount !== 11"
+                                class="flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-dashed border-border-default text-sm text-text-muted hover:text-text-body hover:border-border-strong transition-colors shrink-0 min-h-[36px] disabled:opacity-40 disabled:cursor-not-allowed">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                                {{ __('squad.save_preset') }}
+                            </button>
                         </div>
                     </div>
 
@@ -500,11 +498,87 @@
         {{-- Save Tactical Preset Modal --}}
         <x-modal name="save-preset" maxWidth="sm">
         <form method="POST" action="{{ route('game.tactical-presets.save', $game->id) }}"
-              x-data="{ presetName: '', applyNow: false }"
+              x-data="{
+                presetList: @js($presetsConfig),
+                presetName: '',
+                applyNow: false,
+                savePresetMode: 'new',
+                replacePresetId: '',
+                initPresetModal() {
+                    const ps = this.presetList;
+                    if (!ps.length) {
+                        this.savePresetMode = 'new';
+                        this.replacePresetId = '';
+                        this.presetName = '';
+                        return;
+                    }
+                    if (ps.length >= 3) {
+                        this.savePresetMode = 'replace';
+                        this.replacePresetId = ps[0].id;
+                    } else {
+                        this.savePresetMode = 'new';
+                        this.replacePresetId = '';
+                    }
+                    this.syncPresetNameFromTarget();
+                },
+                syncPresetNameFromTarget() {
+                    if (this.savePresetMode !== 'replace' || !this.replacePresetId) {
+                        return;
+                    }
+                    const p = this.presetList.find(x => x.id === this.replacePresetId);
+                    if (p) {
+                        this.presetName = p.name;
+                    }
+                },
+                get presetSubmitDisabled() {
+                    if (!this.presetName.trim()) {
+                        return true;
+                    }
+                    if (this.presetList.length >= 3) {
+                        return this.savePresetMode !== 'replace' || !this.replacePresetId;
+                    }
+                    if (this.savePresetMode === 'replace') {
+                        return !this.replacePresetId;
+                    }
+                    return false;
+                },
+              }"
+              x-on:open-modal.window="if ($event.detail === 'save-preset') initPresetModal()"
               @submit="_isSaving = true">
             @csrf
             <div class="p-5">
                 <h3 class="text-lg font-semibold text-text-primary mb-4">{{ __('squad.save_preset') }}</h3>
+
+                <template x-if="presetList.length > 0">
+                    <div class="mb-4 space-y-2">
+                        <p class="text-xs text-text-muted" x-show="presetList.length >= 3">{{ __('squad.preset_replace_required_hint') }}</p>
+                        <template x-if="presetList.length < 3">
+                            <fieldset class="space-y-2">
+                                <legend class="text-sm text-text-secondary mb-1">{{ __('squad.preset_save_mode_legend') }}</legend>
+                                <label class="flex items-center gap-2 cursor-pointer select-none">
+                                    <input type="radio" name="save_preset_mode_ui" value="new" x-model="savePresetMode"
+                                        class="border-border-strong bg-surface-700 text-accent-blue focus:ring-accent-blue focus:ring-offset-0">
+                                    <span class="text-sm text-text-body">{{ __('squad.preset_save_as_new') }}</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer select-none">
+                                    <input type="radio" name="save_preset_mode_ui" value="replace" x-model="savePresetMode"
+                                        @change="replacePresetId = presetList[0]?.id || ''; syncPresetNameFromTarget()"
+                                        class="border-border-strong bg-surface-700 text-accent-blue focus:ring-accent-blue focus:ring-offset-0">
+                                    <span class="text-sm text-text-body">{{ __('squad.preset_replace_existing') }}</span>
+                                </label>
+                            </fieldset>
+                        </template>
+                        <div x-show="savePresetMode === 'replace' || presetList.length >= 3">
+                            <label for="preset-replace-target" class="block text-sm text-text-secondary mb-1.5">{{ __('squad.preset_choose_slot') }}</label>
+                            <select id="preset-replace-target" x-model="replacePresetId" @change="syncPresetNameFromTarget()"
+                                class="w-full px-3 py-2 bg-surface-700 border border-border-strong rounded-lg text-sm text-text-body focus:outline-none focus:ring-2 focus:ring-accent-blue focus:border-transparent">
+                                <template x-for="p in presetList" :key="'opt-' + p.id">
+                                    <option :value="p.id" x-text="p.name + ' (' + p.formation + ')'"></option>
+                                </template>
+                            </select>
+                        </div>
+                    </div>
+                </template>
 
                 <div class="mb-4">
                     <label for="preset-name" class="block text-sm text-text-secondary mb-1.5">{{ __('squad.preset_name') }}</label>
@@ -513,6 +587,10 @@
                         placeholder="{{ __('squad.preset_name_placeholder') }}"
                         maxlength="30" required autofocus>
                 </div>
+
+                <template x-if="savePresetMode === 'replace' && replacePresetId">
+                    <input type="hidden" name="preset_id" :value="replacePresetId">
+                </template>
 
                 <label class="flex items-center gap-2 mb-4 cursor-pointer select-none">
                     <input type="checkbox" name="apply_now" value="1" x-model="applyNow"
@@ -538,7 +616,7 @@
                     <x-secondary-button type="button" @click="$dispatch('close-modal', 'save-preset')">
                         {{ __('app.cancel') }}
                     </x-secondary-button>
-                    <x-primary-button type="submit" color="blue" x-bind:disabled="!presetName.trim()">
+                    <x-primary-button type="submit" color="blue" x-bind:disabled="presetSubmitDisabled">
                         <span x-text="applyNow ? '{{ __('squad.save_and_confirm') }}' : '{{ __('app.confirm') }}'"></span>
                     </x-primary-button>
                 </div>

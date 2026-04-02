@@ -346,6 +346,11 @@ return [
     'preset_apply_now' => 'Use this tactic for the next match',
     'save_and_confirm' => 'Save & confirm',
     'preset_delete_confirm' => 'Delete this saved tactic?',
+    'preset_save_mode_legend' => 'Save as',
+    'preset_save_as_new' => 'New saved tactic',
+    'preset_replace_existing' => 'Replace an existing tactic',
+    'preset_choose_slot' => 'Which tactic to replace',
+    'preset_replace_required_hint' => 'You already have three saved tactics. Choose one to replace with your current board.',
 
     // Number
     'number' => 'Number',

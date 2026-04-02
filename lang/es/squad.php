@@ -346,6 +346,11 @@ return [
     'preset_apply_now' => 'Usar esta táctica en el próximo partido',
     'save_and_confirm' => 'Guardar y confirmar',
     'preset_delete_confirm' => '¿Eliminar esta táctica guardada?',
+    'preset_save_mode_legend' => 'Guardar como',
+    'preset_save_as_new' => 'Nueva táctica guardada',
+    'preset_replace_existing' => 'Sustituir una táctica existente',
+    'preset_choose_slot' => 'Qué táctica sustituir',
+    'preset_replace_required_hint' => 'Ya tienes tres tácticas guardadas. Elige cuál sustituir por la alineación actual.',
 
     // Dorsales
     'number' => 'Dorsal',
