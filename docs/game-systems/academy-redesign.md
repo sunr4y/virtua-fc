@@ -56,7 +56,7 @@ Players can be managed individually at any time via the academy page:
 | **Loan** | Frees seat now, develops faster off-screen, returns next season end |
 | **Dismiss** | Permanently removed |
 
-Players naturally leave the academy when they age past the academy age limit.
+Players aged 21+ (`PlayerAge::ACADEMY_END`) are automatically promoted to the first team at the start of each new season via `YouthAcademyPromotionProcessor`. This applies even if the squad exceeds the 30-player cap. A notification informs the manager of the promoted players.
 
 ## Key Files
 
@@ -64,4 +64,4 @@ Players naturally leave the academy when they age past the academy age limit.
 |------|---------|
 | `app/Modules/Academy/Services/YouthAcademyService.php` | Batch generation, development, capacity, all actions |
 | `app/Modules/Season/Processors/YouthAcademyClosingProcessor.php` | Season-end: loan development, returns |
-| `app/Modules/Season/Processors/YouthAcademySetupProcessor.php` | Season-setup: evaluation trigger |
+| `app/Modules/Season/Processors/YouthAcademyPromotionProcessor.php` | Season-setup: auto-promote overage players |

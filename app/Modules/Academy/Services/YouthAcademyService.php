@@ -6,6 +6,7 @@ use App\Modules\Squad\DTOs\GeneratedPlayerData;
 use App\Models\AcademyPlayer;
 use App\Models\Game;
 use App\Models\GamePlayer;
+use App\Modules\Player\PlayerAge;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use App\Modules\Squad\Services\PlayerGeneratorService;
@@ -304,6 +305,23 @@ class YouthAcademyService
         $academy->delete();
 
         return $gamePlayer;
+    }
+
+    /**
+     * Auto-promote all academy players who have reached ACADEMY_END age.
+     *
+     * @return Collection<int, GamePlayer> The promoted players
+     */
+    public function promoteOveragePlayers(Game $game): Collection
+    {
+        $cutoff = PlayerAge::dateOfBirthCutoff(PlayerAge::ACADEMY_END, $game->current_date);
+
+        $overagePlayers = AcademyPlayer::where('game_id', $game->id)
+            ->where('team_id', $game->team_id)
+            ->where('date_of_birth', '<=', $cutoff)
+            ->get();
+
+        return $overagePlayers->map(fn (AcademyPlayer $academy) => $this->promoteToFirstTeam($academy, $game));
     }
 
     /**
