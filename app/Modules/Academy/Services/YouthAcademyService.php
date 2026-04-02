@@ -90,19 +90,14 @@ class YouthAcademyService
     private const GROWTH_RATE_LOAN = 0.50;
 
     /**
-     * Positions with weights for random selection.
+     * Position groups with weights for random selection.
+     * First a group is chosen by weight, then a specific position within it.
      */
-    private const POSITION_WEIGHTS = [
-        'Goalkeeper' => 5,
-        'Centre-Back' => 15,
-        'Left-Back' => 8,
-        'Right-Back' => 8,
-        'Defensive Midfield' => 10,
-        'Central Midfield' => 15,
-        'Attacking Midfield' => 10,
-        'Left Winger' => 8,
-        'Right Winger' => 8,
-        'Centre-Forward' => 13,
+    private const POSITION_GROUPS = [
+        ['weight' => 9,  'positions' => ['Goalkeeper']],
+        ['weight' => 33, 'positions' => ['Centre-Back', 'Left-Back', 'Right-Back']],
+        ['weight' => 29, 'positions' => ['Defensive Midfield', 'Central Midfield', 'Attacking Midfield']],
+        ['weight' => 29, 'positions' => ['Left Winger', 'Right Winger', 'Centre-Forward']],
     ];
 
     public function __construct(
@@ -489,13 +484,12 @@ class YouthAcademyService
 
     private function selectPosition(): string
     {
-        $totalWeight = array_sum(self::POSITION_WEIGHTS);
-        $random = rand(1, $totalWeight);
+        $random = rand(1, 100);
 
-        foreach (self::POSITION_WEIGHTS as $position => $weight) {
-            $random -= $weight;
+        foreach (self::POSITION_GROUPS as $group) {
+            $random -= $group['weight'];
             if ($random <= 0) {
-                return $position;
+                return $group['positions'][array_rand($group['positions'])];
             }
         }
 
