@@ -324,6 +324,27 @@ class YouthAcademyService
     }
 
     /**
+     * Promote the N highest-potential non-loaned academy players to the first team.
+     *
+     * @return Collection<int, GamePlayer> The promoted players
+     */
+    public function promoteBestPlayers(Game $game, int $count): Collection
+    {
+        if ($count <= 0) {
+            return collect();
+        }
+
+        $candidates = AcademyPlayer::where('game_id', $game->id)
+            ->where('team_id', $game->team_id)
+            ->where('is_on_loan', false)
+            ->orderByDesc('potential')
+            ->limit($count)
+            ->get();
+
+        return $candidates->map(fn (AcademyPlayer $academy) => $this->promoteToFirstTeam($academy, $game));
+    }
+
+    /**
      * Get the expected new arrivals range for a tier.
      *
      * @return array{min: int, max: int}

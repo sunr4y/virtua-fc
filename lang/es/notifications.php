@@ -87,6 +87,8 @@ return [
     'academy_batch_message' => ':count nuevos jugadores han llegado a la cantera.',
     'academy_overage_promoted_title' => 'Graduados de la cantera',
     'academy_overage_promoted_message' => ':count canteranos de 21+ años han sido promovidos al primer equipo.',
+    'academy_gap_promoted_title' => 'Canteranos promovidos',
+    'academy_gap_promoted_message' => ':count canteranos han sido promovidos para cubrir huecos en la plantilla.',
     // Loan request results
     'loan_accepted_title' => 'Cesión de :player aceptada',
     'loan_accepted' => ':team ha aceptado tu solicitud de cesión por :player.',

@@ -17,18 +17,19 @@ use Illuminate\Support\Collection;
 /**
  * Centralised AI roster maintenance: ensures every AI team has a viable squad.
  *
- * Runs after contract expirations (5), retirements (7), and before player
- * development (10). Fills gaps caused by any source of attrition: retirements,
- * expired contracts, transfers, or any other mechanism that removes players.
+ * Runs after contract expirations, retirements, and before player development.
+ * Fills gaps caused by any source of attrition: retirements, expired contracts,
+ * transfers, or any other mechanism that removes players.
  *
- * Three rules are enforced:
- * 1. Position group minimums (2 GK, 5 DEF, 5 MID, 3 FWD) — always, even if
+ * Three rules are enforced for AI teams:
+ * 1. Position group minimums (3 GK, 6 DEF, 6 MID, 4 FWD) — always, even if
  *    total squad size is sufficient (e.g. user buys all AI team's goalkeepers).
  * 2. Minimum squad size of 22 — fill remaining gaps by position target priority.
  * 3. Youth intake — each AI team receives 2-3 young players (17-20) per season,
  *    simulating AI youth academies and maintaining healthy age balance.
  *
- * Priority: 9
+ * User team replenishment is handled separately in YouthAcademyPromotionProcessor
+ * (setup pipeline), which promotes academy players first before generating synthetic ones.
  */
 class SquadReplenishmentProcessor implements SeasonProcessor
 {
@@ -175,24 +176,6 @@ class SquadReplenishmentProcessor implements SeasonProcessor
             }
         }
 
-        // Emergency replenishment for user's team (safety net for expired contracts/retirements)
-        $userPlayers = $playersByTeam->get($game->team_id, collect());
-
-        $emergencyNames = [];
-        if ($userPlayers->count() < self::MIN_SQUAD_SIZE) {
-            $teamAvgAbility = $this->calculateTeamAverageAbility($userPlayers);
-            $positionCounts = $userPlayers->groupBy('position')->map->count();
-            $positionsToFill = $this->determinePositionsToFill($positionCounts, $userPlayers->count());
-
-            foreach ($positionsToFill as $position) {
-                $playerData = $this->buildPlayerData(
-                    $game, $game->team_id, $position, $teamAvgAbility, $data->newSeason,
-                );
-                $bulkData[] = $playerData;
-                $bulkMeta[] = ['teamId' => $game->team_id, 'type' => 'emergency_replenishment', 'isUserTeam' => true];
-            }
-        }
-
         // Batch release old/weak players
         if (!empty($releaseIds)) {
             GamePlayer::whereIn('id', $releaseIds)->update(['team_id' => null]);
@@ -217,14 +200,6 @@ class SquadReplenishmentProcessor implements SeasonProcessor
         foreach ($results as $i => $result) {
             $result['type'] = $bulkMeta[$i]['type'];
             $generatedPlayers[] = $result;
-
-            if (!empty($bulkMeta[$i]['isUserTeam'])) {
-                $emergencyNames[] = $result['playerName'];
-            }
-        }
-
-        if (!empty($emergencyNames)) {
-            $this->notificationService->notifyEmergencySignings($game, $emergencyNames);
         }
 
         return $data->setMetadata('squadReplenishment', $generatedPlayers);
