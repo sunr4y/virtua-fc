@@ -125,9 +125,12 @@ export function createSubstitutionManager(ctx) {
         const state = ctx();
         const subbedOutIds = new Set(state.substitutionsMade.map(s => s.playerOutId));
         const subbedInIds = new Set(state.substitutionsMade.map(s => s.playerInId));
+        const redCarded = getRedCardedPlayerIds();
 
-        // Filter starting lineup: remove subbed out players
-        const remaining = state.lineupPlayers.filter(p => !subbedOutIds.has(p.id));
+        // Filter starting lineup: remove subbed out and sent-off players (GK stays in DB lineup after red)
+        const remaining = state.lineupPlayers.filter(
+            p => !subbedOutIds.has(p.id) && !redCarded.includes(p.id)
+        );
 
         // Add subbed-in players from bench
         const subbedIn = state.benchPlayers.filter(p => subbedInIds.has(p.id));

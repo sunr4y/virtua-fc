@@ -47,9 +47,16 @@ class SubstitutionService
             throw new \InvalidArgumentException('game.sub_error_windows_reached');
         }
 
-        // Build active lineup from starting lineup + previous subs
+        // Build active lineup from starting lineup + previous subs.
+        // Sent-off players remain in stored lineup arrays until a substitution is applied;
+        // exclude them so e.g. GK red card + outfield-for-GK sub does not leave two GKs on the pitch.
         $isHome = $match->isHomeTeam($game->team_id);
-        $activeLineupIds = $isHome ? ($match->home_lineup ?? []) : ($match->away_lineup ?? []);
+        $sentOffIds = $this->sentOffPlayerIdsForTeamMatch($match, $game->team_id);
+        $lineupFromDb = $isHome ? ($match->home_lineup ?? []) : ($match->away_lineup ?? []);
+        $activeLineupIds = array_values(array_filter(
+            $lineupFromDb,
+            fn ($id) => ! in_array($id, $sentOffIds, true)
+        ));
 
         foreach ($previousSubstitutions as $sub) {
             $activeLineupIds = array_values(array_filter(
@@ -138,7 +145,12 @@ class SubstitutionService
     public function buildActiveLineup(GameMatch $match, string $userTeamId, array $allSubstitutions): \Illuminate\Support\Collection
     {
         $isHome = $match->isHomeTeam($userTeamId);
-        $lineupIds = $isHome ? ($match->home_lineup ?? []) : ($match->away_lineup ?? []);
+        $sentOffIds = $this->sentOffPlayerIdsForTeamMatch($match, $userTeamId);
+        $lineupFromDb = $isHome ? ($match->home_lineup ?? []) : ($match->away_lineup ?? []);
+        $lineupIds = array_values(array_filter(
+            $lineupFromDb,
+            fn ($id) => ! in_array($id, $sentOffIds, true)
+        ));
 
         // Apply substitutions: remove player out, add player in
         foreach ($allSubstitutions as $sub) {
@@ -150,6 +162,19 @@ class SubstitutionService
         }
 
         return GamePlayer::with('player')->whereIn('id', $lineupIds)->get();
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function sentOffPlayerIdsForTeamMatch(GameMatch $match, string $teamId): array
+    {
+        return MatchEvent::query()
+            ->where('game_match_id', $match->id)
+            ->where('team_id', $teamId)
+            ->where('event_type', MatchEvent::TYPE_RED_CARD)
+            ->pluck('game_player_id')
+            ->all();
     }
 
     /**
