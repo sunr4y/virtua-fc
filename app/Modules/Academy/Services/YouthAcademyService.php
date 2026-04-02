@@ -59,9 +59,9 @@ class YouthAcademyService
     private const POTENTIAL_UPSIDE_MEAN = [
         0 => 0,
         1 => 10,
-        2 => 14,
-        3 => 18,
-        4 => 22,
+        2 => 12,
+        3 => 12,
+        4 => 10,
     ];
 
     /**

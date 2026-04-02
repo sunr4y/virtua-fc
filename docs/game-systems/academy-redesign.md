@@ -30,9 +30,9 @@ Academy tier (from budget allocation) determines batch size, base quality mean, 
 | Tier | Arrivals | Base Quality Mean | Potential Upside Mean |
 |------|----------|-------------------|----------------------|
 | 1 — Basic | 2-3 | 45 | +10 |
-| 2 — Good | 3-5 | 52 | +14 |
-| 3 — Elite | 4-6 | 62 | +18 |
-| 4 — World-Class | 4-6 | 70 | +22 |
+| 2 — Good | 3-5 | 52 | +12 |
+| 3 — Elite | 4-6 | 62 | +12 |
+| 4 — World-Class | 4-6 | 70 | +10 |
 
 Team context adjusts the ability mean by -3 to +4 based on first-team median tier.
 
