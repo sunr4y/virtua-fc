@@ -12,10 +12,20 @@ use App\Models\User;
 use App\Modules\Lineup\Services\SubstitutionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use Tests\Traits\CreatesLineups;
 
 class BuildActiveLineupRedCardTest extends TestCase
 {
     use RefreshDatabase;
+    use CreatesLineups;
+
+    private SubstitutionService $substitutionService;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->substitutionService = app(SubstitutionService::class);
+    }
 
     public function test_build_active_lineup_drops_sent_off_goalkeeper_when_sub_is_outfield_for_reserve_keeper(): void
     {
@@ -23,30 +33,39 @@ class BuildActiveLineupRedCardTest extends TestCase
         $team = Team::factory()->create();
         $awayTeam = Team::factory()->create();
         $competition = Competition::factory()->league()->create(['id' => 'ESP1']);
-        $team->competitions()->attach($competition->id, ['season' => '2024']);
+        $team->competitions()->attach($competition->id, ['season' => '2025']);
 
         $game = Game::factory()->create([
             'user_id' => $user->id,
             'team_id' => $team->id,
             'competition_id' => $competition->id,
-            'season' => '2024',
+            'season' => '2025',
+            'current_date' => '2025-10-01',
         ]);
 
-        $startingGk = GamePlayer::factory()->forGame($game)->forTeam($team)->goalkeeper()->create();
-        $reserveGk = GamePlayer::factory()->forGame($game)->forTeam($team)->goalkeeper()->create();
-        $midfielder = GamePlayer::factory()->forGame($game)->forTeam($team)->create(['position' => 'Central Midfield']);
+        $lineup = $this->createLineup($game, $team, 11, 70);
+        $startingGk = $lineup->firstWhere('position', 'Goalkeeper');
+        $midfielder = $lineup->firstWhere('position', 'Central Midfield');
+        $this->assertNotNull($startingGk);
+        $this->assertNotNull($midfielder);
 
-        $others = collect(range(1, 9))->map(fn () => GamePlayer::factory()->forGame($game)->forTeam($team)->create());
-
-        $homeLineup = collect([$startingGk, ...$others, $midfielder])->pluck('id')->all();
-        $this->assertCount(11, $homeLineup);
+        $reserveGk = GamePlayer::factory()
+            ->forGame($game)
+            ->forTeam($team)
+            ->goalkeeper()
+            ->create([
+                'game_technical_ability' => 70,
+                'game_physical_ability' => 70,
+                'fitness' => 95,
+                'morale' => 80,
+            ]);
 
         $match = GameMatch::factory()
             ->forGame($game)
             ->forCompetition($competition)
             ->between($team, $awayTeam)
             ->create([
-                'home_lineup' => $homeLineup,
+                'home_lineup' => $lineup->pluck('id')->all(),
             ]);
 
         MatchEvent::query()->create([
@@ -59,8 +78,7 @@ class BuildActiveLineupRedCardTest extends TestCase
             'metadata' => [],
         ]);
 
-        $service = app(SubstitutionService::class);
-        $active = $service->buildActiveLineup($match, $team->id, [
+        $active = $this->substitutionService->buildActiveLineup($match, $team->id, [
             ['playerOutId' => $midfielder->id, 'playerInId' => $reserveGk->id],
         ]);
 
