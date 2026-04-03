@@ -286,7 +286,6 @@ return [
     'age_profile' => 'Perfil de Edad',
     'contract_watch' => 'Contratos',
     'expiring_this_season' => 'Expiran esta temporada',
-    'expiring_next_season' => 'Expiran la próxima temporada',
     'no_contract_issues' => 'Sin contratos pendientes',
     'highest_earners' => 'Mayores salarios',
 

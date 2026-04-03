@@ -286,7 +286,6 @@ return [
     'age_profile' => 'Age Profile',
     'contract_watch' => 'Contract Watch',
     'expiring_this_season' => 'Expiring this season',
-    'expiring_next_season' => 'Expiring next season',
     'no_contract_issues' => 'No contract issues',
     'highest_earners' => 'Highest earners',
 

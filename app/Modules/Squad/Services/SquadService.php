@@ -112,20 +112,12 @@ class SquadService
 
         // --- Contract Watchlist (career mode) ---
         $expiringThisSeason = collect();
-        $expiringNextSeason = collect();
         $highEarners = collect();
 
         if ($isCareerMode) {
             $expiringThisSeason = $allPlayers->filter(fn ($p) => $p->isContractExpiring($seasonEndDate))
                 ->sortByDesc('overall_score')
                 ->values();
-
-            $nextSeasonEnd = $seasonEndDate->copy()->addYear();
-            $expiringNextSeason = $allPlayers->filter(function ($p) use ($seasonEndDate, $nextSeasonEnd) {
-                return $p->contract_until
-                    && $p->contract_until->gt($seasonEndDate)
-                    && $p->contract_until->lte($nextSeasonEnd);
-            })->sortByDesc('overall_score')->values();
 
             // Top 3 highest wage-to-overall ratio players
             $highEarners = $allPlayers->filter(fn ($p) => $p->annual_wage > 0 && $p->overall_score > 0)
@@ -186,7 +178,6 @@ class SquadService
             // Sidebar data
             'depthChart' => $depthChart,
             'expiringThisSeason' => $expiringThisSeason,
-            'expiringNextSeason' => $expiringNextSeason,
             'highEarners' => $highEarners,
             'alerts' => $alerts,
             // Renewal data
