@@ -199,7 +199,7 @@
 {{-- Actions --}}
 @if($showActions || $canRenew || $renewalNegotiation || $renewalCooldown)
     <div class="px-5 py-4 border-t border-border-default flex flex-wrap items-center gap-2">
-        @if(!$isListed && $canManage && !$gamePlayer->hasRenewalAgreed())
+        @if(!$isListed && $canManage)
             <form method="POST" action="{{ route('game.transfers.list', [$game->id, $gamePlayer->id]) }}">
                 @csrf
                 <x-action-button color="blue">

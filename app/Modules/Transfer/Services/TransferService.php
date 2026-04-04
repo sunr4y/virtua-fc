@@ -3,6 +3,7 @@
 namespace App\Modules\Transfer\Services;
 
 use App\Modules\Player\PlayerAge;
+use App\Modules\Squad\Services\SquadNumberService;
 use App\Modules\Transfer\Enums\TransferWindowType;
 use App\Modules\Transfer\Services\ContractService;
 use App\Modules\Transfer\Services\LoanService;
@@ -27,6 +28,7 @@ class TransferService
         private readonly LoanService $loanService,
         private readonly TransferCompletionService $completionService,
         private readonly DispositionService $dispositionService,
+        private readonly SquadNumberService $squadNumberService,
     ) {}
 
     /**
@@ -470,7 +472,7 @@ class TransferService
         $completedTransfers = collect();
 
         foreach ($agreedIncoming as $offer) {
-            $this->completeIncomingTransfer($offer, $game, skipSquadCheck: true);
+            $this->completeIncomingTransfer($offer, $game);
             $completedTransfers->push($offer);
         }
 
@@ -891,7 +893,7 @@ class TransferService
      * Complete all agreed incoming transfers (user buying/loaning players).
      * Called when transfer window opens.
      */
-    public function completeIncomingTransfers(Game $game, bool $skipSquadCheck = false): Collection
+    public function completeIncomingTransfers(Game $game): Collection
     {
         $agreedIncoming = TransferOffer::with(['gamePlayer.player', 'sellingTeam'])
             ->where('game_id', $game->id)
@@ -913,7 +915,7 @@ class TransferService
             if ($offer->offer_type === TransferOffer::TYPE_LOAN_IN) {
                 $this->loanService->completeLoanIn($offer, $game);
             } else {
-                $this->completeIncomingTransfer($offer, $game, $skipSquadCheck);
+                $this->completeIncomingTransfer($offer, $game);
             }
             $completedTransfers->push($offer);
         }
@@ -944,7 +946,7 @@ class TransferService
 
         $player->update([
             'team_id' => $game->team_id,
-            'number' => GamePlayer::nextAvailableNumber($game->id, $game->team_id),
+            'number' => $this->squadNumberService->assignNumberForNewPlayer($game, $player),
             'contract_until' => $newContractEnd,
             'annual_wage' => $wageDemand,
         ]);
@@ -1009,13 +1011,10 @@ class TransferService
 
     /**
      * Complete a single incoming transfer (user buys player).
-     *
-     * @param  bool  $skipSquadCheck  Skip squad-full check (used for season-close pre-contracts
-     *                                where SquadCapEnforcementProcessor handles trimming)
      */
-    private function completeIncomingTransfer(TransferOffer $offer, Game $game, bool $skipSquadCheck = false): bool
+    private function completeIncomingTransfer(TransferOffer $offer, Game $game): bool
     {
-        return $this->completionService->completeIncomingTransfer($offer, $game, $skipSquadCheck);
+        return $this->completionService->completeIncomingTransfer($offer, $game);
     }
 
     /**

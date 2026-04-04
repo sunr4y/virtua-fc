@@ -129,6 +129,10 @@ class SubstitutionService
                 throw new \InvalidArgumentException('game.sub_error_player_injured');
             }
 
+            if ($game->requiresSquadEnrollment() && $playerIn->number === null) {
+                throw new \InvalidArgumentException('game.sub_error_player_not_registered');
+            }
+
             if (in_array($playerInId, $batchInIds)) {
                 throw new \InvalidArgumentException('game.sub_error_already_on_pitch');
             }
@@ -233,6 +237,7 @@ class SubstitutionService
             ->reject(fn ($p) => in_array($p->id, $subbedOutIds))
             ->reject(fn ($p) => $p->isInjured($match->scheduled_date))
             ->reject(fn ($p) => in_array($p->id, $suspendedPlayerIds))
+            ->when($game->requiresSquadEnrollment(), fn ($c) => $c->reject(fn ($p) => $p->number === null))
             ->values();
 
         return [
