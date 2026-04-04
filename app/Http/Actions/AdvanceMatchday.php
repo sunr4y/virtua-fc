@@ -19,6 +19,15 @@ class AdvanceMatchday
 
     public function __invoke(string $gameId)
     {
+        $game = Game::findOrFail($gameId);
+
+        if ($game->pending_finalization_match_id) {
+            return redirect()->route('game.live-match', [
+                'gameId' => $gameId,
+                'matchId' => $game->pending_finalization_match_id,
+            ]);
+        }
+
         // Atomic check-and-set to prevent concurrent advances
         $updated = Game::where('id', $gameId)
             ->whereNull('matchday_advancing_at')
@@ -29,7 +38,7 @@ class AdvanceMatchday
             return redirect()->route('show-game', $gameId);
         }
 
-        $game = Game::findOrFail($gameId);
+        $game->refresh();
 
         try {
             $result = $this->orchestrator->advance($game);

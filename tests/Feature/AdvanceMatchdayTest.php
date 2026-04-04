@@ -201,6 +201,33 @@ class AdvanceMatchdayTest extends TestCase
         );
     }
 
+    public function test_advance_redirects_to_live_match_when_pending_finalization(): void
+    {
+        $match = GameMatch::factory()->create([
+            'game_id' => $this->game->id,
+            'competition_id' => $this->leagueCompetition->id,
+            'round_number' => 1,
+            'home_team_id' => $this->playerTeam->id,
+            'away_team_id' => $this->opponentTeam->id,
+            'scheduled_date' => Carbon::parse('2024-08-16'),
+            'played' => true,
+            'home_score' => 1,
+            'away_score' => 0,
+        ]);
+
+        $this->game->update(['pending_finalization_match_id' => $match->id]);
+
+        $action = app(AdvanceMatchday::class);
+        $response = $action($this->game->id);
+
+        $this->assertTrue($response->isRedirect());
+        $expectedPath = route('game.live-match', ['gameId' => $this->game->id, 'matchId' => $match->id], absolute: false);
+        $this->assertSame($expectedPath, parse_url($response->getTargetUrl(), PHP_URL_PATH) ?? '');
+
+        $this->game->refresh();
+        $this->assertNull($this->game->matchday_advancing_at);
+    }
+
     public function test_cup_matches_are_advanced_by_date(): void
     {
         // Create a cup tie
