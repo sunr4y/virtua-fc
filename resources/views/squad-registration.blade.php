@@ -20,7 +20,7 @@
         slots: @js($slots),
         academyPlayers: @js($academyPlayers),
         editable: @js($editable),
-    })" class="min-h-screen pb-28">
+    })" class="min-h-screen {{ $blocking ? 'pb-28' : '' }}">
         <div class="{{ $blocking ? 'max-w-5xl' : 'max-w-7xl' }} mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
 
             @if($blocking)
@@ -48,6 +48,29 @@
                 <div x-data="{ open: false }" class="mt-6 mb-4">
                     <div class="flex items-center justify-between gap-4">
                         <h2 class="font-heading text-2xl lg:text-3xl font-bold uppercase tracking-wide text-text-primary">{{ __('squad.registration') }}</h2>
+                        <div class="flex items-center gap-2 shrink-0">
+                            @if($editable)
+                                <form method="POST" action="{{ route('game.squad.registration.save', $game->id) }}">
+                                    @csrf
+                                    <template x-for="n in 25" :key="'slot-' + n">
+                                        <template x-if="slots[n]">
+                                            <div>
+                                                <input type="hidden" :name="'assignments[' + (n - 1) + '][player_id]'" :value="slots[n]">
+                                                <input type="hidden" :name="'assignments[' + (n - 1) + '][number]'" :value="n">
+                                            </div>
+                                        </template>
+                                    </template>
+                                    <template x-for="(entry, index) in academyPlayers" :key="'acad-' + entry.id">
+                                        <div>
+                                            <input type="hidden" :name="'assignments[' + (25 + index) + '][player_id]'" :value="entry.id">
+                                            <input type="hidden" :name="'assignments[' + (25 + index) + '][number]'" :value="entry.number">
+                                        </div>
+                                    </template>
+                                    <x-primary-button>
+                                        {{ __('squad.save_registration') }}
+                                    </x-primary-button>
+                                </form>
+                            @endif
                         <x-ghost-button color="slate" @click="open = !open" class="gap-2 shrink-0">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-text-secondary shrink-0">
                                 <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z" clip-rule="evenodd" />
@@ -57,6 +80,7 @@
                                 <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
                             </svg>
                         </x-ghost-button>
+                        </div>
                     </div>
 
                     <div x-show="open" x-transition class="mt-3 bg-surface-700/50 border border-border-default rounded-lg p-4 text-sm">
@@ -271,9 +295,10 @@
             </div>
         </div>
 
-        {{-- Sticky Bottom Bar --}}
-        <div class="fixed bottom-0 left-0 right-0 bg-surface-800/95 backdrop-blur-xs border-t border-border-strong shadow-lg z-30">
-            <div class="{{ $blocking ? 'max-w-5xl' : 'max-w-7xl' }} mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-4">
+        {{-- Sticky Bottom Bar (blocking mode only) --}}
+        @if($blocking)
+        <div class="fixed bottom-0 left-0 right-0 shadow-lg z-30 bg-surface-800/95 backdrop-blur-xs border-t border-border-strong">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-4">
                 <div class="flex items-center gap-3 md:gap-4">
                     <div class="flex-1 text-sm text-text-muted">
                         <span class="font-bold transition-colors"
@@ -285,7 +310,6 @@
                     @if($editable)
                         <form method="POST" action="{{ route('game.squad.registration.save', $game->id) }}">
                             @csrf
-                            {{-- First team slots --}}
                             <template x-for="n in 25" :key="'slot-' + n">
                                 <template x-if="slots[n]">
                                     <div>
@@ -294,7 +318,6 @@
                                     </div>
                                 </template>
                             </template>
-                            {{-- Academy players --}}
                             <template x-for="(entry, index) in academyPlayers" :key="'acad-' + entry.id">
                                 <div>
                                     <input type="hidden" :name="'assignments[' + (25 + index) + '][player_id]'" :value="entry.id">
@@ -309,5 +332,6 @@
                 </div>
             </div>
         </div>
+        @endif
     </div>
 </x-app-layout>
