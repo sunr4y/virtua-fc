@@ -246,6 +246,10 @@ export default function squadRegistration(config) {
                     return;
                 }
             }
+            // First team full — fall back to academy if eligible
+            if (this.canBeAcademy(playerId)) {
+                this.addToAcademy(playerId);
+            }
         },
 
         // --- Touch support ---

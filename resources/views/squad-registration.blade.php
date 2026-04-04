@@ -43,6 +43,32 @@
             <x-flash-message type="success" :message="session('success')" class="{{ $blocking ? 'mb-4' : 'mt-4 mb-4' }}" />
             <x-flash-message type="error" :message="session('error')" class="{{ $blocking ? 'mb-4' : 'mt-4 mb-4' }}" />
 
+            @if(!$blocking)
+                {{-- Page Title + Help toggle --}}
+                <div x-data="{ open: false }" class="mt-6 mb-4">
+                    <div class="flex items-center justify-between gap-4">
+                        <h2 class="font-heading text-2xl lg:text-3xl font-bold uppercase tracking-wide text-text-primary">{{ __('squad.registration') }}</h2>
+                        <x-ghost-button color="slate" @click="open = !open" class="gap-2 shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-text-secondary shrink-0">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z" clip-rule="evenodd" />
+                            </svg>
+                            <span class="hidden sm:inline">{{ __('squad.registration_rules_title') }}</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 transition-transform" :class="open ? 'rotate-180' : ''">
+                                <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                            </svg>
+                        </x-ghost-button>
+                    </div>
+
+                    <div x-show="open" x-transition class="mt-3 bg-surface-700/50 border border-border-default rounded-lg p-4 text-sm">
+                        <ul class="text-text-secondary space-y-1 list-disc ml-4">
+                            <li>{{ __('squad.registration_rule_first_team') }}</li>
+                            <li>{{ __('squad.registration_rule_academy') }}</li>
+                            <li>{{ __('squad.registration_rule_unregistered') }}</li>
+                        </ul>
+                    </div>
+                </div>
+            @endif
+
             {{-- Read-only notice --}}
             @if(!$editable)
                 <div class="mb-6 bg-surface-800 border border-border-default rounded-xl px-5 py-4">
