@@ -9,8 +9,8 @@
     $dashboardActive = $currentRoute === 'show-game';
     $squadActive = Str::startsWith($currentRoute, 'game.squad');
     $lineupActive = $currentRoute === 'game.lineup';
-    $calendarActive = $currentRoute === 'game.calendar';
-    $moreActive = in_array($currentRoute, ['game.finances', 'game.transfers', 'game.transfers.outgoing', 'game.scouting', 'game.explore', 'game.competition', 'game.transfer-activity']);
+    $transfersActive = in_array($currentRoute, ['game.transfers', 'game.transfers.outgoing', 'game.scouting', 'game.explore', 'game.transfer-activity']);
+    $moreActive = in_array($currentRoute, ['game.finances', 'game.calendar', 'game.competition']);
 
 @endphp
 
@@ -44,13 +44,15 @@
             </a>
             @endif
 
-            {{-- Calendar --}}
-            <a href="{{ route('game.calendar', $game->id) }}" class="flex flex-col items-center justify-center gap-0.5 min-w-[44px] min-h-[44px] transition-colors {{ $calendarActive ? 'text-accent-blue' : 'text-text-muted' }}">
+            {{-- Transfers (career mode only) --}}
+            @if($isCareer)
+            <a href="{{ route('game.transfers', $game->id) }}" class="flex flex-col items-center justify-center gap-0.5 min-w-[44px] min-h-[44px] transition-colors {{ $transfersActive ? 'text-accent-blue' : 'text-text-muted' }}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/>
                 </svg>
-                <span class="text-[9px] font-medium uppercase tracking-wider leading-none">{{ __('app.calendar') }}</span>
+                <span class="text-[9px] font-medium uppercase tracking-wider leading-none">{{ __('app.transfers') }}</span>
             </a>
+            @endif
 
             {{-- More --}}
             <button
@@ -99,18 +101,21 @@
 
             {{-- Menu Items --}}
             <nav class="px-2 pb-4 space-y-1">
+                {{-- Calendar --}}
+                <a href="{{ route('game.calendar', $game->id) }}" @click="moreOpen = false" class="flex items-center gap-3 px-4 py-4 rounded-xl transition-colors {{ $currentRoute === 'game.calendar' ? 'bg-accent-blue/10 text-accent-blue' : 'text-text-body hover:bg-surface-700' }}">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/>
+                    </svg>
+                    <span class="text-sm font-medium">{{ __('app.calendar') }}</span>
+                </a>
+
                 @if($isCareer)
+                {{-- Finances --}}
                 <a href="{{ route('game.finances', $game->id) }}" @click="moreOpen = false" class="flex items-center gap-3 px-4 py-4 rounded-xl transition-colors {{ $currentRoute === 'game.finances' ? 'bg-accent-blue/10 text-accent-blue' : 'text-text-body hover:bg-surface-700' }}">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
                     </svg>
                     <span class="text-sm font-medium">{{ __('app.finances') }}</span>
-                </a>
-                <a href="{{ route('game.transfers', $game->id) }}" @click="moreOpen = false" class="flex items-center gap-3 px-4 py-4 rounded-xl transition-colors {{ in_array($currentRoute, ['game.transfers', 'game.transfers.outgoing', 'game.scouting', 'game.explore', 'game.transfer-activity']) ? 'bg-accent-blue/10 text-accent-blue' : 'text-text-body hover:bg-surface-700' }}">
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/>
-                    </svg>
-                    <span class="text-sm font-medium">{{ __('app.transfers') }}</span>
                 </a>
                 @endif
 
@@ -184,6 +189,9 @@
                 <div class="border-t border-border-default/50 mt-2 pt-3 px-4 pb-2">
                     <p class="text-[10px] text-text-faint text-center">
                         &copy; {{ date('Y') }} Pablo Román &middot; <a href="{{ route('legal') }}" class="hover:text-text-muted transition-colors">Aviso Legal</a>
+                        @if(auth()->user()?->is_admin)
+                            &middot; <a href="{{ route('admin.dashboard') }}" class="hover:text-text-muted transition-colors">Admin</a>
+                        @endif
                     </p>
                 </div>
 
