@@ -18,6 +18,7 @@ import { assignPlayersToSlots } from './modules/slot-assignment.js';
 import { createPenaltyShootout } from './modules/penalty-shootout.js';
 import { createSubstitutionManager } from './modules/substitution-manager.js';
 import { createMatchSimulation } from './modules/match-simulation.js';
+import { generateRegularTimeAtmosphere, generateExtraTimeAtmosphere, addGoalNarratives } from './modules/atmosphere-generator.js';
 
 /**
  * Copy all own properties from source to target. Regular properties are
@@ -105,6 +106,14 @@ export default function liveMatch(config) {
         mvpPlayerName: config.mvpPlayerName || null,
         mvpPlayerTeamId: config.mvpPlayerTeamId || null,
 
+        // Atmosphere generation (client-side commentary)
+        homeLineupRoster: config.homeLineupRoster || [],
+        awayLineupRoster: config.awayLineupRoster || [],
+        venueName: config.venueName || '',
+        homeArticle: config.homeArticle !== undefined ? config.homeArticle : 'el',
+        awayArticle: config.awayArticle !== undefined ? config.awayArticle : 'el',
+        narrativeTemplates: config.narrativeTemplates || {},
+
         // Pitch visualization config
         formationSlots: config.formationSlots || {},
         teamColors: config.teamColors || null,
@@ -135,6 +144,7 @@ export default function liveMatch(config) {
 
         // Tab state
         activeTab: 'events',
+        showCommentary: localStorage.getItem('liveMatchCommentary') !== 'false',
 
         // Clock state
         currentMinute: 0,
@@ -259,6 +269,12 @@ export default function liveMatch(config) {
                 }
             };
             document.addEventListener('visibilitychange', this._onVisibilityChange);
+
+            // Generate client-side atmosphere events (shots, fouls) and narratives
+            this._injectAtmosphere();
+            if (this.preloadedExtraTimeData) {
+                this._injectETAtmosphere();
+            }
 
             // Start the match simulation (synthesize goals + kickoff delay)
             this.startSimulation();
@@ -688,11 +704,13 @@ export default function liveMatch(config) {
                     this.activeDefLine = result.defensiveLine;
                 }
 
-                // Filter events up to current minute and add sub events to feed
+                // Filter server events up to current minute, but keep atmosphere events
+                // (they are pre-generated for the full match and should persist)
+                const isAtmosphere = (e) => e.type === 'shot_on_target' || e.type === 'shot_off_target' || e.type === 'foul' || e.type === 'contextual';
                 if (isET) {
-                    this.extraTimeEvents = this.extraTimeEvents.filter(e => e.minute <= minute);
+                    this.extraTimeEvents = this.extraTimeEvents.filter(e => e.minute <= minute || isAtmosphere(e));
                 } else {
-                    this.events = this.events.filter(e => e.minute <= minute);
+                    this.events = this.events.filter(e => e.minute <= minute || isAtmosphere(e));
                 }
                 this.revealedEvents = this.revealedEvents.filter(e => e.minute <= minute);
 
@@ -854,6 +872,66 @@ export default function liveMatch(config) {
 
         isGoalEvent(event) {
             return event.type === 'goal' || event.type === 'own_goal';
+        },
+
+        isAtmosphereEvent(event) {
+            return event.type === 'shot_on_target' || event.type === 'shot_off_target' || event.type === 'foul' || event.type === 'contextual';
+        },
+
+        /**
+         * Build the atmosphere config object from component state.
+         * Used by both regular time and extra time generation.
+         */
+        _atmosphereConfig() {
+            return {
+                homeTeamId: this.homeTeamId,
+                awayTeamId: this.awayTeamId,
+                homeTeamName: this.homeTeamName,
+                awayTeamName: this.awayTeamName,
+                homePlayers: this.homeLineupRoster,
+                awayPlayers: this.awayLineupRoster,
+                homeScore: this.finalHomeScore,
+                awayScore: this.finalAwayScore,
+                venueName: this.venueName,
+                homeArticle: this.homeArticle,
+                awayArticle: this.awayArticle,
+                narrativeTemplates: this.narrativeTemplates,
+            };
+        },
+
+        /**
+         * Generate atmosphere events and narratives for regular time,
+         * merging them into the events array.
+         */
+        _injectAtmosphere() {
+            const cfg = this._atmosphereConfig();
+            addGoalNarratives(this.events, cfg);
+            const atmosphere = generateRegularTimeAtmosphere({
+                ...cfg,
+                allEvents: this.events,
+            });
+            if (atmosphere.length) {
+                this.events = [...this.events, ...atmosphere].sort((a, b) => a.minute - b.minute);
+            }
+        },
+
+        /**
+         * Generate atmosphere events and narratives for extra time,
+         * merging them into the extraTimeEvents array.
+         * Called after ET events are loaded (fetch or preloaded).
+         */
+        _injectETAtmosphere() {
+            const cfg = this._atmosphereConfig();
+            addGoalNarratives(this.extraTimeEvents, cfg);
+            // Include regular-time events for player availability checks
+            const allEvents = [...this.events, ...this.extraTimeEvents];
+            const atmosphere = generateExtraTimeAtmosphere({
+                ...cfg,
+                allEvents,
+            });
+            if (atmosphere.length) {
+                this.extraTimeEvents = [...this.extraTimeEvents, ...atmosphere].sort((a, b) => a.minute - b.minute);
+            }
         },
 
         // =====================================================================
