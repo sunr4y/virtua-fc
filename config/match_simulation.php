@@ -61,7 +61,7 @@ return [
     |   skill_dominance 4.0 → xG: 3.53 vs 0.48 (upset ~2% of the time)
     |
     */
-    'base_goals' => 1.2,                // avg xG per team when evenly matched (~2.6 total)
+    'base_goals' => 1.3,                // avg xG per team when evenly matched (~2.6 total)
     'skill_dominance' => 2.3,           // how much team quality widens the xG gap (see above)
     'home_advantage_goals' => 0.20,     // fixed home xG bonus
 
@@ -127,7 +127,7 @@ return [
     */
     'dixon_coles_rho' => -0.05,         // goal correlation: 0 = independent Poisson, -0.13 = realistic
     'max_goals_cap' => 6,
-    'score_concentration' => 1.5,       // 1.0 = standard, >1 = results cluster closer to xG mode
+    'score_concentration' => 1.4,       // 1.0 = standard, >1 = results cluster closer to xG mode
 
     /*
     |--------------------------------------------------------------------------
