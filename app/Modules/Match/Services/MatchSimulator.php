@@ -89,7 +89,7 @@ class MatchSimulator
         'Second Striker' => 6,
         'Left Winger' => 5,
         'Right Winger' => 5,
-        'Goalkeeper' => 4,
+        'Goalkeeper' => 0,
     ];
 
     /**
