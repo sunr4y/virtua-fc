@@ -351,6 +351,8 @@ return [
     'tactical_reset_all' => 'Restablecer todo',
     'positions_apply' => 'Aplicar posiciones',
     'tactical_no_changes' => 'No hay cambios tácticos que aplicar.',
+    'tactical_error_generic' => 'Ocurrió un error al aplicar los cambios. Por favor, inténtalo de nuevo.',
+    'tactical_error_no_pending' => 'No hay cambios que aplicar. Modifica tu táctica e inténtalo de nuevo.',
     'tactical_unsaved_changes' => 'Tienes cambios sin confirmar. ¿Cerrar de todos modos?',
     'confirm_title' => 'Revisar cambios',
     'confirm_subs_heading' => 'Sustituciones',

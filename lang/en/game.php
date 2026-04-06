@@ -351,6 +351,8 @@ return [
     'tactical_reset_all' => 'Reset all',
     'positions_apply' => 'Apply positions',
     'tactical_no_changes' => 'No tactical changes to apply.',
+    'tactical_error_generic' => 'Something went wrong applying your changes. Please try again.',
+    'tactical_error_no_pending' => 'No changes to apply. Please modify your tactics and try again.',
     'tactical_unsaved_changes' => 'You have unsubmitted changes. Close anyway?',
     'confirm_title' => 'Review changes',
     'confirm_subs_heading' => 'Substitutions',

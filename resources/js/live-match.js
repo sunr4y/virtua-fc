@@ -150,6 +150,7 @@ export default function liveMatch(config) {
         pendingDefLine: null,
         applyingChanges: false,
         showingConfirmation: false,
+        tacticalError: null,
 
         // Tab state
         activeTab: 'events',
@@ -513,6 +514,7 @@ export default function liveMatch(config) {
             this.resetSubstitutions();
             this.resetTactics();
             this.showingConfirmation = false;
+            this.tacticalError = null;
         },
 
         getOptionLabel(options, value) {
@@ -593,6 +595,7 @@ export default function liveMatch(config) {
         },
 
         showConfirmation() {
+            this.tacticalError = null;
             this.showingConfirmation = true;
         },
 
@@ -606,7 +609,18 @@ export default function liveMatch(config) {
                 this.addPendingSub();
             }
 
-            if (!this.hasPendingChanges || this.applyingChanges) return;
+            if (this.applyingChanges) return;
+
+            if (!this.hasPendingChanges) {
+                if (this.showingConfirmation) {
+                    this.tacticalError = this.translations.tacticalErrorNoPending
+                        || 'No changes to apply.';
+                    this.showingConfirmation = false;
+                }
+                return;
+            }
+
+            this.tacticalError = null;
             this.applyingChanges = true;
 
             const minute = Math.floor(this.currentMinute);
@@ -664,8 +678,18 @@ export default function liveMatch(config) {
                 });
 
                 if (!response.ok) {
-                    const error = await response.json();
-                    console.error('Tactical actions failed:', error);
+                    let errorMessage = this.translations.tacticalErrorGeneric
+                        || 'Something went wrong. Please try again.';
+                    try {
+                        const errorData = await response.json();
+                        console.error('Tactical actions failed:', errorData);
+                        if (errorData.error) {
+                            errorMessage = errorData.error;
+                        }
+                    } catch (parseErr) {
+                        console.error('Tactical actions failed (non-JSON response):', response.status);
+                    }
+                    this.tacticalError = errorMessage;
                     this.applyingChanges = false;
                     return;
                 }
@@ -857,6 +881,8 @@ export default function liveMatch(config) {
                 this.closeTacticalPanel();
             } catch (err) {
                 console.error('Tactical actions request failed:', err);
+                this.tacticalError = this.translations.tacticalErrorGeneric
+                    || 'Something went wrong. Please try again.';
             } finally {
                 this.applyingChanges = false;
             }

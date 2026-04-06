@@ -105,6 +105,8 @@
                     confirmPressing: {!! Js::from(__('game.confirm_pressing')) !!},
                     confirmDefLine: {!! Js::from(__('game.confirm_def_line')) !!},
                     mvpOfTheMatch: {!! Js::from(__('game.mvp_of_the_match')) !!},
+                    tacticalErrorGeneric: {!! Js::from(__('game.tactical_error_generic')) !!},
+                    tacticalErrorNoPending: {!! Js::from(__('game.tactical_error_no_pending')) !!},
                     tabLineups: {!! Js::from(__('game.live_tab_lineups')) !!},
                     tabRatings: {!! Js::from(__('game.live_tab_ratings')) !!},
                 },
