@@ -83,7 +83,7 @@ class SquadRegistrationService
             ->where('team_id', $game->team_id)
             ->whereIn('id', $academyPlayerIds)
             ->whereHas('player', function ($q) use ($game) {
-                $q->where('date_of_birth', '<', PlayerAge::dateOfBirthCutoff(PlayerAge::YOUNG_END, $game->current_date));
+                $q->where('date_of_birth', '<=', PlayerAge::dateOfBirthCutoff(PlayerAge::YOUNG_END, $game->current_date));
             })
             ->count();
 
