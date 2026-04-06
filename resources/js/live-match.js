@@ -19,6 +19,7 @@ import { createPenaltyShootout } from './modules/penalty-shootout.js';
 import { createSubstitutionManager } from './modules/substitution-manager.js';
 import { createMatchSimulation } from './modules/match-simulation.js';
 import { generateRegularTimeAtmosphere, generateExtraTimeAtmosphere, generateAtmosphereForPeriod, addGoalNarratives, generateContextualNarratives, generateTacticalNarratives } from './modules/atmosphere-generator.js';
+import { calculatePlayerRatings, ratingColor as _ratingColor, updateRosterPerformances, countEvents, buildSubstitutionMap } from './modules/player-ratings.js';
 
 /**
  * Copy all own properties from source to target. Regular properties are
@@ -109,6 +110,10 @@ export default function liveMatch(config) {
         // MVP
         mvpPlayerName: config.mvpPlayerName || null,
         mvpPlayerTeamId: config.mvpPlayerTeamId || null,
+
+        // Player match ratings (computed client-side from performance data)
+        playerRatings: {},
+        hasSeenRatings: false,
 
         // Atmosphere generation (client-side commentary)
         homeLineupRoster: config.homeLineupRoster || [],
@@ -254,6 +259,12 @@ export default function liveMatch(config) {
                 homeScore: 0,
                 awayScore: 0,
             }));
+
+            // Compute initial player ratings from cached performance data
+            // (only if match is already at full time, e.g. page refresh)
+            if (this.phase === 'full_time') {
+                this.recalculatePlayerRatings();
+            }
 
             // If ET data was preloaded (page refresh during ET), set it up
             if (this.preloadedExtraTimeData) {
@@ -836,6 +847,12 @@ export default function liveMatch(config) {
                     this.resetPossessionTarget();
                 }
 
+                // Update player performances and recalculate ratings
+                if (result.playerPerformances) {
+                    updateRosterPerformances(this.homeLineupRoster, this.awayLineupRoster, result.playerPerformances);
+                    this.recalculatePlayerRatings();
+                }
+
                 // Close the panel and resume
                 this.closeTacticalPanel();
             } catch (err) {
@@ -857,6 +874,64 @@ export default function liveMatch(config) {
 
 
         // recalculateScore — provided by match-simulation module
+
+        // =============================
+        // Player ratings
+        // =============================
+
+        recalculatePlayerRatings() {
+            const allEvents = [...this.events, ...(this.extraTimeEvents || [])];
+            const subMap = buildSubstitutionMap(allEvents);
+
+            // Build sub-in player list for rating calculation
+            // User bench players who entered have performance data
+            const subsIn = [];
+            for (const bp of this.benchPlayers) {
+                if (bp.performance != null && subMap.subbedIn[bp.id]) {
+                    subsIn.push({
+                        id: bp.id,
+                        performance: bp.performance,
+                        positionGroup: bp.positionGroup,
+                        teamId: this.userTeamId,
+                    });
+                }
+            }
+            // Opponent subs: check if they have performance in the roster cache
+            for (const [inId, sub] of Object.entries(subMap.subbedIn)) {
+                if (sub.teamId && sub.teamId !== this.userTeamId) {
+                    // Find performance from the cached performances (passed via roster update)
+                    const opponentRoster = this.homeTeamId === this.userTeamId
+                        ? this.awayLineupRoster : this.homeLineupRoster;
+                    // Opponent subs aren't in the roster, but may have performance from resim
+                    // We can't rate them without performance data
+                }
+            }
+
+            this.playerRatings = calculatePlayerRatings(
+                this.homeLineupRoster,
+                this.awayLineupRoster,
+                allEvents,
+                this.finalHomeScore,
+                this.finalAwayScore,
+                this.homeTeamId,
+                this.awayTeamId,
+                subsIn,
+            );
+        },
+
+        ratingColor(rating) {
+            return _ratingColor(rating);
+        },
+
+        getEventIcons() {
+            const allEvents = [...this.events, ...(this.extraTimeEvents || [])];
+            return countEvents(allEvents);
+        },
+
+        getSubMap() {
+            const allEvents = [...this.events, ...(this.extraTimeEvents || [])];
+            return buildSubstitutionMap(allEvents);
+        },
 
         // =============================
         // Display helpers

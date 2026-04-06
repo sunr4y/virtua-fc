@@ -279,6 +279,7 @@ return [
     'live_tab_events' => 'Events',
     'live_tab_stats' => 'Stats',
     'live_tab_lineups' => 'Lineups',
+    'live_tab_ratings' => 'Ratings',
     'live_tab_results' => 'Results',
     'lineup_unknown' => 'No lineup known',
     'live_stat_goals' => 'Goals',
@@ -487,6 +488,7 @@ return [
     // MVP
     'mvp' => 'MVP',
     'mvp_of_the_match' => 'MVP of the Match',
+    'match_rating' => 'Match Rating',
 
     // xG Preview
     'xg_preview' => 'xG Preview',
