@@ -2370,6 +2370,11 @@ class MatchSimulator
                     $goal->type,
                     array_merge($goal->metadata ?? [], ['is_penalty' => true]),
                 );
+
+                // Remove any assist associated with this goal (penalties have no assist)
+                $events = $events->reject(
+                    fn (MatchEventData $e) => $e->type === 'assist' && $e->teamId === $teamId && $e->minute === $goal->minute
+                )->values();
             } else {
                 // Missed penalty
                 $taker = $this->pickPlayerByPosition($players, $penaltyTakerWeights);
