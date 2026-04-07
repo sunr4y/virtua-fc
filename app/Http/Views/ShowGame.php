@@ -4,6 +4,7 @@ namespace App\Http\Views;
 
 use App\Modules\Competition\Services\CalendarService;
 use App\Modules\Match\DTOs\MatchdayAdvanceResult;
+use App\Modules\Match\Services\MatchdayService;
 use App\Modules\Match\Services\MatchNarrativeService;
 use App\Modules\Notification\Services\NotificationService;
 use App\Modules\Season\Jobs\ProcessSeasonTransition;
@@ -16,6 +17,7 @@ class ShowGame
 {
     public function __construct(
         private readonly CalendarService $calendarService,
+        private readonly MatchdayService $matchdayService,
         private readonly MatchNarrativeService $narrativeService,
         private readonly NotificationService $notificationService,
     ) {}
@@ -81,7 +83,7 @@ class ShowGame
                     'gameId' => $gameId,
                     'matchId' => $result->matchId,
                 ]),
-                'season_complete' => redirect()->route('game.season-end', $gameId),
+                'season_complete' => redirect()->route($game->isTournamentMode() ? 'game.tournament-end' : 'game.season-end', $gameId),
                 'done' => redirect()->route('show-game', $gameId),
                 'blocked' => $result->pendingAction && $result->pendingAction['route']
                     ? redirect()->route($result->pendingAction['route'], $gameId)->with('warning', __('messages.action_required'))
@@ -182,7 +184,7 @@ class ShowGame
 
     private function loadNextMatch(Game $game): ?GameMatch
     {
-        $nextMatch = $game->next_match;
+        $nextMatch = $this->matchdayService->getNextPlayerMatch($game);
 
         if ($nextMatch) {
             $nextMatch->load(['homeTeam', 'awayTeam', 'competition']);
@@ -314,4 +316,5 @@ class ShowGame
             'opponent' => $oppositeTie->completed ? $oppositeTie->winner : null,
         ];
     }
+
 }
