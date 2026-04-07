@@ -24,7 +24,12 @@ class GamePlayerTemplateService
      */
     public function clearTemplates(string $season): void
     {
-        DB::table('game_player_templates')->where('season', $season)->delete();
+        DB::table('game_player_templates')
+            ->where('season', $season)
+            ->whereNotIn('team_id', function ($query) {
+                $query->select('id')->from('teams')->where('type', 'national');
+            })
+            ->delete();
     }
 
     /**
