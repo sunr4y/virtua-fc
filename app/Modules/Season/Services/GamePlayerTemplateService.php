@@ -167,17 +167,22 @@ class GamePlayerTemplateService
 
         $totalCount = 0;
 
-        // Track already-processed teams (including from prior country runs)
+        // Track already-processed club teams (including from prior country runs)
+        // Exclude national teams so their players can still get club templates
+        $nationalTeamIds = DB::table('teams')->where('type', 'national')->pluck('id');
+
         $processedTeamIds = DB::table('game_player_templates')
             ->where('season', $season)
+            ->whereNotIn('team_id', $nationalTeamIds)
             ->distinct()
             ->pluck('team_id')
             ->flip()
             ->toArray();
 
-        // Track already-processed players to avoid duplicates across teams
+        // Track already-processed players to avoid duplicates across club teams
         $processedPlayerIds = DB::table('game_player_templates')
             ->where('season', $season)
+            ->whereNotIn('team_id', $nationalTeamIds)
             ->distinct()
             ->pluck('player_id')
             ->flip()
