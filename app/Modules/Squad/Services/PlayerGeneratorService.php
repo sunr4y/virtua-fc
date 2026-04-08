@@ -168,10 +168,14 @@ class PlayerGeneratorService
         $playerRows = [];
         $gamePlayerRows = [];
         $results = [];
+        $batchNames = [];
 
         foreach ($dataItems as $data) {
             $excludedNames = ($data->name === null)
-                ? $this->getOrLoadTeamPlayerNames($game->id, $data->teamId)
+                ? array_merge(
+                    $this->getOrLoadTeamPlayerNames($game->id, $data->teamId),
+                    $batchNames,
+                )
                 : [];
             $identity = $this->pickRandomIdentity(excludedNames: $excludedNames);
             $name = $data->name ?? $identity['name'];
@@ -232,9 +236,10 @@ class PlayerGeneratorService
                 'tier' => PlayerTierService::tierFromMarketValue($marketValue),
             ];
 
-            // Update cache for subsequent iterations
+            // Update caches for subsequent iterations
             $teamKey = "{$game->id}:{$data->teamId}";
             $this->teamNamesCache[$teamKey][] = $name;
+            $batchNames[] = $name;
 
             $results[] = [
                 'playerId' => $gamePlayerId,
