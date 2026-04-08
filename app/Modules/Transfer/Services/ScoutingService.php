@@ -786,7 +786,13 @@ class ScoutingService
                 $entry->update(['matchdays_tracked' => $newMatchdays, 'intel_level' => ShortlistedPlayer::INTEL_DEEP, 'is_tracking' => false]);
                 $leveledUp->push($entry);
             } elseif ($newMatchdays >= $matchdaysToL1 && $oldLevel < ShortlistedPlayer::INTEL_REPORT) {
-                $entry->update(['matchdays_tracked' => $newMatchdays, 'intel_level' => ShortlistedPlayer::INTEL_REPORT]);
+                // If one more matchday would also reach deep intel, skip straight to deep
+                // to avoid two notifications firing across consecutive ticks in the same batch
+                if (($newMatchdays + 1) >= $matchdaysToL2) {
+                    $entry->update(['matchdays_tracked' => $newMatchdays, 'intel_level' => ShortlistedPlayer::INTEL_DEEP, 'is_tracking' => false]);
+                } else {
+                    $entry->update(['matchdays_tracked' => $newMatchdays, 'intel_level' => ShortlistedPlayer::INTEL_REPORT]);
+                }
                 $leveledUp->push($entry);
             } else {
                 $entry->update(['matchdays_tracked' => $newMatchdays]);
