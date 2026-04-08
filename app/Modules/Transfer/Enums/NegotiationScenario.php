@@ -4,6 +4,7 @@ namespace App\Modules\Transfer\Enums;
 
 use App\Models\TransferOffer;
 use App\Modules\Player\PlayerAge;
+use Carbon\Carbon;
 
 enum NegotiationScenario: string
 {
@@ -17,10 +18,7 @@ enum NegotiationScenario: string
      */
     public function baseDisposition(): float
     {
-        return match ($this) {
-            self::PRE_CONTRACT => 0.40,
-            default => 0.50,
-        };
+        return 0.5;
     }
 
     /**
@@ -29,11 +27,7 @@ enum NegotiationScenario: string
      */
     public function flexibilityRatio(): float
     {
-        return match ($this) {
-            self::PRE_CONTRACT => 0.15,
-            self::RENEWAL => 0.18,
-            self::TRANSFER, self::FREE_AGENT => 0.30,
-        };
+        return 0.2;
     }
 
     /**
@@ -42,18 +36,9 @@ enum NegotiationScenario: string
     public function wagePremium(int $marketValueCents): float
     {
         return match ($this) {
-            self::RENEWAL => 1.15,
+            self::RENEWAL, self::TRANSFER, self::FREE_AGENT => 1.15,
             self::PRE_CONTRACT => self::preContractPremium($marketValueCents),
-            self::TRANSFER, self::FREE_AGENT => 1.00,
         };
-    }
-
-    /**
-     * Whether the player refuses to take a pay cut (renewal: current wage is the floor).
-     */
-    public function hasSalaryFloor(): bool
-    {
-        return $this === self::RENEWAL;
     }
 
     /**
@@ -61,35 +46,18 @@ enum NegotiationScenario: string
      */
     public function preferredContractYears(int $age): int
     {
-        return match ($this) {
-            self::RENEWAL => match (true) {
-                $age >= PlayerAge::PRIME_END => 1,
-                $age < PlayerAge::YOUNG_END => 5,
-                default => 3,
-            },
-            default => match (true) {
-                $age >= PlayerAge::PRIME_END => 1,
-                $age >= PlayerAge::primePhaseAge(0.6) => 2,
-                default => 3,
-            },
-        };
-    }
-
-    /**
-     * Mood indicator context key for the UI.
-     */
-    public function moodContext(): string
-    {
-        return match ($this) {
-            self::RENEWAL => 'renewal',
-            default => 'transfer_sign',
+        return match (true) {
+            $age >= PlayerAge::PRIME_END => 1,
+            $age >= PlayerAge::primePhaseAge(0.6) => 2,
+            $age < PlayerAge::YOUNG_END => 5,
+            default => 3,
         };
     }
 
     /**
      * Status updates to apply on the TransferOffer when terms are accepted.
      */
-    public function acceptedStatusUpdates(\Carbon\Carbon $currentDate): array
+    public function acceptedStatusUpdates(Carbon $currentDate): array
     {
         return match ($this) {
             self::TRANSFER => [],
