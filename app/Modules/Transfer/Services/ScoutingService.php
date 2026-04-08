@@ -277,8 +277,8 @@ class ScoutingService
         $base = $player->market_value_cents;
         $importance = $this->calculatePlayerImportance($player);
 
-        // Importance multiplier: 1.0x for worst, 1.5x for best
-        $importanceMultiplier = 1.0 + ($importance * 0.5);
+        // Importance multiplier: 0.8x for worst, 1.0x for average, 1.2x for best
+        $importanceMultiplier = 0.8 + ($importance * 0.4);
 
         // Contract modifier
         $contractModifier = $this->getContractModifier($player);
@@ -286,7 +286,13 @@ class ScoutingService
         // Age modifier
         $ageModifier = $this->getAgeModifier($player->age($player->game->current_date));
 
-        $totalMultiplier = min($importanceMultiplier * $contractModifier * $ageModifier, 1.5);
+        $totalMultiplier = $importanceMultiplier * $contractModifier * $ageModifier;
+
+        // Important players: team is reluctant to sell, never ask below market value.
+        // Low-importance players can be discounted down to 0.75x.
+        $floor = $importance >= 0.5 ? 1.0 : 0.75;
+        $totalMultiplier = min(max($totalMultiplier, $floor), 1.5);
+
         $askingPrice = $base * $totalMultiplier;
 
         return Money::roundPrice((int) $askingPrice);
