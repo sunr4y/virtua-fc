@@ -1046,7 +1046,7 @@ class MatchSimulator
      * @param  int  $fromMinute  Start of the simulation period (for energy averaging)
      * @param  array<string, int>  $playerEntryMinutes  Map of player ID to minute they entered the match
      */
-    private function calculateTeamStrength(Collection $lineup, int $fromMinute = 0, array $playerEntryMinutes = [], float $tacticalDrainMultiplier = 1.0): float
+    private function calculateTeamStrength(Collection $lineup, int $fromMinute = 0, array $playerEntryMinutes = [], float $tacticalDrainMultiplier = 1.0, ?Carbon $currentDate = null): float
     {
         if ($lineup->count() < 7) {
             // Fallback for severely depleted lineup - reflects amateur/semi-pro level
@@ -1054,6 +1054,10 @@ class MatchSimulator
         }
 
         // Calculate effective attributes with match performance modifier
+        $wTech = config('match_simulation.strength_weight_technical', 0.575);
+        $wPhys = config('match_simulation.strength_weight_physical', 0.375);
+        $wMorale = config('match_simulation.strength_weight_morale', 0.05);
+
         $totalStrength = 0;
         foreach ($lineup as $player) {
             $performance = $this->getMatchPerformance($player);
@@ -1063,28 +1067,27 @@ class MatchSimulator
             $effectiveTechnical = $player->technical_ability * $performance;
             // Physical attributes are more consistent
             $effectivePhysical = $player->physical_ability * (0.5 + $performance * 0.5);
-            // Fitness and morale are not modified - they influence performance
-            $fitness = $player->fitness;
             $morale = $player->morale;
 
             // Weighted contribution — ability-dominant so team quality differences are wide
-            // Fitness/morale still affect matches through getMatchPerformance() modifiers
-            $playerStrength = ($effectiveTechnical * 0.55) +
-                              ($effectivePhysical * 0.35) +
-                              ($fitness * 0.05) +
-                              ($morale * 0.05);
+            // Fitness no longer has a separate weight — its impact comes entirely
+            // through the energy effectiveness modifier (fitness = starting energy)
+            $playerStrength = ($effectiveTechnical * $wTech) +
+                              ($effectivePhysical * $wPhys) +
+                              ($morale * $wMorale);
 
-            // Apply energy/stamina modifier
+            // Apply energy modifier — fitness IS starting energy in the unified model
             $entryMinute = $playerEntryMinutes[$player->id] ?? 0;
             $isGK = $player->position === 'Goalkeeper';
             $avgEnergy = EnergyCalculator::averageEnergy(
                 $player->physical_ability,
-                $player->age($player->game->current_date),
+                $player->age($currentDate ?? now()),
                 $isGK,
                 $entryMinute,
                 $fromMinute,
                 93,
                 $tacticalDrainMultiplier,
+                (float) $player->fitness,
             );
             $playerStrength *= EnergyCalculator::effectivenessModifier($avgEnergy);
 
@@ -1299,19 +1302,15 @@ class MatchSimulator
         $stdDev = config('match_simulation.performance_std_dev', 0.12);
         $basePerformance = 1.0 + ($z * $stdDev);
 
-        // Morale influences performance more than fitness
+        // Morale influences "form on the day"
         // High morale (80+) slightly increases chance of good performance
         // Low morale (<50) increases chance of poor performance
         $moraleModifier = ($player->morale - 65) / 200; // Range: -0.075 to +0.175
 
-        // Fitness affects consistency - low fitness increases variance
-        $fitnessModifier = 0;
-        if ($player->fitness < 70) {
-            // Low fitness = more likely to have a poor game
-            $fitnessModifier = ($player->fitness - 70) / 300; // Negative modifier
-        }
+        // Fitness impact is handled by the unified energy model in calculateTeamStrength()
+        // (fitness = starting energy → proportional drain → effectiveness modifier)
 
-        $performance = $basePerformance + $moraleModifier + $fitnessModifier;
+        $performance = $basePerformance + $moraleModifier;
 
         // Clamp to configurable range
         $minPerf = config('match_simulation.performance_min', 0.70);
@@ -1739,10 +1738,11 @@ class MatchSimulator
 
         $events = collect();
         $baseGoals = config('match_simulation.base_goals', 1.3);
+        $currentDate = $game?->current_date ?? now();
 
         // Preliminary strength calculation (used for card bias and as final strength if no injury sub)
-        $homeStrength = $this->calculateTeamStrength($homePlayers, $fromMinute, $homeEntryMinutes, $homeTacticalDrain);
-        $awayStrength = $this->calculateTeamStrength($awayPlayers, $fromMinute, $awayEntryMinutes, $awayTacticalDrain);
+        $homeStrength = $this->calculateTeamStrength($homePlayers, $fromMinute, $homeEntryMinutes, $homeTacticalDrain, $currentDate);
+        $awayStrength = $this->calculateTeamStrength($awayPlayers, $fromMinute, $awayEntryMinutes, $awayTacticalDrain, $currentDate);
 
         [$homeExpectedGoals, $awayExpectedGoals] = $this->calculateBaseExpectedGoals(
             $homeStrength, $awayStrength,
@@ -1846,8 +1846,8 @@ class MatchSimulator
 
             // Recalculate strength and goals with updated lineup if an injury sub occurred
             if ($lineupChanged) {
-                $homeStrength = $this->calculateTeamStrength($homePlayers, $fromMinute, $homeEntryMinutes, $homeTacticalDrain);
-                $awayStrength = $this->calculateTeamStrength($awayPlayers, $fromMinute, $awayEntryMinutes, $awayTacticalDrain);
+                $homeStrength = $this->calculateTeamStrength($homePlayers, $fromMinute, $homeEntryMinutes, $homeTacticalDrain, $currentDate);
+                $awayStrength = $this->calculateTeamStrength($awayPlayers, $fromMinute, $awayEntryMinutes, $awayTacticalDrain, $currentDate);
 
                 [$homeExpectedGoals, $awayExpectedGoals] = $this->calculateBaseExpectedGoals(
                     $homeStrength, $awayStrength,
@@ -1898,6 +1898,7 @@ class MatchSimulator
                     $fromMinute, $baseGoals, $homeRedCard, $awayRedCard,
                     $neutralVenue,
                     $toMinute,
+                    $currentDate,
                 );
                 $events = $events->merge($goalEvents);
             } else {
@@ -2003,6 +2004,7 @@ class MatchSimulator
         ?MatchEventData $awayRedCard,
         bool $neutralVenue = false,
         int $toMinute = 93,
+        ?Carbon $currentDate = null,
     ): array {
         $splitMinute = min(
             $homeRedCard ? $homeRedCard->minute : $toMinute + 1,
@@ -2071,8 +2073,8 @@ class MatchSimulator
         $fraction2 = max(0, $toMinute - $splitMinute) / 93;
         $effectiveMinute2 = $splitMinute + ($toMinute - $splitMinute) / 2;
 
-        $homeStrength2 = $this->calculateTeamStrength($homePlayers2, $splitMinute, $homeEntryMinutes, $homeTacticalDrain);
-        $awayStrength2 = $this->calculateTeamStrength($awayPlayers2, $splitMinute, $awayEntryMinutes, $awayTacticalDrain);
+        $homeStrength2 = $this->calculateTeamStrength($homePlayers2, $splitMinute, $homeEntryMinutes, $homeTacticalDrain, $currentDate);
+        $awayStrength2 = $this->calculateTeamStrength($awayPlayers2, $splitMinute, $awayEntryMinutes, $awayTacticalDrain, $currentDate);
 
         [$homeXG2, $awayXG2] = $this->calculateBaseExpectedGoals(
             $homeStrength2, $awayStrength2,
@@ -2551,9 +2553,12 @@ class MatchSimulator
         $etMinutesRemaining = max(0, 120 - $fromMinute);
         $etFraction = $etMinutesRemaining / 90.0;
 
+        // Derive current date for age calculations (all players share the same game)
+        $currentDate = $homePlayers->first()?->game?->current_date ?? now();
+
         // Ratio-based xG — energy already accounts for fatigue
-        $homeStrength = $this->calculateTeamStrength($homePlayers, $fromMinute, $homeEntryMinutes, $homeTacticalDrain);
-        $awayStrength = $this->calculateTeamStrength($awayPlayers, $fromMinute, $awayEntryMinutes, $awayTacticalDrain);
+        $homeStrength = $this->calculateTeamStrength($homePlayers, $fromMinute, $homeEntryMinutes, $homeTacticalDrain, $currentDate);
+        $awayStrength = $this->calculateTeamStrength($awayPlayers, $fromMinute, $awayEntryMinutes, $awayTacticalDrain, $currentDate);
 
         $baseGoals = config('match_simulation.base_goals', 1.3);
 

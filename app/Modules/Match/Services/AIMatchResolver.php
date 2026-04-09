@@ -245,7 +245,8 @@ class AIMatchResolver
      * Simplified version of MatchSimulator::calculateTeamStrength():
      * - No energy model (no minute-by-minute drain)
      * - No per-player match performance variance (averages out over a season)
-     * - Same weight formula: tech*0.55 + phys*0.35 + fitness*0.05 + morale*0.05
+     * - Fitness weight removed — its impact comes via rotation (low-fitness
+     *   players are penalized in lineup selection via effectiveScore)
      */
     private function calculateTeamStrength(Collection $lineup): float
     {
@@ -253,12 +254,15 @@ class AIMatchResolver
             return 0.30;
         }
 
+        $wTech = config('match_simulation.strength_weight_technical', 0.575);
+        $wPhys = config('match_simulation.strength_weight_physical', 0.375);
+        $wMorale = config('match_simulation.strength_weight_morale', 0.05);
+
         $totalStrength = 0;
         foreach ($lineup as $player) {
-            $playerStrength = ($player->technical_ability * 0.55) +
-                              ($player->physical_ability * 0.35) +
-                              ($player->fitness * 0.05) +
-                              ($player->morale * 0.05);
+            $playerStrength = ($player->technical_ability * $wTech) +
+                              ($player->physical_ability * $wPhys) +
+                              ($player->morale * $wMorale);
             $totalStrength += $playerStrength;
         }
 
