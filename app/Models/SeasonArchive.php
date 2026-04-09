@@ -51,6 +51,7 @@ class SeasonArchive extends Model
         'match_results',
         'transfer_activity',
         'match_events_archive',
+        'transition_log',
     ];
 
     protected $casts = [
@@ -59,6 +60,7 @@ class SeasonArchive extends Model
         'season_awards' => 'array',
         'match_results' => 'array',
         'transfer_activity' => 'array',
+        'transition_log' => 'array',
     ];
 
     public function game(): BelongsTo

@@ -591,6 +591,71 @@ class UefaQualificationTest extends TestCase
     }
 
     // =========================================
+    // Transition metadata logging
+    // =========================================
+
+    public function test_processor_logs_cup_winner_metadata(): void
+    {
+        $cupWinner = $this->teamsByCountry['ES'][9]; // position 10
+        $this->createCupFinal('ESPCUP', $cupWinner->id);
+
+        $processor = app(UefaQualificationProcessor::class);
+        $data = $this->makeTransitionData();
+        $processor->process($this->game, $data);
+
+        // Cup winner detection should be logged
+        $cupWinnerMeta = $data->getMetadata('cupWinner');
+        $this->assertNotNull($cupWinnerMeta, 'Cup winner metadata should be set');
+        $this->assertEquals('ES', $cupWinnerMeta['country']);
+        $this->assertEquals('ESPCUP', $cupWinnerMeta['cup']);
+        $this->assertEquals($cupWinner->id, $cupWinnerMeta['teamId']);
+
+        // Cascade action should be logged
+        $this->assertEquals('direct', $data->getMetadata('cupWinnerCascade'));
+    }
+
+    public function test_processor_logs_qualifications_metadata(): void
+    {
+        $processor = app(UefaQualificationProcessor::class);
+        $data = $this->makeTransitionData();
+        $processor->process($this->game, $data);
+
+        $qualifications = $data->getMetadata('uefaQualifications');
+        $this->assertNotNull($qualifications, 'UEFA qualifications metadata should be set');
+        $this->assertArrayHasKey('ES', $qualifications);
+
+        // Spain should have positions 1-7 qualified
+        $esQualifications = $qualifications['ES'];
+        $this->assertCount(7, $esQualifications);
+    }
+
+    public function test_processor_logs_cascade_when_cup_winner_already_in_ucl(): void
+    {
+        $cupWinner = $this->teamsByCountry['ES'][0]; // position 1 = UCL
+        $this->createCupFinal('ESPCUP', $cupWinner->id);
+
+        $processor = app(UefaQualificationProcessor::class);
+        $data = $this->makeTransitionData();
+        $processor->process($this->game, $data);
+
+        $this->assertEquals('cascade_from_UCL', $data->getMetadata('cupWinnerCascade'));
+    }
+
+    public function test_processor_logs_null_cup_winner_when_no_final(): void
+    {
+        // No cup final created
+        $processor = app(UefaQualificationProcessor::class);
+        $data = $this->makeTransitionData();
+        $processor->process($this->game, $data);
+
+        // cupWinner metadata should not be set (no cup_winner_slot triggered for countries without it)
+        // For ES, cupWinner should be set but with null teamId
+        $cupWinnerMeta = $data->getMetadata('cupWinner');
+        $this->assertNotNull($cupWinnerMeta);
+        $this->assertNull($cupWinnerMeta['teamId']);
+    }
+
+    // =========================================
     // Helpers
     // =========================================
 

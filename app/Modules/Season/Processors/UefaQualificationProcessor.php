@@ -49,12 +49,18 @@ class UefaQualificationProcessor implements SeasonProcessor
 
         $this->clearSwissFormatEntries($game, $swissCompetitionIds);
 
+        $allQualifications = [];
         foreach ($this->countryConfig->allCountryCodes() as $countryCode) {
-            $this->processCountry($game, $countryCode);
+            $countryQualifications = $this->processCountry($game, $countryCode, $data);
+            if (!empty($countryQualifications)) {
+                $allQualifications[$countryCode] = $countryQualifications;
+            }
         }
 
         $this->qualifyUelWinner($game, $data);
         $this->fillRemainingContinentalSlots($game, $swissCompetitionIds);
+
+        $data->setMetadata('uefaQualifications', $allQualifications);
 
         return $data;
     }
@@ -74,11 +80,14 @@ class UefaQualificationProcessor implements SeasonProcessor
         }
     }
 
-    private function processCountry(Game $game, string $countryCode): void
+    /**
+     * @return array<string, string> teamId => competitionId qualifications for this country
+     */
+    private function processCountry(Game $game, string $countryCode, SeasonTransitionData $data): array
     {
         $slots = $this->countryConfig->continentalSlots($countryCode);
         if (empty($slots)) {
-            return;
+            return [];
         }
 
         // Build a map of teamId => competitionId from league standings
@@ -113,11 +122,14 @@ class UefaQualificationProcessor implements SeasonProcessor
                 $qualifications,
                 $standings,
                 $slots,
+                $data,
             );
         }
 
         // Write all qualifications to competition_entries
         $this->writeQualifications($game->id, $qualifications, $countryCode);
+
+        return $qualifications;
     }
 
     /**
@@ -130,20 +142,29 @@ class UefaQualificationProcessor implements SeasonProcessor
         array &$qualifications,
         array $standings,
         array $slots,
+        SeasonTransitionData $data,
     ): void {
         $cupWinnerId = $this->getCupWinner($gameId, $countryCode, $cupWinnerConfig['cup']);
+
+        // Log cup winner detection for debugging
+        $data->setMetadata('cupWinner', [
+            'country' => $countryCode,
+            'cup' => $cupWinnerConfig['cup'],
+            'teamId' => $cupWinnerId,
+        ]);
+
         if (!$cupWinnerId) {
             return;
         }
 
         $targetCompetition = $cupWinnerConfig['competition']; // UEL
-        $leagueId = $cupWinnerConfig['league'];
 
         $existingQualification = $qualifications[$cupWinnerId] ?? null;
 
         if (!$existingQualification) {
             // Cup winner is NOT already qualified — give them the UEL spot
             $qualifications[$cupWinnerId] = $targetCompetition;
+            $data->setMetadata('cupWinnerCascade', 'direct');
         } elseif ($existingQualification === 'UCL' || $existingQualification === $targetCompetition) {
             // Cup winner already in UCL or UEL — cascade the cup's UEL spot
             // to the next non-qualified team
@@ -151,6 +172,7 @@ class UefaQualificationProcessor implements SeasonProcessor
             if ($nextTeam) {
                 $qualifications[$nextTeam] = $targetCompetition;
             }
+            $data->setMetadata('cupWinnerCascade', "cascade_from_{$existingQualification}");
         } elseif ($existingQualification === 'UECL') {
             // Cup winner was in UECL via league — upgrade them to UEL
             $qualifications[$cupWinnerId] = $targetCompetition;
@@ -160,6 +182,7 @@ class UefaQualificationProcessor implements SeasonProcessor
             if ($nextTeam) {
                 $qualifications[$nextTeam] = 'UECL';
             }
+            $data->setMetadata('cupWinnerCascade', 'uecl_upgrade');
         }
     }
 

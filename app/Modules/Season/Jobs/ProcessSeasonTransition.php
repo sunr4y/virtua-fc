@@ -4,6 +4,7 @@ namespace App\Modules\Season\Jobs;
 
 use App\Events\SeasonStarted;
 use App\Models\Game;
+use App\Models\SeasonArchive;
 use App\Modules\Season\DTOs\SeasonTransitionData;
 use App\Modules\Season\Services\SeasonClosingPipeline;
 use App\Modules\Season\Services\SeasonSetupPipeline;
@@ -74,6 +75,21 @@ class ProcessSeasonTransition implements ShouldQueue, ShouldBeUnique
             $game->refresh()->setRelations([]);
         }
         $setupPipeline->run($game, $data, $closingProcessorCount, $lastStep);
+
+        // Archive transition log for debugging (exclude bulky/irrelevant keys)
+        $excludeKeys = [
+            'loanReturns', 'preContractTransfers', 'agreedTransfers',
+            'contractRenewals', 'retiredPlayers', 'retirementAnnouncements',
+            'squadReplenishment', 'freeAgentSignings',
+        ];
+        SeasonArchive::where('game_id', $game->id)
+            ->where('season', $data->oldSeason)
+            ->update(['transition_log' => json_encode([
+                'oldSeason' => $data->oldSeason,
+                'newSeason' => $data->newSeason,
+                'competitionId' => $data->competitionId,
+                'metadata' => array_diff_key($data->metadata, array_flip($excludeKeys)),
+            ])]);
 
         // Finalize: set current date and clear transition flag + checkpoint
         $game->refresh()->setRelations([]);
