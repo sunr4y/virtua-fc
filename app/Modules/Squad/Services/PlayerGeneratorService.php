@@ -8,6 +8,7 @@ use App\Models\GamePlayer;
 use App\Models\Player;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
+use App\Models\ClubProfile;
 use App\Modules\Transfer\Services\ContractService;
 use App\Modules\Player\Services\InjuryService;
 use App\Modules\Player\Services\PlayerDevelopmentService;
@@ -40,6 +41,7 @@ class PlayerGeneratorService
         private readonly ContractService $contractService,
         private readonly PlayerDevelopmentService $developmentService,
         private readonly PlayerValuationService $valuationService,
+        private readonly PlayerAttributeSampler $sampler,
     ) {}
 
     /**
@@ -306,6 +308,99 @@ class PlayerGeneratorService
             physical: $physical,
             dateOfBirth: $dateOfBirth,
             contractYears: mt_rand(2, 4),
+        );
+    }
+
+    /**
+     * Base ability mean by reputation tier for AI academy graduates.
+     *
+     * Mirrors YouthAcademyService::ACADEMY_BASE_QUALITY but with a maturity
+     * bonus to reflect 1-3 years of development before first-team promotion.
+     */
+    private const REPUTATION_BASE_QUALITY = [
+        0 => 45,   // local
+        1 => 50,   // modest
+        2 => 57,   // established
+        3 => 67,   // continental
+        4 => 74,   // elite
+    ];
+
+    private const ABILITY_STD_DEV = 6;
+
+    /**
+     * Average potential upside (points above current ability) per reputation tier.
+     */
+    private const POTENTIAL_UPSIDE_MEAN = [
+        0 => 12,
+        1 => 12,
+        2 => 10,
+        3 => 8,
+        4 => 8,
+    ];
+
+    private const POTENTIAL_UPSIDE_STD_DEV = 5;
+
+    /**
+     * Absolute minimum potential guaranteed by reputation tier.
+     */
+    private const POTENTIAL_FLOOR = [
+        0 => 42,
+        1 => 45,
+        2 => 50,
+        3 => 55,
+        4 => 60,
+    ];
+
+    /**
+     * Build a GeneratedPlayerData for an AI academy graduate (young, reputation-based ability).
+     *
+     * Simulates a player being promoted from an AI team's academy to the first team.
+     * Quality is driven by the team's reputation, mirroring how the user's youth
+     * academy uses tiers to determine prospect quality.
+     */
+    public function buildYouthPlayerData(
+        Game $game,
+        string $teamId,
+        string $position,
+        string $reputationLevel,
+    ): GeneratedPlayerData {
+        $reputationIndex = ClubProfile::getReputationTierIndex($reputationLevel);
+        $abilityMean = self::REPUTATION_BASE_QUALITY[$reputationIndex];
+
+        $technical = $this->sampler->sampleAbility($abilityMean, self::ABILITY_STD_DEV, 30, 80);
+        $physical = $this->sampler->sampleAbility($abilityMean, self::ABILITY_STD_DEV, 30, 80);
+
+        $currentBest = max($technical, $physical);
+        $potentialData = $this->sampler->generatePotentialFromAbility(
+            $currentBest,
+            self::POTENTIAL_UPSIDE_MEAN[$reputationIndex],
+            self::POTENTIAL_UPSIDE_STD_DEV,
+            self::POTENTIAL_FLOOR[$reputationIndex],
+        );
+        $potential = $potentialData['potential'];
+        $potentialLow = $potentialData['potentialLow'];
+        $potentialHigh = $potentialData['potentialHigh'];
+
+        $ageRoll = mt_rand(1, 100);
+        $age = match (true) {
+            $ageRoll <= 20 => 20,
+            $ageRoll <= 55 => 21,
+            $ageRoll <= 85 => 22,
+            default => 23,
+        };
+
+        $dateOfBirth = $game->current_date->copy()->subYears($age)->subDays(mt_rand(0, 364));
+
+        return new GeneratedPlayerData(
+            teamId: $teamId,
+            position: $position,
+            technical: $technical,
+            physical: $physical,
+            dateOfBirth: $dateOfBirth,
+            contractYears: mt_rand(3, 5),
+            potential: $potential,
+            potentialLow: $potentialLow,
+            potentialHigh: $potentialHigh,
         );
     }
 
