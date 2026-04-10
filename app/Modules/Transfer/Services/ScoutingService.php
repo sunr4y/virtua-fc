@@ -10,6 +10,7 @@ use App\Models\Team;
 use App\Models\TransferOffer;
 use App\Support\Money;
 use App\Support\PositionMapper;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use App\Modules\Player\PlayerAge;
 use App\Modules\Transfer\Enums\NegotiationScenario;
@@ -258,25 +259,34 @@ class ScoutingService
     /**
      * Calculate the AI's asking price for a player.
      */
-    public function calculateAskingPrice(GamePlayer $player): int
+    public function calculateAskingPrice(GamePlayer $player, Carbon $currentDate): int
     {
         $base = $player->market_value_cents;
         $importance = $this->calculatePlayerImportance($player);
 
-        // Importance multiplier: 0.8x for worst, 1.0x for average, 1.2x for best
-        $importanceMultiplier = 0.8 + ($importance * 0.4);
+        // Contract leverage: a club can only charge an importance premium if
+        // it has leverage to refuse bids. As the contract runs down that
+        // leverage decays — an expiring star is worth about what a buyer
+        // would pay for any player they can pick up free next window.
+        $leverage = $this->getContractLeverage($player, $currentDate);
+        $effectiveImportance = $importance * $leverage;
 
-        // Contract modifier
-        $contractModifier = $this->getContractModifier($player);
+        // Importance multiplier: 0.8x for worst (or no leverage), 1.0x for
+        // average, 1.2x for the club's best player on a long contract.
+        $importanceMultiplier = 0.8 + ($effectiveImportance * 0.4);
+
+        // Contract modifier (fee discount from less time remaining)
+        $contractModifier = $this->getContractModifier($player, $currentDate);
 
         // Age modifier
-        $ageModifier = $this->getAgeModifier($player->age($player->game->current_date));
+        $ageModifier = $this->getAgeModifier($player->age($currentDate));
 
         $totalMultiplier = $importanceMultiplier * $contractModifier * $ageModifier;
 
-        // Important players: team is reluctant to sell, never ask below market value.
-        // Low-importance players can be discounted down to 0.75x.
-        $floor = $importance >= 0.5 ? 1.0 : 0.75;
+        // Important players with contract leverage: team is reluctant to sell,
+        // never ask below market value. Players without leverage (expiring)
+        // or with low importance can be discounted down to 0.75x.
+        $floor = $effectiveImportance >= 0.5 ? 1.0 : 0.75;
         $totalMultiplier = min(max($totalMultiplier, $floor), 1.5);
 
         $askingPrice = $base * $totalMultiplier;
@@ -296,16 +306,47 @@ class ScoutingService
     }
 
     /**
+     * Get the contract leverage factor (0.0 to 1.0).
+     *
+     * A club can only charge an importance premium if it has leverage to
+     * refuse bids. As the contract runs down that leverage decays — at the
+     * expiring end there is no premium because the buyer can simply wait and
+     * sign free.
+     */
+    private function getContractLeverage(GamePlayer $player, Carbon $currentDate): float
+    {
+        if (! $player->contract_until) {
+            return 0.0;
+        }
+
+        $yearsLeft = $currentDate->diffInYears($player->contract_until);
+
+        if ($yearsLeft >= 4) {
+            return 1.0;
+        }
+        if ($yearsLeft >= 3) {
+            return 0.85;
+        }
+        if ($yearsLeft >= 2) {
+            return 0.65;
+        }
+        if ($yearsLeft >= 1) {
+            return 0.30;
+        }
+
+        return 0.0; // Expiring
+    }
+
+    /**
      * Get contract years modifier for asking price.
      */
-    private function getContractModifier(GamePlayer $player): float
+    private function getContractModifier(GamePlayer $player, Carbon $currentDate): float
     {
         if (! $player->contract_until) {
             return 0.5;
         }
 
-        $game = $player->game;
-        $yearsLeft = $game->current_date->diffInYears($player->contract_until);
+        $yearsLeft = $currentDate->diffInYears($player->contract_until);
 
         if ($yearsLeft >= 4) {
             return 1.2;
@@ -352,7 +393,8 @@ class ScoutingService
      */
     public function evaluateBid(GamePlayer $player, int $bidAmount, ?Game $game = null, ?int $previousCounter = null): array
     {
-        $askingPrice = $this->calculateAskingPrice($player);
+        $currentDate = $game?->current_date ?? $player->game->current_date;
+        $askingPrice = $this->calculateAskingPrice($player, $currentDate);
 
         // Use the previous counter as ceiling so the club never raises their demand
         $ceiling = ($previousCounter !== null && $previousCounter < $askingPrice)
@@ -555,7 +597,7 @@ class ScoutingService
     public function getPlayerScoutingDetail(GamePlayer $player, Game $game): array
     {
         $isFreeAgent = $player->team_id === null;
-        $askingPrice = $isFreeAgent ? 0 : $this->calculateAskingPrice($player);
+        $askingPrice = $isFreeAgent ? 0 : $this->calculateAskingPrice($player, $game->current_date);
         $transferDemand = $this->contractService->calculateWageDemand($player, NegotiationScenario::TRANSFER);
         $wageDemand = $transferDemand['wage'];
         $importance = $isFreeAgent ? 0.0 : $this->calculatePlayerImportance($player);

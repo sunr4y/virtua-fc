@@ -276,6 +276,7 @@ return [
     'explore_midfielders' => 'Midfielders',
     'explore_forwards' => 'Forwards',
     'explore_age' => 'Age',
+    'explore_rating' => 'Rating',
     'explore_value' => 'Value',
     'explore_free_agents' => 'Free Agents',
     'explore_free_agents_hint' => 'Browse available free agents. Free agents can be signed at any time, even outside transfer windows.',
@@ -405,4 +406,12 @@ return [
     'mood_willing_loan' => 'Willing to loan',
     'mood_open_loan' => 'Open to loan',
     'mood_reluctant_loan' => 'Reluctant to loan',
+
+    // Transfer market
+    'market_tab' => 'Market',
+    'market_closed' => 'The transfer market opens during transfer windows.',
+    'market_empty' => 'No players currently listed on the market.',
+    'market_bid' => 'Bid',
+    'market_asking_price' => 'Asking Price',
+    'market_window_closed_notice' => 'The transfer window is closed. You can still negotiate with clubs — any agreed signings will join your team when the next window opens.',
 ];
