@@ -261,34 +261,39 @@
 
                                     {{-- ===== MOBILE ROW ===== --}}
                                     <div class="lg:hidden px-4 py-3 cursor-pointer" @click="$dispatch('show-player-detail', '{{ route('game.player.detail', [$game->id, $gp->id]) }}')">
-                                        <div class="flex items-center gap-3">
-                                            {{-- Avatar with position badge --}}
-                                            <x-player-avatar :name="$gp->player->name" :position-group="$groupKey" :number="$gp->number" :position-abbrev="$posAbbrev" />
+                                        <div class="flex items-center gap-2.5">
+                                            {{-- Avatar --}}
+                                            <x-player-avatar :name="$gp->player->name" :position-group="$groupKey" :number="$gp->number" size="sm" />
 
                                             {{-- Name + details --}}
                                             <div class="flex-1 min-w-0">
-                                                <div class="flex items-center gap-2">
+                                                <div class="flex items-center gap-1.5">
                                                     <span class="text-sm font-medium text-text-primary truncate">{{ $gp->player->name }}</span>
-                                                    <span class="text-[10px] text-text-faint">{{ $gp->age($game->current_date) }}</span>
                                                     @include('partials.squad.player-status-icon', ['gp' => $gp, 'game' => $game, 'seasonEndDate' => $seasonEndDate])
-                                                </div>
-                                                <div class="flex items-center gap-3 mt-1">
                                                     @if($unavailReason)
-                                                        <span class="text-[10px] text-accent-orange flex items-center gap-0.5">
-                                                            <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg>
-                                                            {{ $unavailReason }}
-                                                        </span>
-                                                    @else
-                                                        <x-fitness-bar :value="$gp->fitness" :show-label="true" :show-percentage="false" size="sm" />
-                                                        @if($isCareerMode)
-                                                        <span class="text-[10px] text-text-faint">{{ $gp->formatted_market_value }}</span>
-                                                        @endif
+                                                        <span class="text-[8px] px-1 py-0.5 rounded-sm bg-red-500/10 text-accent-red font-medium shrink-0">{{ $unavailReason }}</span>
+                                                    @endif
+                                                </div>
+                                                <div class="flex items-center gap-2 mt-0.5">
+                                                    <div class="flex items-center gap-0.5">
+                                                        @foreach($gp->positions as $pos)
+                                                            <x-position-badge :position="$pos" size="sm" />
+                                                        @endforeach
+                                                    </div>
+                                                    @if(!$isUnavailable)
+                                                        <div class="flex items-center gap-1">
+                                                            <div class="w-8 h-1 rounded-full bg-surface-600 overflow-hidden">
+                                                                <div class="h-full rounded-full fitness-bar @if($gp->fitness >= 80) bg-accent-green @elseif($gp->fitness >= 60) bg-accent-gold @elseif($gp->fitness >= 40) bg-accent-orange @else bg-accent-red @endif" style="width: {{ $gp->fitness }}%"></div>
+                                                            </div>
+                                                            <span class="text-[8px] text-text-faint">{{ $gp->fitness }}%</span>
+                                                        </div>
+                                                        <x-morale-indicator :value="$gp->morale" class="shrink-0" />
                                                     @endif
                                                 </div>
                                             </div>
 
                                             {{-- Rating badge --}}
-                                            <x-rating-badge :value="$gp->overall_score" class="shrink-0" />
+                                            <x-rating-badge :value="$gp->overall_score" size="sm" class="shrink-0" />
                                         </div>
 
                                     </div>
