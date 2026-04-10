@@ -4,7 +4,7 @@ return [
     // Navigation
     'dashboard' => 'Inicio',
     'squad' => 'Plantilla',
-    'starting_xi' => 'Once Inicial',
+    'starting_xi' => 'Alineación',
     'finances' => 'Finanzas',
     'transfers' => 'Fichajes',
     'calendar' => 'Calendario',
