@@ -66,7 +66,7 @@
                         <div class="flex items-center gap-3 min-w-0 flex-1">
                             <div class="flex items-center gap-1 shrink-0">
                                 @foreach($player->positions as $pos)
-                                    <x-position-badge :position="$pos" class="md:w-5 md:h-5 md:text-[8px]" />
+                                    <x-position-badge :position="$pos" size="sm" />
                                 @endforeach
                             </div>
                             <div class="min-w-0">

@@ -231,7 +231,7 @@
                                                     {{-- Position badges --}}
                                                     <div class="flex items-center gap-1 shrink-0">
                                                         <template x-for="pos in (player.positions || [])" :key="pos.abbreviation">
-                                                            <span :class="pos.bg + ' ' + pos.text + ' inline-flex items-center justify-center w-7 h-7 text-xs -skew-x-12 font-semibold'">
+                                                            <span :class="pos.bg + ' ' + pos.text + ' inline-flex items-center justify-center w-5 h-5 text-[8px] -skew-x-12 font-semibold'">
                                                                 <span class="skew-x-12" x-text="pos.abbreviation"></span>
                                                             </span>
                                                         </template>
