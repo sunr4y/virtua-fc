@@ -50,7 +50,7 @@
             <!-- Page Heading -->
             @isset($header)
                 <header>
-                    <div class="max-w-7xl mx-auto p-4">
+                    <div class="max-w-7xl mx-auto p-4 pb-0 lg:pb-4">
                         {{ $header }}
                     </div>
                 </header>

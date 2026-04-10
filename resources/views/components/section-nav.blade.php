@@ -2,7 +2,7 @@
 
 <div>
     {{-- Mobile: dropdown (native select) --}}
-    <div class="md:hidden flex items-center gap-2">
+    <div class="md:hidden flex items-center gap-2 mt-6">
         <div class="relative flex-1 min-w-0">
             <select x-data
                     x-on:change="if ($event.target.value) window.location.href = $event.target.value"

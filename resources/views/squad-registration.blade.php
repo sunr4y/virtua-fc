@@ -21,7 +21,7 @@
         academyPlayers: @js($academyPlayers),
         editable: @js($editable),
     })" class="min-h-screen {{ $blocking ? 'pb-28' : '' }}">
-        <div class="{{ $blocking ? 'max-w-5xl' : 'max-w-7xl' }} mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+        <div class="{{ $blocking ? 'max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8' : 'max-w-7xl' }} max-w-7xl mx-auto px-4 pb-8">
 
             @if($blocking)
                 {{-- Blocking mode: standalone header --}}

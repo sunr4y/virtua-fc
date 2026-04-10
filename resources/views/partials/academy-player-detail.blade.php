@@ -35,7 +35,7 @@
             <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-muted">
                 @if($nationalityFlag)
                     <span class="inline-flex items-center gap-1.5">
-                        <img src="{{ Storage::disk('assets')->url('flags/' . $nationalityFlag['code'] . '.svg') }}" class="w-4 h-3 rounded-sm shadow-xs">
+                        <img src="{{ Storage::disk('assets')->url('flags/' . $nationalityFlag['code'] . '.svg') }}" class="w-4 h-3 rounded-xs shadow-xs">
                         {{ __('countries.' . $nationalityFlag['name']) }}
                     </span>
                 @endif

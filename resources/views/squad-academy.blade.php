@@ -135,7 +135,7 @@
                                     {{-- Name --}}
                                     <div class="flex items-center gap-2 min-w-0">
                                         @if($prospect->nationality_flag)
-                                            <img src="{{ Storage::disk('assets')->url('flags/' . $prospect->nationality_flag['code'] . '.svg') }}" class="w-4 h-3 rounded-sm shadow-xs shrink-0" title="{{ $prospect->nationality_flag['name'] }}">
+                                            <img src="{{ Storage::disk('assets')->url('flags/' . $prospect->nationality_flag['code'] . '.svg') }}" class="w-4 h-3 rounded-xs shadow-xs shrink-0" title="{{ $prospect->nationality_flag['name'] }}">
                                         @endif
                                         <span class="text-sm font-medium text-text-primary truncate">{{ $prospect->name }}</span>
                                     </div>
