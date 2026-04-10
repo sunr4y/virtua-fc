@@ -35,7 +35,11 @@
 {{-- Header --}}
 <div class="px-5 py-4 border-b border-border-default flex items-center justify-between">
     <div class="flex items-center gap-3 min-w-0">
-        <x-position-badge :position="$gamePlayer->position" />
+        <div class="flex items-center gap-1 shrink-0">
+            @foreach($gamePlayer->positions as $pos)
+                <x-position-badge :position="$pos" />
+            @endforeach
+        </div>
         <h3 class="font-heading text-lg font-semibold text-text-primary truncate">{{ $gamePlayer->name }}</h3>
         @if($gamePlayer->number)
             <span class="text-sm text-text-muted font-medium">#{{ $gamePlayer->number }}</span>
@@ -71,7 +75,11 @@
                 @endif
                 <span>{{ $gamePlayer->age($game->current_date) }} {{ __('app.years') }}@if($gamePlayer->player->height) · {{ $gamePlayer->player->height }}@endif</span>
             </div>
-            <div class="text-[11px] text-text-faint mt-1">{{ $gamePlayer->position_name }}</div>
+            <div class="text-[11px] text-text-faint mt-1">
+                @foreach($gamePlayer->positions as $pos)
+                    <span class="text-text-secondary">{{ \App\Support\PositionMapper::toDisplayName($pos) }}</span>@if(!$loop->last)<span class="text-text-faint/60">·</span>@endif
+                @endforeach
+            </div>
 
             {{-- Status badges --}}
             <div class="flex flex-wrap items-center gap-1.5 mt-2">

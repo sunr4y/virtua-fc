@@ -207,6 +207,7 @@ class SquadService
         foreach (PositionSlotMapper::getAllSlots() as $slot) {
             $depth[$slot] = [
                 'count' => 0,
+                'secondary_count' => 0,
                 'players' => [],
             ];
         }
@@ -216,6 +217,14 @@ class SquadService
             if ($slot && isset($depth[$slot])) {
                 $depth[$slot]['count']++;
                 $depth[$slot]['players'][] = $player->name;
+            }
+
+            // Count secondary position coverage
+            foreach ($player->positions as $secPos) {
+                $secSlot = $positionToSlot[$secPos] ?? null;
+                if ($secSlot && $secSlot !== $slot && isset($depth[$secSlot])) {
+                    $depth[$secSlot]['secondary_count']++;
+                }
             }
         }
 
@@ -257,7 +266,7 @@ class SquadService
                     'message' => __('squad.alert_thin_position', ['position' => PositionSlotMapper::getSlotDisplayName($slot), 'count' => $data['count']]),
                 ];
             } elseif ($slot !== 'GK' && $data['count'] === 0) {
-                $hasCompatibleCover = $players->contains(fn ($p) => PositionSlotMapper::getCompatibilityScore($p->position, $slot) >= 60);
+                $hasCompatibleCover = $players->contains(fn ($p) => PositionSlotMapper::getPlayerCompatibilityScore($p->position, $p->secondary_positions, $slot) >= 60);
                 $positionName = PositionSlotMapper::getSlotDisplayName($slot);
 
                 if ($hasCompatibleCover) {

@@ -76,6 +76,10 @@ class ShowScoutingHub
                 'positionAbbr' => $positionDisplay['abbreviation'],
                 'positionBg' => $positionDisplay['bg'],
                 'positionText' => $positionDisplay['text'],
+                'positions' => collect($gp->positions)
+                    ->map(fn ($pos) => PositionMapper::getPositionDisplay($pos))
+                    ->values()
+                    ->all(),
                 'age' => $gp->age($game->current_date),
                 'teamName' => $gp->team?->name,
                 'teamImage' => $gp->team?->image,

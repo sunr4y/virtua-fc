@@ -64,7 +64,11 @@
                     <div class="flex items-center gap-3 cursor-pointer" @click="expanded = !expanded">
                         {{-- Position + Name --}}
                         <div class="flex items-center gap-3 min-w-0 flex-1">
-                            <x-position-badge :position="$player->position" />
+                            <div class="flex items-center gap-1 shrink-0">
+                                @foreach($player->positions as $pos)
+                                    <x-position-badge :position="$pos" />
+                                @endforeach
+                            </div>
                             <div class="min-w-0">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <span class="font-semibold text-text-primary truncate">{{ $player->name }}</span>

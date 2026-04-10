@@ -328,9 +328,11 @@
                                             </div>
                                         </div>
 
-                                        {{-- Position badge --}}
-                                        <div class="flex justify-center">
-                                            <x-position-badge :position="$gp->position" size="sm" />
+                                        {{-- Position badges --}}
+                                        <div class="flex items-center justify-center gap-0.5">
+                                            @foreach($gp->positions as $pos)
+                                                <x-position-badge :position="$pos" size="sm" />
+                                            @endforeach
                                         </div>
 
                                         {{-- Age --}}

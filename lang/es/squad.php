@@ -82,6 +82,7 @@ return [
     'poor' => 'Malo',
     'unsuitable' => 'Inadecuado',
 
+
     // Lineup editor
     'pitch' => 'Campo',
 

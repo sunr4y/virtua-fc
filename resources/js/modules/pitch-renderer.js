@@ -134,6 +134,45 @@ export function getPositionBadgeColor(group) {
     return colors[group] || 'bg-emerald-600';
 }
 
+/**
+ * Position name → abbreviation map (matches PHP PositionMapper).
+ * Used client-side to render secondary position badges without a server round-trip.
+ */
+const POSITION_ABBR = {
+    'Goalkeeper': 'PO', 'Centre-Back': 'CT', 'Left-Back': 'LI',
+    'Right-Back': 'LD', 'Defensive Midfield': 'MCD', 'Central Midfield': 'MC',
+    'Attacking Midfield': 'MP', 'Left Midfield': 'MI', 'Right Midfield': 'MD',
+    'Left Winger': 'EI', 'Right Winger': 'ED', 'Centre-Forward': 'DC',
+    'Second Striker': 'SD',
+};
+
+const POSITION_GROUP = {
+    'Goalkeeper': 'Goalkeeper', 'Centre-Back': 'Defender', 'Left-Back': 'Defender',
+    'Right-Back': 'Defender', 'Defensive Midfield': 'Midfielder', 'Central Midfield': 'Midfielder',
+    'Attacking Midfield': 'Midfielder', 'Left Midfield': 'Midfielder', 'Right Midfield': 'Midfielder',
+    'Left Winger': 'Forward', 'Right Winger': 'Forward', 'Centre-Forward': 'Forward',
+    'Second Striker': 'Forward',
+};
+
+/**
+ * Get CSS classes for a secondary position badge (same solid style as primary).
+ * @param {string} position - Canonical position name
+ * @returns {string} CSS class string
+ */
+export function getSecondaryBadgeClasses(position) {
+    const group = POSITION_GROUP[position] || 'Midfielder';
+    return getPositionBadgeColor(group) + ' text-white';
+}
+
+/**
+ * Get abbreviated label for a canonical position name.
+ * @param {string} position - Canonical position name
+ * @returns {string} Abbreviation
+ */
+export function getSecondaryAbbr(position) {
+    return POSITION_ABBR[position] || '?';
+}
+
 // =====================================================================
 // Energy / Stamina helpers (for live match context)
 // =====================================================================
@@ -254,4 +293,7 @@ export function getZoneColorClass(role) {
     }
 }
 
-// Slot assignment has been extracted to modules/slot-assignment.js
+// Slot-map mechanical helpers (swap, place, remove, sub, buildView) live in
+// modules/slot-map.js. The authoritative placement algorithm runs on the
+// PHP side (FormationRecommender) and is invoked via the
+// `game.lineup.computeSlots` endpoint when needed.

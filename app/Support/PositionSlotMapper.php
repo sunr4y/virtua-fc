@@ -128,12 +128,22 @@ class PositionSlotMapper
     {
         $compatibility = self::getCompatibilityScore($position, $slotCode);
 
-        // Natural position = full rating
-        // 0 compatibility = 50% penalty (half the rating)
-        $penalty = (100 - $compatibility) / 200;
-        $effective = $overallScore * (1 - $penalty);
+        return self::getEffectiveRatingFromCompatibility($overallScore, $compatibility);
+    }
 
-        return (int) round($effective);
+    /**
+     * Calculate effective rating from a pre-computed compatibility score.
+     *
+     * Use this when the caller already knows the compatibility (e.g. after calling
+     * getPlayerCompatibilityScore) to avoid re-computing it.
+     *
+     * Natural position (100) = full rating. 0 compatibility = 50% penalty.
+     */
+    public static function getEffectiveRatingFromCompatibility(int $overallScore, int $compatibility): int
+    {
+        $penalty = (100 - $compatibility) / 200;
+
+        return (int) round($overallScore * (1 - $penalty));
     }
 
     /**
@@ -233,5 +243,63 @@ class PositionSlotMapper
         }
 
         return $map;
+    }
+
+    /**
+     * Get positions that are positionally adjacent to a given position.
+     *
+     * Returns positions whose natural slot has compatibility >= $threshold
+     * with the given position, excluding the position itself.
+     *
+     * @return string[]
+     */
+    public static function getAdjacentPositions(string $position, int $threshold = 40): array
+    {
+        $adjacent = [];
+        $primarySlot = self::getPositionPrimarySlot($position);
+
+        if ($primarySlot === null) {
+            return [];
+        }
+
+        foreach (PositionMapper::getAllPositions() as $candidate) {
+            if ($candidate === $position) {
+                continue;
+            }
+
+            // Check if this position has decent compatibility in the candidate's natural slot,
+            // or if the candidate has decent compatibility in this position's natural slot
+            $candidateSlot = self::getPositionPrimarySlot($candidate);
+            if ($candidateSlot === null) {
+                continue;
+            }
+
+            $scoreInCandidateSlot = self::SLOT_COMPATIBILITY[$candidateSlot][$position] ?? 0;
+            $candidateInOurSlot = self::SLOT_COMPATIBILITY[$primarySlot][$candidate] ?? 0;
+
+            if ($scoreInCandidateSlot >= $threshold || $candidateInOurSlot >= $threshold) {
+                $adjacent[] = $candidate;
+            }
+        }
+
+        return $adjacent;
+    }
+
+    /**
+     * Get per-player compatibility score considering secondary positions.
+     *
+     * Takes the best score between the primary position and all secondary positions.
+     *
+     * @param  string[]|null  $secondaryPositions
+     */
+    public static function getPlayerCompatibilityScore(string $primaryPosition, ?array $secondaryPositions, string $slotCode): int
+    {
+        $best = self::getCompatibilityScore($primaryPosition, $slotCode);
+
+        foreach ($secondaryPositions ?? [] as $secondary) {
+            $best = max($best, self::getCompatibilityScore($secondary, $slotCode));
+        }
+
+        return $best;
     }
 }

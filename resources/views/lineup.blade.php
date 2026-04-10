@@ -21,13 +21,14 @@
         pressingOptions: @js($pressingOptions),
         defensiveLineOptions: @js($defensiveLineOptions),
         autoLineup: @js($autoLineup ?? []),
-        currentSlotAssignments: @js($currentSlotAssignments ?? (object) []),
+        currentSlotMap: @js($currentSlotMap ?? (object) []),
         gridConfig: @js($gridConfig),
         currentPitchPositions: @js($currentPitchPositions ?? (object) []),
         playersData: @js($playersData),
         formationSlots: @js($formationSlots),
         slotCompatibility: @js($slotCompatibility),
         autoLineupUrl: '{{ route('game.lineup.auto', $game->id) }}',
+        computeSlotsUrl: '{{ $computeSlotsUrl }}',
         teamColors: @js($teamColors),
         formationModifiers: @js($formationModifiers),
         opponentAverage: {{ $opponentData['teamAverage'] ?: 0 }},
@@ -298,7 +299,11 @@
                                                             @endif
                                                         </div>
                                                         <div class="flex items-center gap-2 mt-0.5">
-                                                            <x-position-badge :position="$player->position" size="sm" />
+                                                            <div class="flex items-center gap-0.5">
+                                                                @foreach($player->positions as $pos)
+                                                                    <x-position-badge :position="$pos" size="sm" />
+                                                                @endforeach
+                                                            </div>
                                                             @if(!$isUnavailable)
                                                             <div class="flex items-center gap-1">
                                                                 <div class="w-8 h-1 rounded-full bg-surface-600 overflow-hidden">
