@@ -14,10 +14,10 @@
     }
 
     $sizeClasses = match($size) {
-        'sm' => 'w-5 h-5 text-[10px]',
-        'md' => 'w-7 h-7 text-xs',
-        'lg' => 'px-2 py-0.5 text-xs',
-        default => 'w-7 h-7 text-xs',
+        'sm' => 'w-5 h-5 text-[8px]',
+        'md' => 'w-7 h-7 text-[10px]',
+        'lg' => 'px-2 py-0.5 text-[10px]',
+        default => 'w-7 h-7 text-[10px]',
     };
 @endphp
 
