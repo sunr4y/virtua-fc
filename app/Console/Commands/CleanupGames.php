@@ -24,13 +24,14 @@ class CleanupGames extends Command
         $stuck = $this->option('stuck');
 
         if ($stuck) {
-            $staleGames = Game::where(function ($q) {
-                $q->whereNotNull('pending_finalization_match_id')
-                    ->orWhere(function ($q2) {
-                        $q2->where('season', 2025)
-                            ->where('needs_new_season_setup', true);
-                    });
-            })->with('team')->get();
+            $staleGames = Game::where('updated_at', '<', now()->subDays($days))
+                ->where(function ($q) {
+                    $q->whereNotNull('pending_finalization_match_id')
+                        ->orWhere(function ($q2) {
+                            $q2->where('season', 2025)
+                                ->where('needs_new_season_setup', true);
+                        });
+                })->with('team')->get();
         } else {
             $query = Game::where('updated_at', '<', now()->subDays($days));
 
