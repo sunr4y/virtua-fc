@@ -310,6 +310,7 @@ class SeasonArchiveProcessor implements SeasonProcessor
 
         GameTransfer::where('game_id', $game->id)
             ->where('season', $game->season)
+            ->where(fn ($q) => $q->where('from_team_id', $game->team_id)->orWhere('to_team_id', $game->team_id))
             ->chunk(200, function ($chunk) use (&$activity) {
                 foreach ($chunk as $transfer) {
                     $activity[] = [
