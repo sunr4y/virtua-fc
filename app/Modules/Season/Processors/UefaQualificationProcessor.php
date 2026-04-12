@@ -448,12 +448,16 @@ class UefaQualificationProcessor implements SeasonProcessor
     }
 
     /**
-     * Fill remaining continental slots to reach 36 teams per swiss_format competition.
+     * Fill remaining slots to reach 36 teams in the user's swiss_format competition.
      *
-     * Selects European teams (from competitions with country='EU') that are not
-     * already in any swiss_format competition. Only teams from non-configured
-     * countries (those without continental_slots) are eligible as fillers, since
-     * configured countries already have all their spots allocated via processCountry().
+     * Only the competition the user's team participates in needs a full draw.
+     * Other swiss_format competitions are never initialized (no fixtures, no standings),
+     * so filling them would waste the European team pool.
+     *
+     * Fillers come from European teams (competitions with country='EU') that are not
+     * already in the target competition. Only teams from non-configured countries
+     * (those without continental_slots) are eligible, since configured countries
+     * already have all their spots allocated via processCountry().
      */
     private function fillRemainingContinentalSlots(Game $game, array $swissCompetitionIds): void
     {
@@ -461,11 +465,32 @@ class UefaQualificationProcessor implements SeasonProcessor
             return;
         }
 
-        // Collect all teams already in any swiss_format competition
-        $usedTeamIds = CompetitionEntry::where('game_id', $game->id)
+        // Find which swiss competition the user's team qualified for (if any)
+        $userCompetitionId = CompetitionEntry::where('game_id', $game->id)
+            ->where('team_id', $game->team_id)
             ->whereIn('competition_id', $swissCompetitionIds)
+            ->value('competition_id');
+
+        if (!$userCompetitionId) {
+            Log::info('[UEFA] User team not in any Swiss format competition, skipping filler allocation');
+
+            return;
+        }
+
+        // Collect teams already in the user's competition
+        $usedTeamIds = CompetitionEntry::where('game_id', $game->id)
+            ->where('competition_id', $userCompetitionId)
             ->pluck('team_id')
             ->toArray();
+
+        $currentCount = count($usedTeamIds);
+        $needed = 36 - $currentCount;
+
+        Log::info("[UEFA] {$userCompetitionId}: {$currentCount}/36 teams, need {$needed} fillers");
+
+        if ($needed <= 0) {
+            return;
+        }
 
         // Countries with continental_slots already have their spots filled by
         // processCountry(). Fillers must come from other European countries only.
@@ -474,7 +499,7 @@ class UefaQualificationProcessor implements SeasonProcessor
             ->all();
 
         // European team pool: teams registered in any competition with country='EU',
-        // excluding teams already placed and teams from configured countries.
+        // excluding teams already in the target competition and teams from configured countries.
         $europeanTeamPool = CompetitionTeam::query()
             ->join('competitions', 'competition_teams.competition_id', '=', 'competitions.id')
             ->join('teams', 'competition_teams.team_id', '=', 'teams.id')
@@ -485,35 +510,27 @@ class UefaQualificationProcessor implements SeasonProcessor
             ->pluck('competition_teams.team_id')
             ->toArray();
 
-        foreach ($swissCompetitionIds as $competitionId) {
-            $currentCount = CompetitionEntry::where('game_id', $game->id)
-                ->where('competition_id', $competitionId)
-                ->count();
+        $fillerTeams = array_slice($europeanTeamPool, 0, $needed);
 
-            $needed = 36 - $currentCount;
-            if ($needed <= 0) {
-                continue;
-            }
+        if (!empty($fillerTeams)) {
+            $rows = array_map(fn (string $teamId) => [
+                'game_id' => $game->id,
+                'competition_id' => $userCompetitionId,
+                'team_id' => $teamId,
+                'entry_round' => 1,
+            ], $fillerTeams);
 
-            $fillerTeams = array_slice($europeanTeamPool, 0, $needed);
+            CompetitionEntry::upsert(
+                $rows,
+                ['game_id', 'competition_id', 'team_id'],
+                ['entry_round']
+            );
 
-            if (!empty($fillerTeams)) {
-                $rows = array_map(fn (string $teamId) => [
-                    'game_id' => $game->id,
-                    'competition_id' => $competitionId,
-                    'team_id' => $teamId,
-                    'entry_round' => 1,
-                ], $fillerTeams);
+            Log::info("[UEFA] {$userCompetitionId}: filled " . count($fillerTeams) . ' teams from pool of ' . count($europeanTeamPool));
+        }
 
-                CompetitionEntry::upsert(
-                    $rows,
-                    ['game_id', 'competition_id', 'team_id'],
-                    ['entry_round']
-                );
-
-                // Remove used teams from pool for next competition
-                $europeanTeamPool = array_values(array_diff($europeanTeamPool, $fillerTeams));
-            }
+        if (count($fillerTeams) < $needed) {
+            Log::warning("[UEFA] {$userCompetitionId}: need {$needed} fillers but only " . count($fillerTeams) . ' available in European pool');
         }
     }
 }

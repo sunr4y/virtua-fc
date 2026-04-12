@@ -114,8 +114,8 @@ class UefaQualificationTest extends TestCase
         $this->createCountryTeamsWithStandings('IT', 'ITA1', 20);
         $this->createCountryTeamsWithStandings('FR', 'FRA1', 18);
 
-        // Create EUR pool teams (non-configured countries) — enough to fill UCL, UEL, and UECL
-        // Need ~75 filler teams (108 total slots minus 33 from configured countries)
+        // Create EUR pool teams (non-configured countries) — used as fillers
+        // for the user's Swiss format competition (only one gets filled to 36)
         $eurCountries = ['PT', 'NL', 'BE', 'TR', 'GR', 'AT', 'PL', 'CZ', 'RO', 'RS', 'HR', 'NO', 'CH', 'IL', 'DK', 'SE', 'UA', 'SC'];
         for ($i = 0; $i < 80; $i++) {
             $country = $eurCountries[$i % count($eurCountries)];
@@ -152,8 +152,10 @@ class UefaQualificationTest extends TestCase
         $this->assertEquals(36, $uclCount, "UCL should have exactly 36 entries, got {$uclCount}");
     }
 
-    public function test_uel_has_36_entries_after_qualification(): void
+    public function test_uel_only_filled_when_user_participates(): void
     {
+        // User team is in UCL (ES position 1), so UEL should NOT be filled to 36.
+        // It should only have its qualified teams from configured countries.
         $processor = app(UefaQualificationProcessor::class);
         $data = $this->makeTransitionData();
 
@@ -163,7 +165,8 @@ class UefaQualificationTest extends TestCase
             ->where('competition_id', 'UEL')
             ->count();
 
-        $this->assertEquals(36, $uelCount, "UEL should have exactly 36 entries, got {$uelCount}");
+        // ES=1, EN=1, DE=2, IT=1, FR=1 = 6 qualified teams (no fillers)
+        $this->assertEquals(6, $uelCount, "UEL should only have qualified teams (no fillers), got {$uelCount}");
     }
 
     public function test_uel_winner_qualifies_for_ucl(): void
@@ -534,8 +537,9 @@ class UefaQualificationTest extends TestCase
         }
     }
 
-    public function test_uecl_has_36_entries_after_qualification(): void
+    public function test_uecl_only_filled_when_user_participates(): void
     {
+        // User team is in UCL (ES position 1), so UECL should NOT be filled to 36.
         $processor = app(UefaQualificationProcessor::class);
         $data = $this->makeTransitionData();
         $processor->process($this->game, $data);
@@ -544,7 +548,8 @@ class UefaQualificationTest extends TestCase
             ->where('competition_id', 'UECL')
             ->count();
 
-        $this->assertEquals(36, $ueclCount, "UECL should have exactly 36 entries, got {$ueclCount}");
+        // ES=1, EN=1, DE=1, IT=1, FR=1 = 5 qualified teams (no fillers)
+        $this->assertEquals(5, $ueclCount, "UECL should only have qualified teams (no fillers), got {$ueclCount}");
     }
 
     // =========================================
