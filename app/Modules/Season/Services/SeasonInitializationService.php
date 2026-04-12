@@ -14,6 +14,7 @@ use App\Modules\Competition\Services\LeagueFixtureGenerator;
 use App\Modules\Competition\Services\StandingsCalculator;
 use App\Modules\Competition\Services\CountryConfig;
 use App\Modules\Competition\Services\SwissDrawService;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Shared season initialization operations used by both initial game setup
@@ -91,11 +92,15 @@ class SeasonInitializationService
             ->exists();
 
         if (!$participates) {
+            Log::info("[SeasonInit] {$teamId} does not participate in {$competitionId}, skipping Swiss init");
+
             return;
         }
 
         $competition = Competition::find($competitionId);
         if (!$competition) {
+            Log::warning("[SeasonInit] Competition {$competitionId} not found, skipping Swiss init");
+
             return;
         }
 
@@ -107,6 +112,8 @@ class SeasonInitializationService
         }
 
         if (count($drawTeams) < 36) {
+            Log::info("[SeasonInit] {$competitionId}: only " . count($drawTeams) . ' draw teams (need 36), skipping');
+
             return;
         }
 
@@ -114,6 +121,8 @@ class SeasonInitializationService
         $baseSeason = $competition->season;
         $schedulePath = base_path("data/{$baseSeason}/{$competitionId}/schedule.json");
         if (!file_exists($schedulePath)) {
+            Log::warning("[SeasonInit] Schedule missing: {$schedulePath}");
+
             return;
         }
 
@@ -134,6 +143,8 @@ class SeasonInitializationService
         $fixtures = $this->swissDrawService->generateFixtures($drawTeams, $matchdayDates);
 
         $this->insertFixtures($gameId, $competitionId, $fixtures);
+
+        Log::info("[SeasonInit] {$competitionId} initialized: " . count($fixtures) . " fixtures for season {$season}");
 
         // Initialize standings
         $teamIds = CompetitionEntry::where('game_id', $gameId)
