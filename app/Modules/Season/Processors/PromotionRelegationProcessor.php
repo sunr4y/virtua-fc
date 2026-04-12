@@ -34,9 +34,12 @@ class PromotionRelegationProcessor implements SeasonProcessor
     public function process(Game $game, SeasonTransitionData $data): SeasonTransitionData
     {
         return DB::transaction(function () use ($game, $data) {
-            $allPromoted = [];
-            $allRelegated = [];
+            $userPromoted = [];
+            $userRelegated = [];
             $affectedCompetitionIds = [];
+
+            // Identify the user's promotion/relegation rule (if any)
+            $userRule = $this->ruleFactory->forCompetition($data->competitionId);
 
             // Process all configured promotion/relegation rules
             foreach ($this->ruleFactory->all() as $rule) {
@@ -68,8 +71,14 @@ class PromotionRelegationProcessor implements SeasonProcessor
                 $affectedCompetitionIds[] = $rule->getTopDivision();
                 $affectedCompetitionIds[] = $rule->getBottomDivision();
 
-                $allPromoted = array_merge($allPromoted, $promoted);
-                $allRelegated = array_merge($allRelegated, $relegated);
+                // Track user-relevant promotions/relegations for the transition log
+                if ($userRule
+                    && $rule->getTopDivision() === $userRule->getTopDivision()
+                    && $rule->getBottomDivision() === $userRule->getBottomDivision()
+                ) {
+                    $userPromoted = array_merge($userPromoted, $promoted);
+                    $userRelegated = array_merge($userRelegated, $relegated);
+                }
             }
 
             // Update competition in transition data if the player's team moved
@@ -83,9 +92,9 @@ class PromotionRelegationProcessor implements SeasonProcessor
                 $this->resimulateAffectedLeagues($game, array_unique($affectedCompetitionIds));
             }
 
-            // Store in metadata for display on season end screen
-            $data->setMetadata('promotedTeams', $allPromoted);
-            $data->setMetadata('relegatedTeams', $allRelegated);
+            // Store only the user's division promotions/relegations for the transition log
+            $data->setMetadata('promotedTeams', $userPromoted);
+            $data->setMetadata('relegatedTeams', $userRelegated);
 
             return $data;
         });

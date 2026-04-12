@@ -35,14 +35,14 @@ class SupercupQualificationProcessor implements SeasonProcessor
 
     public function process(Game $game, SeasonTransitionData $data): SeasonTransitionData
     {
-        foreach ($this->countryConfig->allCountryCodes() as $countryCode) {
-            $supercupConfig = $this->countryConfig->supercup($countryCode);
-            if (!$supercupConfig) {
-                continue;
-            }
+        $countryCode = $game->country ?? 'ES';
+        $supercupConfig = $this->countryConfig->supercup($countryCode);
 
-            $this->processCountrySupercup($game, $data, $supercupConfig);
+        if (!$supercupConfig) {
+            return $data;
         }
+
+        $this->processCountrySupercup($game, $data, $supercupConfig);
 
         return $data;
     }
