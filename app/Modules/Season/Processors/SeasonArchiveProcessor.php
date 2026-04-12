@@ -48,11 +48,14 @@ class SeasonArchiveProcessor implements SeasonProcessor
         // Capture final standings
         $standings = $this->captureStandings($game);
 
-        // Capture player season stats
-        $playerStats = $this->capturePlayerStats($game);
+        // Capture player season stats (all players needed for awards calculation)
+        $allPlayerStats = $this->capturePlayerStats($game);
 
-        // Calculate season awards
-        $awards = $this->calculateAwards($game, $standings, $playerStats);
+        // Calculate season awards (uses full dataset across all teams)
+        $awards = $this->calculateAwards($game, $standings, $allPlayerStats);
+
+        // Scope player stats to user's team for storage
+        $playerStats = array_values(array_filter($allPlayerStats, fn ($s) => $s['team_id'] === $game->team_id));
 
         // Capture match results (lightweight)
         $matchResults = $this->captureMatchResults($game);
