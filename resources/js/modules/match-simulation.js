@@ -622,6 +622,11 @@ export function createMatchSimulation(ctx) {
 
     async function skipToEnd() {
         const state = ctx();
+
+        // Prevent any duplicate invocations — one press, one request.
+        if (state._skipToEndFired) return;
+        state._skipToEndFired = true;
+
         state.userPaused = false;
 
         // Cancel the kickoff timeout if skip is pressed during pre_match
@@ -670,25 +675,15 @@ export function createMatchSimulation(ctx) {
         // minute-by-minute play stays fully manual. If the request is
         // skipped, no-op'd, or fails, we fall through to the pure client
         // fast-forward with the original pre-computed events.
-        if (state._skippingToEnd) return;
         state._skippingToEnd = true;
 
-        // Stop the tick loop while awaiting the backend resimulation.
-        // Without this, tick keeps revealing events from the original
-        // pre-simulation into revealedEvents, causing "ghost goals" when
-        // the resimulation produces a different result.
-        if (_animFrame) {
-            cancelAnimationFrame(_animFrame);
-            _animFrame = null;
-        }
-
-        try {
-            const skipMinute = Math.max(1, Math.min(89, Math.floor(state.currentMinute)));
-            if (typeof state.autoSubUserTeamBeforeSkip === 'function') {
-                await state.autoSubUserTeamBeforeSkip(skipMinute);
-            }
-        } finally {
-            state._skippingToEnd = false;
+        // Fire the backend resimulation request without blocking the UI.
+        // The tick loop keeps running so events continue to animate while
+        // the request is in flight. The top-level _skipToEndFired guard
+        // ensures this can only happen once.
+        const skipMinute = Math.max(1, Math.min(89, Math.floor(state.currentMinute)));
+        if (typeof state.autoSubUserTeamBeforeSkip === 'function') {
+            state.autoSubUserTeamBeforeSkip(skipMinute);
         }
 
         state.currentMinute = 93;

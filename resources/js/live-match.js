@@ -229,6 +229,7 @@ export default function liveMatch(config) {
         etAwayScore: 0,
         penaltyResult: null,
         lastRevealedETIndex: -1,
+        _skipToEndFired: false,
         _skippingToEnd: false,
         _needsPenalties: false,
 
