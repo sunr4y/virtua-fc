@@ -242,19 +242,23 @@ return [
                 'maxProcesses' => (int) env('HORIZON_MAX_GAMEPLAY', 15),
                 'balanceMaxShift' => 3,
                 'balanceCooldown' => 3,
+                'force' => true,
             ],
             'supervisor-setup' => [
                 'maxProcesses' => (int) env('HORIZON_MAX_SETUP', 5),
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
+                'force' => true,
             ],
             'supervisor-mail' => [
                 'maxProcesses' => (int) env('HORIZON_MAX_MAIL', 2),
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
+                'force' => true,
             ],
             'supervisor-cleanup' => [
                 'maxProcesses' => 1,
+                'force' => true,
             ],
         ],
 
