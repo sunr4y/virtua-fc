@@ -18,7 +18,9 @@ use Illuminate\Support\Facades\DB;
  *   php artisan migrate                                        # drops the 13 columns
  *
  * Idempotent: a player whose satellite row already exists is left alone.
- * Per-game transactions so partial failure is recoverable.
+ *
+ * Memory-safe: groups games by country so team-scope resolution happens once
+ * per country (not per game), and batches INSERTs across chunks of games.
  */
 class BackfillGamePlayerMatchState extends Command
 {
@@ -26,16 +28,42 @@ class BackfillGamePlayerMatchState extends Command
 
     protected $description = 'Backfill game_player_match_state from existing game_players hot-write columns';
 
+    private const CHUNK_SIZE = 500;
+
     public function handle(GamePlayerScopeResolver $scopeResolver): int
     {
-        $gameQuery = Game::query();
         if ($gameId = $this->option('game')) {
-            $gameQuery->where('id', $gameId);
+            return $this->handleSingleGame($gameId, $scopeResolver);
         }
 
-        $totalGames = (clone $gameQuery)->count();
+        return $this->handleAll($scopeResolver);
+    }
+
+    private function handleSingleGame(string $gameId, GamePlayerScopeResolver $scopeResolver): int
+    {
+        $game = Game::find($gameId);
+        if (! $game) {
+            $this->error("Game {$gameId} not found.");
+
+            return self::FAILURE;
+        }
+
+        $activeTeamIds = $game->isTournamentMode()
+            ? $this->tournamentTeamIds($gameId)
+            : $scopeResolver->activeTeamIdsForCountry($game->country);
+
+        $inserted = $this->insertBatch([$gameId], $activeTeamIds);
+        $this->info("Done. Inserted {$inserted} match-state rows.");
+
+        return self::SUCCESS;
+    }
+
+    private function handleAll(GamePlayerScopeResolver $scopeResolver): int
+    {
+        $totalGames = Game::count();
         if ($totalGames === 0) {
             $this->info('No games to backfill.');
+
             return self::SUCCESS;
         }
 
@@ -44,10 +72,39 @@ class BackfillGamePlayerMatchState extends Command
         $totalInserted = 0;
         $bar = $this->output->createProgressBar($totalGames);
 
-        $gameQuery->each(function (Game $game) use ($scopeResolver, &$totalInserted, $bar) {
-            $totalInserted += $this->backfillGame($game, $scopeResolver);
-            $bar->advance();
-        });
+        // Group by country so we resolve active team IDs once per country
+        $countries = Game::distinct()->pluck('country');
+
+        foreach ($countries as $country) {
+            $activeTeamIds = $scopeResolver->activeTeamIdsForCountry($country);
+
+            // Career / null-mode games: use country-based team scope
+            Game::where('country', $country)
+                ->where(function ($q) {
+                    $q->where('game_mode', '!=', Game::MODE_TOURNAMENT)
+                        ->orWhereNull('game_mode');
+                })
+                ->select('id')
+                ->chunkById(self::CHUNK_SIZE, function ($games) use ($activeTeamIds, &$totalInserted, $bar) {
+                    $gameIds = $games->pluck('id')->all();
+                    $totalInserted += $this->insertBatch($gameIds, $activeTeamIds);
+                    $bar->advance(count($gameIds));
+                });
+
+            // Tournament games: each has its own team scope
+            Game::where('country', $country)
+                ->where('game_mode', Game::MODE_TOURNAMENT)
+                ->select('id')
+                ->chunkById(self::CHUNK_SIZE, function ($games) use (&$totalInserted, $bar) {
+                    foreach ($games as $game) {
+                        $teamIds = $this->tournamentTeamIds($game->id);
+                        if (! empty($teamIds)) {
+                            $totalInserted += $this->insertBatch([$game->id], $teamIds);
+                        }
+                        $bar->advance();
+                    }
+                });
+        }
 
         $bar->finish();
         $this->newLine();
@@ -56,66 +113,59 @@ class BackfillGamePlayerMatchState extends Command
         return self::SUCCESS;
     }
 
-    private function backfillGame(Game $game, GamePlayerScopeResolver $scopeResolver): int
+    /**
+     * Batch INSERT ... SELECT for a set of game IDs and team IDs.
+     * Returns the number of rows inserted.
+     */
+    private function insertBatch(array $gameIds, array $teamIds): int
     {
-        $activeTeamIds = $scopeResolver->activeTeamIdsForGame($game);
-        if (empty($activeTeamIds)) {
+        if (empty($gameIds) || empty($teamIds)) {
             return 0;
         }
 
-        // Tournament games (e.g. World Cup) participate via national teams
-        // that aren't in the country-based active scope. Treat every team in
-        // the game as active for those — the satellite is small.
-        if ($game->isTournamentMode()) {
-            $activeTeamIds = DB::table('game_players')
-                ->where('game_id', $game->id)
-                ->whereNotNull('team_id')
-                ->distinct()
-                ->pluck('team_id')
-                ->all();
-        }
+        $gameIdArray = '{'.implode(',', $gameIds).'}';
+        $teamIdArray = '{'.implode(',', $teamIds).'}';
 
-        return DB::transaction(function () use ($game, $activeTeamIds): int {
-            $before = DB::table('game_player_match_state')
-                ->whereIn('game_player_id', function ($q) use ($game) {
-                    $q->select('id')->from('game_players')->where('game_id', $game->id);
-                })
-                ->count();
+        return DB::affectingStatement(<<<'SQL'
+            INSERT INTO game_player_match_state (
+                game_player_id, fitness, morale, injury_until, injury_type,
+                appearances, season_appearances, goals, own_goals, assists,
+                yellow_cards, red_cards, goals_conceded, clean_sheets
+            )
+            SELECT
+                gp.id,
+                COALESCE(gp.fitness, 80),
+                COALESCE(gp.morale, 80),
+                gp.injury_until,
+                gp.injury_type,
+                COALESCE(gp.appearances, 0),
+                COALESCE(gp.season_appearances, 0),
+                COALESCE(gp.goals, 0),
+                COALESCE(gp.own_goals, 0),
+                COALESCE(gp.assists, 0),
+                COALESCE(gp.yellow_cards, 0),
+                COALESCE(gp.red_cards, 0),
+                COALESCE(gp.goals_conceded, 0),
+                COALESCE(gp.clean_sheets, 0)
+            FROM game_players gp
+            WHERE gp.game_id = ANY(?::uuid[])
+              AND gp.team_id = ANY(?::uuid[])
+            ON CONFLICT (game_player_id) DO NOTHING
+        SQL, [$gameIdArray, $teamIdArray]);
+    }
 
-            DB::statement(<<<'SQL'
-                INSERT INTO game_player_match_state (
-                    game_player_id, fitness, morale, injury_until, injury_type,
-                    appearances, season_appearances, goals, own_goals, assists,
-                    yellow_cards, red_cards, goals_conceded, clean_sheets
-                )
-                SELECT
-                    gp.id,
-                    COALESCE(gp.fitness, 80),
-                    COALESCE(gp.morale, 80),
-                    gp.injury_until,
-                    gp.injury_type,
-                    COALESCE(gp.appearances, 0),
-                    COALESCE(gp.season_appearances, 0),
-                    COALESCE(gp.goals, 0),
-                    COALESCE(gp.own_goals, 0),
-                    COALESCE(gp.assists, 0),
-                    COALESCE(gp.yellow_cards, 0),
-                    COALESCE(gp.red_cards, 0),
-                    COALESCE(gp.goals_conceded, 0),
-                    COALESCE(gp.clean_sheets, 0)
-                FROM game_players gp
-                WHERE gp.game_id = ?
-                  AND gp.team_id = ANY(?::uuid[])
-                ON CONFLICT (game_player_id) DO NOTHING
-            SQL, [$game->id, '{' . implode(',', $activeTeamIds) . '}']);
-
-            $after = DB::table('game_player_match_state')
-                ->whereIn('game_player_id', function ($q) use ($game) {
-                    $q->select('id')->from('game_players')->where('game_id', $game->id);
-                })
-                ->count();
-
-            return $after - $before;
-        });
+    /**
+     * For tournament games, all teams that have players in the game are active.
+     *
+     * @return string[]
+     */
+    private function tournamentTeamIds(string $gameId): array
+    {
+        return DB::table('game_players')
+            ->where('game_id', $gameId)
+            ->whereNotNull('team_id')
+            ->distinct()
+            ->pluck('team_id')
+            ->all();
     }
 }
