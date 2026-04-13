@@ -179,7 +179,7 @@ class InjuryService
      */
     public function calculateInjuryProbability(GamePlayer $player, ?Carbon $lastMatchDate = null, ?Carbon $currentMatchDate = null, ?Game $game = null): float
     {
-        $baseProbability = self::BASE_INJURY_CHANCE;
+        $baseProbability = (float) config('match_simulation.injury_chance', self::BASE_INJURY_CHANCE);
         // Get multipliers
         $durabilityMultiplier = $this->getDurabilityMultiplier($player);
         $ageMultiplier = $this->getAgeMultiplier($player->age($player->game->current_date));
