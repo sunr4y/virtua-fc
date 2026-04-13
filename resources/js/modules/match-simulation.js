@@ -678,12 +678,25 @@ export function createMatchSimulation(ctx) {
         state._skippingToEnd = true;
 
         // Fire the backend resimulation request without blocking the UI.
-        // The tick loop keeps running so events continue to animate while
-        // the request is in flight. The top-level _skipToEndFired guard
-        // ensures this can only happen once.
+        // The top-level _skipToEndFired guard ensures this can only fire once.
+        // When the response arrives it replaces state.events and resets
+        // revealedEvents to only those up to the skip minute, so we chain
+        // a .then() to reveal the remaining new events and refresh scores.
         const skipMinute = Math.max(1, Math.min(89, Math.floor(state.currentMinute)));
         if (typeof state.autoSubUserTeamBeforeSkip === 'function') {
-            state.autoSubUserTeamBeforeSkip(skipMinute);
+            Promise.resolve(state.autoSubUserTeamBeforeSkip(skipMinute)).then(replaced => {
+                if (!replaced) return;
+                // The backend replaced events and reset revealedEvents up to
+                // skipMinute. Reveal the rest so the feed shows all events.
+                for (let i = state.lastRevealedIndex + 1; i < state.events.length; i++) {
+                    const event = state.events[i];
+                    state.lastRevealedIndex = i;
+                    state.revealedEvents.unshift(event);
+                    trackSubstitutionIfNeeded(event);
+                }
+                state.homeScore = state.finalHomeScore;
+                state.awayScore = state.finalAwayScore;
+            });
         }
 
         state.currentMinute = 93;
