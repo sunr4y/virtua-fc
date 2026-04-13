@@ -54,7 +54,7 @@ class NegotiateRenewal
             ->first();
 
         if ($existing) {
-            $disposition = $this->contractService->calculateDisposition($player, $existing->round);
+            $disposition = $this->contractService->calculateDisposition($player, NegotiationScenario::RENEWAL, round: $existing->round);
             $mood = $this->contractService->getMoodIndicator($disposition);
 
             return response()->json([
