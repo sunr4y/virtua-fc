@@ -88,6 +88,7 @@ class SaveSquadSelection
 
             $matchStateRows[] = [
                 'game_player_id' => $gamePlayerId,
+                'game_id' => $gameId,
                 'fitness' => rand(90, 100),
                 'morale' => rand(70, 85),
             ];

@@ -49,6 +49,7 @@ class GamePlayerMatchState extends Model
 
     protected $fillable = [
         'game_player_id',
+        'game_id',
         'fitness',
         'morale',
         'injury_until',
@@ -104,6 +105,11 @@ class GamePlayerMatchState extends Model
         return $this->belongsTo(GamePlayer::class, 'game_player_id');
     }
 
+    public function game(): BelongsTo
+    {
+        return $this->belongsTo(Game::class);
+    }
+
     // ──────────────────────────────────────────────────────────────
     //  Centralized write API
     //
@@ -146,11 +152,12 @@ class GamePlayerMatchState extends Model
     /**
      * Create a single satellite row with defaults, or return the existing one.
      */
-    public static function createWithDefaults(string $gamePlayerId, int $fitness = 80, int $morale = 80): self
+    public static function createWithDefaults(string $gamePlayerId, string $gameId, int $fitness = 80, int $morale = 80): self
     {
         return static::firstOrCreate(
             ['game_player_id' => $gamePlayerId],
             array_merge(self::DEFAULTS, [
+                'game_id' => $gameId,
                 'fitness' => $fitness,
                 'morale' => $morale,
             ]),
@@ -174,11 +181,11 @@ class GamePlayerMatchState extends Model
 
         DB::statement(<<<'SQL'
             INSERT INTO game_player_match_state (
-                game_player_id, fitness, morale, injury_until, injury_type,
+                game_player_id, game_id, fitness, morale, injury_until, injury_type,
                 appearances, season_appearances, goals, own_goals, assists,
                 yellow_cards, red_cards, goals_conceded, clean_sheets
             )
-            SELECT gp.id, 80, 80, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            SELECT gp.id, gp.game_id, 80, 80, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0
             FROM game_players gp
             WHERE gp.game_id = ?
               AND gp.team_id IN (SELECT unnest(?::uuid[]))
@@ -293,9 +300,7 @@ class GamePlayerMatchState extends Model
     public static function bulkResetForGame(string $gameId, array $values): void
     {
         DB::table('game_player_match_state')
-            ->whereIn('game_player_id', function ($q) use ($gameId) {
-                $q->select('id')->from('game_players')->where('game_id', $gameId);
-            })
+            ->where('game_id', $gameId)
             ->update($values);
     }
 

@@ -230,6 +230,7 @@ class SetupTournamentGame implements ShouldQueue
 
                     $matchStateRows[] = [
                         'game_player_id' => $gamePlayerId,
+                        'game_id' => $gameId,
                         'fitness' => $t->fitness,
                         'morale' => $t->morale,
                     ];

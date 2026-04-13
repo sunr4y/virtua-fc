@@ -141,6 +141,7 @@ class PlayerGeneratorService
         // teams in the active scope, so they always need a match-state row.
         $matchState = GamePlayerMatchState::createWithDefaults(
             $gamePlayer->id,
+            $game->id,
             mt_rand($data->fitnessMin, $data->fitnessMax),
             mt_rand($data->moraleMin, $data->moraleMax),
         );
@@ -250,6 +251,7 @@ class PlayerGeneratorService
             // up on active-scope teams, so they always get a satellite row.
             $matchStateRows[] = [
                 'game_player_id' => $gamePlayerId,
+                'game_id' => $game->id,
                 'fitness' => mt_rand($data->fitnessMin, $data->fitnessMax),
                 'morale' => mt_rand($data->moraleMin, $data->moraleMax),
             ];

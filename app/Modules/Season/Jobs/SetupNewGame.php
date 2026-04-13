@@ -348,6 +348,7 @@ class SetupNewGame implements ShouldQueue, ShouldBeUnique
                     if (isset($activeTeamIds[$t->team_id])) {
                         $matchStateRows[] = [
                             'game_player_id' => $gamePlayerId,
+                            'game_id' => $gameId,
                             'fitness' => $t->fitness,
                             'morale' => $t->morale,
                         ];

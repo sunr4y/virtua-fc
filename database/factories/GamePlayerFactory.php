@@ -87,7 +87,7 @@ class GamePlayerFactory extends Factory
             // — tests historically assumed game_players carried fitness etc.,
             // and the cheapest fix is to mirror that assumption.
             GamePlayerMatchState::create(array_merge(
-                ['game_player_id' => $player->id],
+                ['game_player_id' => $player->id, 'game_id' => $player->game_id],
                 GamePlayerMatchState::DEFAULTS,
                 [
                     'fitness' => $this->faker->numberBetween(70, 100),

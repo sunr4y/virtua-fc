@@ -113,6 +113,33 @@ class GamePlayerMatchStateTest extends TestCase
         $this->assertSame('Hamstring tear', $player->injury_type);
     }
 
+    public function test_satellite_row_carries_game_id(): void
+    {
+        $game = Game::factory()->create();
+        $player = GamePlayer::factory()->forGame($game)->create();
+
+        $this->assertDatabaseHas('game_player_match_state', [
+            'game_player_id' => $player->id,
+            'game_id' => $game->id,
+        ]);
+    }
+
+    public function test_bulk_reset_for_game_only_affects_target_game(): void
+    {
+        $game1 = Game::factory()->create();
+        $game2 = Game::factory()->create();
+        $p1 = GamePlayer::factory()->forGame($game1)->create();
+        $p2 = GamePlayer::factory()->forGame($game2)->create();
+
+        GamePlayerMatchState::where('game_player_id', $p1->id)->update(['goals' => 10]);
+        GamePlayerMatchState::where('game_player_id', $p2->id)->update(['goals' => 10]);
+
+        GamePlayerMatchState::bulkResetForGame($game1->id, ['goals' => 0]);
+
+        $this->assertSame(0, GamePlayerMatchState::find($p1->id)->goals);
+        $this->assertSame(10, GamePlayerMatchState::find($p2->id)->goals);
+    }
+
     public function test_overall_score_reads_through_satellite(): void
     {
         $player = GamePlayer::factory()->create([
