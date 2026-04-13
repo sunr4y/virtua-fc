@@ -1221,30 +1221,28 @@ export default function liveMatch(config) {
                 this.finalAwayScore = result.newScore.away;
             }
 
-            // Reset the revealed-events feed, substitution tracking, and
-            // re-reveal only events up to the skip minute. Without this:
-            // - Ghost entries from the original pre-simulation linger in the feed
-            // - substitutionsMade has stale entries from the old simulation
+            // Reset the revealed-events feed and substitution tracking,
+            // then re-reveal ALL events in one synchronous pass so Alpine
+            // batches the update into a single render (no flash/jitter).
             this.revealedEvents = [];
             this.substitutionsMade = [];
             this.lastRevealedIndex = -1;
             for (let i = 0; i < this.events.length; i++) {
-                if (this.events[i].minute <= minute) {
-                    this.revealedEvents.unshift(this.events[i]);
-                    this.lastRevealedIndex = i;
-                    if (this.events[i].type === 'substitution' && this.events[i].teamId === this.userTeamId) {
-                        this.substitutionsMade.push({
-                            playerOutId: this.events[i].gamePlayerId,
-                            playerInId: this.events[i].metadata?.player_in_id ?? '',
-                            minute: this.events[i].minute,
-                            playerOutName: this.events[i].playerName ?? '',
-                            playerInName: this.events[i].playerInName ?? '',
-                        });
-                    }
-                } else {
-                    break;
+                const event = this.events[i];
+                this.revealedEvents.unshift(event);
+                this.lastRevealedIndex = i;
+                if (event.type === 'substitution' && event.teamId === this.userTeamId) {
+                    this.substitutionsMade.push({
+                        playerOutId: event.gamePlayerId,
+                        playerInId: event.metadata?.player_in_id ?? '',
+                        minute: event.minute,
+                        playerOutName: event.playerName ?? '',
+                        playerInName: event.playerInName ?? '',
+                    });
                 }
             }
+            this.homeScore = this.finalHomeScore;
+            this.awayScore = this.finalAwayScore;
 
             // Update possession bar.
             if (result.homePossession !== undefined) {

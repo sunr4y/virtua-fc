@@ -392,14 +392,20 @@ export function createMatchSimulation(ctx) {
 
         if (!state.hasExtraTime) {
             state.currentMinute = 90;
-            state.homeScore = state.finalHomeScore;
-            state.awayScore = state.finalAwayScore;
-            for (let i = state.lastRevealedIndex + 1; i < state.events.length; i++) {
-                const event = state.events[i];
-                        state.revealedEvents.unshift(event);
-                trackSubstitutionIfNeeded(event);
+            // When a backend resimulation is in flight (_skippingToEnd),
+            // don't force scores or reveal events from the old simulation —
+            // autoSubUserTeamBeforeSkip will rebuild everything atomically
+            // when the response arrives, avoiding a score/event flash.
+            if (!state._skippingToEnd) {
+                state.homeScore = state.finalHomeScore;
+                state.awayScore = state.finalAwayScore;
+                for (let i = state.lastRevealedIndex + 1; i < state.events.length; i++) {
+                    const event = state.events[i];
+                    state.revealedEvents.unshift(event);
+                    trackSubstitutionIfNeeded(event);
+                }
+                state.lastRevealedIndex = state.events.length - 1;
             }
-            state.lastRevealedIndex = state.events.length - 1;
         } else {
             state.currentMinute = 120;
         }
@@ -679,24 +685,11 @@ export function createMatchSimulation(ctx) {
 
         // Fire the backend resimulation request without blocking the UI.
         // The top-level _skipToEndFired guard ensures this can only fire once.
-        // When the response arrives it replaces state.events and resets
-        // revealedEvents to only those up to the skip minute, so we chain
-        // a .then() to reveal the remaining new events and refresh scores.
+        // When the response arrives, autoSubUserTeamBeforeSkip replaces
+        // state.events and rebuilds revealedEvents in one synchronous pass.
         const skipMinute = Math.max(1, Math.min(89, Math.floor(state.currentMinute)));
         if (typeof state.autoSubUserTeamBeforeSkip === 'function') {
-            Promise.resolve(state.autoSubUserTeamBeforeSkip(skipMinute)).then(replaced => {
-                if (!replaced) return;
-                // The backend replaced events and reset revealedEvents up to
-                // skipMinute. Reveal the rest so the feed shows all events.
-                for (let i = state.lastRevealedIndex + 1; i < state.events.length; i++) {
-                    const event = state.events[i];
-                    state.lastRevealedIndex = i;
-                    state.revealedEvents.unshift(event);
-                    trackSubstitutionIfNeeded(event);
-                }
-                state.homeScore = state.finalHomeScore;
-                state.awayScore = state.finalAwayScore;
-            });
+            state.autoSubUserTeamBeforeSkip(skipMinute);
         }
 
         state.currentMinute = 93;
