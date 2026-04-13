@@ -16,7 +16,9 @@ class ProcessRemainingBatches implements ShouldQueue, ShouldBeUnique
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries = 1;
+    public int $tries = 2;
+
+    public int $backoff = 5;
 
     public int $uniqueFor = 180;
 
