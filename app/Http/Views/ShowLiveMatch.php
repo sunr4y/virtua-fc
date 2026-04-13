@@ -167,7 +167,7 @@ class ShowLiveMatch
         // Bench players (all squad players NOT in the starting lineup, not suspended, not injured)
         $matchDate = $playerMatch->scheduled_date;
         $benchPlayers = GamePlayer::with(['player', 'matchState'])
-            ->where('game_id', $gameId)
+            ->where('game_players.game_id', $gameId)
             ->where('team_id', $game->team_id)
             ->whereNotIn('id', $userLineupIds)
             ->whereNotIn('id', $suspendedPlayerIds)

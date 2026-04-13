@@ -149,7 +149,7 @@ class SkipMatchToEnd
         $suspendedIds = PlayerSuspension::suspendedPlayerIdsForCompetition($match->competition_id);
 
         return GamePlayer::query()
-            ->where('game_id', $game->id)
+            ->where('game_players.game_id', $game->id)
             ->where('team_id', $game->team_id)
             ->whereNotIn('id', $activeIds)
             ->whereNotIn('id', $suspendedIds)

@@ -231,7 +231,7 @@ class SeasonArchiveProcessor implements SeasonProcessor
     {
         $goalkeepers = GamePlayer::with(['player', 'matchState'])
             ->joinMatchState()
-            ->where('game_id', $game->id)
+            ->where('game_players.game_id', $game->id)
             ->where('position', 'Goalkeeper')
             ->whereMatchStat('appearances', '>=', self::MIN_GOALKEEPER_APPEARANCES)
             ->get();

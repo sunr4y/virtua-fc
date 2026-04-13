@@ -15,7 +15,7 @@ class AwardService
     {
         return GamePlayer::with(['player', 'team', 'matchState'])
             ->joinMatchState()
-            ->where('game_id', $gameId)
+            ->where('game_players.game_id', $gameId)
             ->when($teamIds, fn ($q) => $q->whereIn('team_id', $teamIds))
             ->whereMatchStat('goals', '>', 0)
             ->orderByMatchStat('goals')
@@ -32,7 +32,7 @@ class AwardService
     {
         return GamePlayer::with(['player', 'team', 'matchState'])
             ->joinMatchState()
-            ->where('game_id', $gameId)
+            ->where('game_players.game_id', $gameId)
             ->when($teamIds, fn ($q) => $q->whereIn('team_id', $teamIds))
             ->whereMatchStat('assists', '>', 0)
             ->orderByMatchStat('assists')
@@ -48,7 +48,7 @@ class AwardService
     {
         return GamePlayer::with(['player', 'team', 'matchState'])
             ->joinMatchState()
-            ->where('game_id', $gameId)
+            ->where('game_players.game_id', $gameId)
             ->when($teamIds, fn ($q) => $q->whereIn('team_id', $teamIds))
             ->where('position', 'Goalkeeper')
             ->whereMatchStat('appearances', '>=', $minAppearances)
@@ -101,7 +101,7 @@ class AwardService
     {
         return GamePlayer::with(['player', 'matchState'])
             ->leftJoinMatchState()
-            ->where('game_id', $gameId)
+            ->where('game_players.game_id', $gameId)
             ->where('team_id', $teamId)
             ->orderByMatchStat('appearances')
             ->get();
