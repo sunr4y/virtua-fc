@@ -59,14 +59,30 @@ class TransferService
     private const UNSOLICITED_OFFER_EXPIRY_DAYS = 14;
 
     /**
-     * Chance of unsolicited offer per star player per matchday.
+     * Per-matchday unsolicited offer chance keyed by player tier (1-5).
+     *
+     * The curve peaks at tier 3 (€5–20M) and tapers at both extremes to
+     * mirror real transfer-market dynamics:
+     *
+     *   - Tier 5 (world class, €50M+) — only a handful of clubs can afford
+     *     them, so unsolicited bids are rare. Elite clubs tend to sign at
+     *     most one marquee player a year.
+     *   - Tier 3 (good, €5–20M) — hundreds of clubs worldwide can afford
+     *     and want these players. This is where the market is most active.
+     *   - Tier 1 (low, <€1M) — still some interest from low-budget clubs,
+     *     but the pool of buyers willing to spend an offer slot is smaller.
+     *
+     * The reputation/budget gates in getEligibleBuyersWithSquadValues()
+     * continue to enforce realism (e.g. Segunda clubs still can't bid on
+     * tier-4+ La Liga starters).
      */
-    private const UNSOLICITED_OFFER_CHANCE = 0.05; // 5%
-
-    /**
-     * Number of star players to consider for unsolicited offers.
-     */
-    private const STAR_PLAYER_COUNT = 5;
+    private const UNSOLICITED_OFFER_CHANCE_BY_TIER = [
+        5 => 0.005,  // World class — tiny buyer pool
+        4 => 0.012,  // Excellent — uncommon
+        3 => 0.025,  // Good — peak market activity
+        2 => 0.020,  // Average — active mid-market
+        1 => 0.010,  // Low — moderate interest
+    ];
 
     /**
      * Maximum transfer fee as a fraction of the buying team's squad value.
@@ -235,22 +251,23 @@ class TransferService
     {
         $offers = collect();
 
-        // Use pre-loaded players if available, otherwise load
+        // Use pre-loaded players if available, otherwise load.
+        // Sorted by value DESC so higher-value players get first pick of
+        // buyers — once a buyer commits to one player in this call, they're
+        // added to $excludedBuyerTeamIds and can't bid on another.
         if ($allPlayersGrouped !== null) {
             $teamPlayers = $allPlayersGrouped->get($game->team_id, collect());
-            $starPlayers = $teamPlayers
+            $eligiblePlayers = $teamPlayers
                 ->filter(fn ($p) => !$p->relationLoaded('transferListing') || $p->transferListing === null)
                 ->filter(fn ($p) => !$p->isLoanedIn($game->team_id))
-                ->sortByDesc('market_value_cents')
-                ->take(self::STAR_PLAYER_COUNT);
+                ->sortByDesc('market_value_cents');
         } else {
-            $starPlayers = GamePlayer::with('transferOffers')
+            $eligiblePlayers = GamePlayer::with('transferOffers')
                 ->where('game_id', $game->id)
                 ->where('team_id', $game->team_id)
                 ->whereDoesntHave('transferListing')
                 ->whereDoesntHave('activeLoan')
                 ->orderByDesc('market_value_cents')
-                ->limit(self::STAR_PLAYER_COUNT)
                 ->get();
         }
 
@@ -262,7 +279,13 @@ class TransferService
             ->pluck('offering_team_id')
             ->toArray();
 
-        foreach ($starPlayers as $player) {
+        // Rivals are excluded from unsolicited offers only — see getRivalTeamIds().
+        $excludedBuyerTeamIds = array_values(array_unique(array_merge(
+            $excludedBuyerTeamIds,
+            $this->getRivalTeamIds($game, $buyerPool),
+        )));
+
+        foreach ($eligiblePlayers as $player) {
             // Use pre-loaded transferOffers relationship to avoid N+1
             $playerOffers = $player->relationLoaded('transferOffers')
                 ? $player->transferOffers
@@ -278,8 +301,9 @@ class TransferService
                 continue;
             }
 
-            // Random chance for an offer
-            if (rand(1, 100) <= self::UNSOLICITED_OFFER_CHANCE * 100) {
+            // Tier-scaled random chance for an offer
+            $chance = self::UNSOLICITED_OFFER_CHANCE_BY_TIER[$player->tier] ?? 0;
+            if ($chance > 0 && mt_rand() / mt_getrandmax() < $chance) {
                 ['buyers' => $buyers, 'squadValues' => $squadValues] = $this->getEligibleBuyersWithSquadValues($player, $buyerPool);
 
                 // Exclude teams that already have a pending unsolicited offer for another player on this squad
@@ -702,7 +726,7 @@ class TransferService
      * Pre-load the buyer pool (league teams + squad values) for a game.
      * Call once per career action tick and pass to offer-generation methods.
      *
-     * @return array{leagueTeams: Collection, squadValues: Collection}
+     * @return array{leagueTeams: Collection, squadValues: Collection, reputationLevels: \Illuminate\Support\Collection}
      */
     public function loadBuyerPool(Game $game): array
     {
@@ -717,6 +741,44 @@ class TransferService
         $reputationLevels = TeamReputation::resolveLevels($game->id, $leagueTeamIds);
 
         return ['leagueTeams' => $leagueTeams, 'squadValues' => $squadValues, 'reputationLevels' => $reputationLevels];
+    }
+
+    /**
+     * Rivals = teams in the user's same domestic league AND same reputation tier.
+     * Real-world equivalent: Real Madrid <-> Barcelona. Such unsolicited moves
+     * are vanishingly rare and break immersion when AI-generated. Only unsolicited
+     * offers are filtered; listed-player and pre-contract offers remain open
+     * because the user either opened the door or the contract is expiring.
+     *
+     * @param  array{leagueTeams: Collection, squadValues: Collection, reputationLevels: Collection}|null  $buyerPool
+     * @return array<int, string>
+     */
+    private function getRivalTeamIds(Game $game, ?array $buyerPool = null): array
+    {
+        if (!$game->competition_id) {
+            return [];
+        }
+
+        $userReputation = TeamReputation::resolveLevel($game->id, $game->team_id);
+
+        $sameLeagueIds = $game->competition
+            ->teams()
+            ->wherePivot('season', $game->season)
+            ->where('teams.id', '!=', $game->team_id)
+            ->pluck('teams.id')
+            ->all();
+
+        if (empty($sameLeagueIds)) {
+            return [];
+        }
+
+        $reputationLevels = $buyerPool['reputationLevels']
+            ?? TeamReputation::resolveLevels($game->id, $sameLeagueIds);
+
+        return collect($sameLeagueIds)
+            ->filter(fn ($id) => ($reputationLevels[$id] ?? ClubProfile::REPUTATION_LOCAL) === $userReputation)
+            ->values()
+            ->all();
     }
 
     /**
