@@ -10,8 +10,15 @@ namespace App\Support;
  */
 class PositionSlotMapper
 {
-    /** Flat penalty applied when a player is out of position (compat < 100). */
+    /** Flat penalty applied when a player is out of position (compat < NATURAL_POSITION_THRESHOLD). */
     public const OUT_OF_POSITION_PENALTY = 0.25;
+
+    /**
+     * Minimum compatibility score considered "at home" in a slot.
+     * Natural (100) and Very Good (80) both play without penalty;
+     * anything below is treated as out of position.
+     */
+    public const NATURAL_POSITION_THRESHOLD = 80;
 
     /**
      * Compatibility matrix: [slot_code => [position => score]]
@@ -23,27 +30,27 @@ class PositionSlotMapper
         ],
         'CB' => [
             'Centre-Back' => 100,
-            'Defensive Midfield' => 60,
+            'Defensive Midfield' => 80,
             'Left-Back' => 40,
             'Right-Back' => 40,
         ],
         'LB' => [
             'Left-Back' => 100,
-            'Left Midfield' => 60,
+            'Left Midfield' => 80,
             'Left Winger' => 40,
             'Centre-Back' => 40,
             'Right-Back' => 30,
         ],
         'RB' => [
             'Right-Back' => 100,
-            'Right Midfield' => 60,
+            'Right Midfield' => 80,
             'Right Winger' => 40,
             'Centre-Back' => 40,
             'Left-Back' => 30,
         ],
         'DM' => [
             'Defensive Midfield' => 100,
-            'Central Midfield' => 70,
+            'Central Midfield' => 80,
             'Centre-Back' => 50,
             'Attacking Midfield' => 30,
         ],
@@ -51,13 +58,12 @@ class PositionSlotMapper
             'Central Midfield' => 100,
             'Defensive Midfield' => 80,
             'Attacking Midfield' => 80,
-            'Left Midfield' => 50,
-            'Right Midfield' => 50,
+            'Left Midfield' => 80,
+            'Right Midfield' => 80,
         ],
         'AM' => [
             'Attacking Midfield' => 100,
-            'Central Midfield' => 70,
-            'Second Striker' => 70,
+            'Central Midfield' => 80,
             'Left Winger' => 50,
             'Right Winger' => 50,
             'Centre-Forward' => 40,
@@ -81,8 +87,8 @@ class PositionSlotMapper
             'Left Midfield' => 80,
             'Second Striker' => 50,
             'Right Winger' => 50,
-            'Centre-Forward' => 40,
-            'Attacking Midfield' => 40,
+            'Centre-Forward' => 80,
+            'Attacking Midfield' => 0,
             'Left-Back' => 20,
         ],
         'RW' => [
@@ -90,15 +96,15 @@ class PositionSlotMapper
             'Right Midfield' => 80,
             'Second Striker' => 50,
             'Left Winger' => 50,
-            'Centre-Forward' => 40,
+            'Centre-Forward' => 80,
             'Attacking Midfield' => 40,
             'Right-Back' => 20,
         ],
         'CF' => [
             'Centre-Forward' => 100,
             'Second Striker' => 100,
-            'Left Winger' => 50,
-            'Right Winger' => 50,
+            'Left Winger' => 80,
+            'Right Winger' => 80,
             'Attacking Midfield' => 40,
         ],
     ];
@@ -313,7 +319,7 @@ class PositionSlotMapper
      */
     public static function isOutOfPosition(string $primaryPosition, ?array $secondaryPositions, string $slotCode): bool
     {
-        return self::getPlayerCompatibilityScore($primaryPosition, $secondaryPositions, $slotCode) < 100;
+        return self::getPlayerCompatibilityScore($primaryPosition, $secondaryPositions, $slotCode) < self::NATURAL_POSITION_THRESHOLD;
     }
 
     /**
