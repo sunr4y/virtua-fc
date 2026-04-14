@@ -41,6 +41,9 @@ class ExtraTimeAndPenaltyService
 
         $tc = TacticalConfig::fromMatch($match);
 
+        $homePlayerSlots = $match->playerSlotMap('home');
+        $awayPlayerSlots = $match->playerSlotMap('away');
+
         $extraTimeResult = $this->matchSimulator->simulateExtraTime(
             $match->homeTeam,
             $match->awayTeam,
@@ -59,6 +62,8 @@ class ExtraTimeAndPenaltyService
             homeDefLine: $tc->homeDefLine,
             awayDefLine: $tc->awayDefLine,
             neutralVenue: $match->isNeutralVenue(),
+            homePlayerSlots: $homePlayerSlots,
+            awayPlayerSlots: $awayPlayerSlots,
         );
 
         $match->update([
@@ -195,4 +200,5 @@ class ExtraTimeAndPenaltyService
             ->orderBy('minute')
             ->get();
     }
+
 }

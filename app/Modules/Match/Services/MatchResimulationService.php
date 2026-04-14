@@ -17,6 +17,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use App\Modules\Squad\Services\EligibilityService;
+use App\Support\PositionSlotMapper;
 
 class MatchResimulationService
 {
@@ -220,6 +221,9 @@ class MatchResimulationService
             default => false,
         };
 
+        $homePlayerSlots = $isUserHome ? $this->playerSlotMapWithSubs($match, 'home', $allSubstitutions) : $match->playerSlotMap('home');
+        $awayPlayerSlots = $isUserHome ? $match->playerSlotMap('away') : $this->playerSlotMapWithSubs($match, 'away', $allSubstitutions);
+
         if ($aiSubsActive) {
             $remainderOutput = $this->matchSimulator->simulateRemainderWithAISubs(
                 $match->homeTeam,
@@ -252,6 +256,8 @@ class MatchResimulationService
                 scoreAwayAtMinute: $scoreAtMinute['away'],
                 // Passing null opts the user team INTO auto-subs for this remainder.
                 userTeamId: $autoSubUserTeam ? null : $game->team_id,
+                homePlayerSlots: $homePlayerSlots,
+                awayPlayerSlots: $awayPlayerSlots,
             );
         } else {
             $remainderOutput = $this->matchSimulator->simulateRemainder(
@@ -280,6 +286,8 @@ class MatchResimulationService
                 homeExistingSubstitutions: $homeExistingSubs,
                 awayExistingSubstitutions: $awayExistingSubs,
                 neutralVenue: $match->isNeutralVenue(),
+                homePlayerSlots: $homePlayerSlots,
+                awayPlayerSlots: $awayPlayerSlots,
             );
         }
 
@@ -433,6 +441,9 @@ class MatchResimulationService
             }
 
             // 7. Re-simulate extra time remainder
+            $homePlayerSlots = $isUserHome ? $this->playerSlotMapWithSubs($match, 'home', $allSubstitutions) : $match->playerSlotMap('home');
+            $awayPlayerSlots = $isUserHome ? $match->playerSlotMap('away') : $this->playerSlotMapWithSubs($match, 'away', $allSubstitutions);
+
             $remainderResult = $this->matchSimulator->simulateExtraTime(
                 $match->homeTeam,
                 $match->awayTeam,
@@ -452,6 +463,8 @@ class MatchResimulationService
                 homeDefLine: $tc->homeDefLine,
                 awayDefLine: $tc->awayDefLine,
                 neutralVenue: $match->isNeutralVenue(),
+                homePlayerSlots: $homePlayerSlots,
+                awayPlayerSlots: $awayPlayerSlots,
             );
 
             // 8. Calculate new ET score
@@ -848,5 +861,36 @@ class MatchResimulationService
 
             return $event;
         }, $formatted);
+    }
+
+    /**
+     * Build a {playerId => slotCode} map with completed substitutions applied.
+     *
+     * Used for the user's side during resimulation, where manual subs have
+     * changed who occupies each slot since the match started.
+     */
+    private function playerSlotMapWithSubs(GameMatch $match, string $side, array $substitutions): array
+    {
+        $slotAssignments = $match->{"{$side}_slot_assignments"} ?? [];
+        $formationValue = $match->{"{$side}_formation"} ?? null;
+
+        if (empty($slotAssignments) || empty($formationValue)) {
+            return [];
+        }
+
+        foreach ($substitutions as $sub) {
+            foreach ($slotAssignments as $slotId => $playerId) {
+                if ($playerId === $sub['playerOutId']) {
+                    $slotAssignments[$slotId] = $sub['playerInId'];
+                    break;
+                }
+            }
+        }
+
+        $formation = \App\Modules\Lineup\Enums\Formation::tryFrom($formationValue);
+
+        return $formation
+            ? PositionSlotMapper::buildPlayerSlotMap($slotAssignments, $formation->pitchSlots())
+            : [];
     }
 }

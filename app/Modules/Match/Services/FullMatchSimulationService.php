@@ -120,6 +120,9 @@ class FullMatchSimulationService
             $tc = $tc->neutralized();
         }
 
+        $homePlayerSlots = $match->playerSlotMap('home');
+        $awayPlayerSlots = $match->playerSlotMap('away');
+
         $output = $this->matchSimulator->simulate(
             $match->homeTeam,
             $match->awayTeam,
@@ -141,6 +144,8 @@ class FullMatchSimulationService
             matchSeed: $match->id,
             neutralVenue: $match->isNeutralVenue(),
             userTeamId: $isUserMatch ? $game->team_id : null,
+            homePlayerSlots: $homePlayerSlots,
+            awayPlayerSlots: $awayPlayerSlots,
         );
 
         $result = $output->result;

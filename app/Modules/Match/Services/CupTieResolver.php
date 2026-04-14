@@ -75,6 +75,8 @@ class CupTieResolver
                 $homePlayers,
                 $awayPlayers,
                 neutralVenue: $match->isNeutralVenue(),
+                homePlayerSlots: $match->playerSlotMap('home'),
+                awayPlayerSlots: $match->playerSlotMap('away'),
             );
 
             $homeScoreEt = $extraTimeResult->homeScore;
@@ -170,6 +172,8 @@ class CupTieResolver
                 $homePlayers,
                 $awayPlayers,
                 neutralVenue: $secondLeg->isNeutralVenue(),
+                homePlayerSlots: $secondLeg->playerSlotMap('home'),
+                awayPlayerSlots: $secondLeg->playerSlotMap('away'),
             );
 
             $homeScoreEt = $extraTimeResult->homeScore;
@@ -238,4 +242,5 @@ class CupTieResolver
             'resolution' => $resolution,
         ]);
     }
+
 }
