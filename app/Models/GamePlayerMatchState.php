@@ -179,6 +179,10 @@ class GamePlayerMatchState extends Model
 
         $idList = '{' . implode(',', $teamIds) . '}';
 
+        // ORDER BY gp.id ensures concurrent inserts acquire PK / FK index
+        // locks in a deterministic order. Without it, two sessions running
+        // this statement on overlapping player sets can lock rows in opposite
+        // order and deadlock on the PK index (40P01).
         DB::statement(<<<'SQL'
             INSERT INTO game_player_match_state (
                 game_player_id, game_id, fitness, morale, injury_until, injury_type,
@@ -189,6 +193,7 @@ class GamePlayerMatchState extends Model
             FROM game_players gp
             WHERE gp.game_id = ?
               AND gp.team_id IN (SELECT unnest(?::uuid[]))
+            ORDER BY gp.id
             ON CONFLICT (game_player_id) DO NOTHING
         SQL, [$gameId, $idList]);
     }

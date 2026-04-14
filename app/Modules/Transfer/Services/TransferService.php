@@ -584,12 +584,17 @@ class TransferService
      */
     public function completeAgreedTransfers(Game $game): Collection
     {
+        // Sorted by game_player_id so the per-player UPDATE locks are
+        // acquired in PK order — matches the ORDER BY used by
+        // GamePlayerMatchState::ensureExistForGamePlayers and keeps
+        // lock acquisition deterministic across concurrent writers.
         $agreedOffers = TransferOffer::with(['gamePlayer.player', 'offeringTeam'])
             ->where('game_id', $game->id)
             ->where('status', TransferOffer::STATUS_AGREED)
             ->whereHas('gamePlayer', function ($query) use ($game) {
                 $query->where('team_id', $game->team_id);
             })
+            ->orderBy('game_player_id')
             ->get();
 
         $completedTransfers = collect();
@@ -915,11 +920,14 @@ class TransferService
      */
     public function completeIncomingTransfers(Game $game): Collection
     {
+        // orderBy('game_player_id') keeps the UPDATE locks deterministic
+        // across concurrent writers — see completeAgreedTransfers().
         $agreedIncoming = TransferOffer::with(['gamePlayer.player', 'sellingTeam'])
             ->where('game_id', $game->id)
             ->where('status', TransferOffer::STATUS_AGREED)
             ->where('direction', TransferOffer::DIRECTION_INCOMING)
             ->where('offer_type', '!=', TransferOffer::TYPE_PRE_CONTRACT)
+            ->orderBy('game_player_id')
             ->get();
 
         // Also get loan-out agreements
@@ -927,6 +935,7 @@ class TransferService
             ->where('game_id', $game->id)
             ->where('status', TransferOffer::STATUS_AGREED)
             ->where('offer_type', TransferOffer::TYPE_LOAN_OUT)
+            ->orderBy('game_player_id')
             ->get();
 
         $completedTransfers = collect();

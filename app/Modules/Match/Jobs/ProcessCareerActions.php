@@ -10,6 +10,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class ProcessCareerActions implements ShouldQueue, ShouldBeUnique
@@ -34,20 +35,35 @@ class ProcessCareerActions implements ShouldQueue, ShouldBeUnique
 
     public function handle(CareerActionProcessor $processor): void
     {
-        $game = Game::find($this->gameId);
-
-        if (! $game || ! $game->isProcessingCareerActions()) {
-            return;
-        }
-
+        // Each tick runs inside its own transaction holding the game row lock.
+        // This serializes career actions against matchday advancement, the
+        // ProcessRemainingBatches job, and FinalizeMatch — all of which write
+        // to the same game_player_match_state / game_players rows and would
+        // otherwise deadlock at the PK/FK index level (e.g. AI transfer UPDATEs
+        // on game_players vs. ensureExistForGamePlayers INSERTs).
+        //
+        // Per-tick (rather than whole-job) locking keeps the critical section
+        // short so a user advancing to the next matchday is only ever blocked
+        // by a single tick's work, not the full accumulated batch.
         for ($i = 0; $i < $this->ticks; $i++) {
-            if ($i > 0) {
-                $game->refresh();
+            $processed = DB::transaction(function () use ($processor) {
+                $game = Game::where('id', $this->gameId)->lockForUpdate()->first();
+
+                if (! $game || ! $game->isProcessingCareerActions()) {
+                    return false;
+                }
+
+                $processor->process($game);
+
+                return true;
+            });
+
+            if (! $processed) {
+                return;
             }
-            $processor->process($game);
         }
 
-        $game->update(['career_actions_processing_at' => null]);
+        Game::where('id', $this->gameId)->update(['career_actions_processing_at' => null]);
     }
 
     public function failed(?\Throwable $exception): void

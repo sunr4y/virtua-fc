@@ -1443,6 +1443,12 @@ class AITransferMarketService
      */
     private function flushBatchedOperations(array $playerUpdates, array $transferInserts): void
     {
+        // Sort by id so the PK / FK locks inside each upsert chunk are
+        // acquired in a deterministic order — prevents cross-session
+        // deadlocks with other writers that follow the same ordering
+        // (e.g. GamePlayerMatchState::ensureExistForGamePlayers).
+        usort($playerUpdates, fn ($a, $b) => strcmp($a['id'], $b['id']));
+
         foreach (array_chunk($playerUpdates, 100) as $chunk) {
             GamePlayer::upsert($chunk, ['id'], ['team_id', 'number', 'contract_until', 'annual_wage']);
         }
