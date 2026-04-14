@@ -29,6 +29,9 @@ return [
     'loans_out_section' => 'Cesiones Activas (Salidas)',
     'loan_searches_section' => 'Buscando Destino de Cesión',
     'loan_searches_help' => 'Jugadores buscando un club para ser cedidos',
+    'loan_offers_received' => 'Ofertas de Cesión Recibidas',
+    'loan_offers_received_help' => 'Ofertas de cesión recibidas por jugadores que has puesto en el mercado de cesiones',
+    'accept_loan_offer' => 'Aceptar',
     // Legacy keys kept for compatibility
     'loans' => 'Cesiones',
 
@@ -79,8 +82,8 @@ return [
     'best' => 'Mejor',
 
     // Recent transfers
-    'recent_sales' => 'Ventas Recientes',
-    'recent_signings' => 'Fichajes Recientes',
+    'recent_sales' => 'Salidas Recientes',
+    'recent_signings' => 'Entradas Recientes',
 
     // Scouting
     'scout_search_desc' => 'Tu ojeador buscará jugadores y te presentará una lista corta de candidatos que mejor se adapten a tu equipo. Cuanto más específicos sean los criterios, mejores serán los resultados.',

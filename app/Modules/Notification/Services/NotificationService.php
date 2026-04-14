@@ -230,10 +230,10 @@ class NotificationService
         return $this->create(
             game: $game,
             type: GameNotification::TYPE_TRANSFER_OFFER_RECEIVED,
-            title: __('notifications.transfer_offer_title', ['team_de' => $offer->offeringTeam->nameWithDe()]),
+            title: __('notifications.transfer_offer_title', ['player' => $player->name]),
             message: __('notifications.transfer_offer_message', [
                 'team' => $offer->offeringTeam->name,
-                'player' => $player->name,
+                'team_el' => Str::ucfirst($offer->offeringTeam->nameWithEl()),
                 'fee' => $fee,
             ]),
             priority: GameNotification::PRIORITY_INFO,
@@ -480,25 +480,28 @@ class NotificationService
     }
 
     /**
-     * Create a loan destination found notification.
+     * Notify the user that an AI club has tabled a loan offer for a player
+     * they listed on the loan market. The user accepts it on the outgoing
+     * transfers screen; ignoring it lets it expire and lets further offers
+     * roll in on later matchdays.
      */
-    public function notifyLoanDestinationFound(Game $game, GamePlayer $player, Team $destination, bool $windowOpen): GameNotification
+    public function notifyLoanOfferReceived(Game $game, GamePlayer $player, Team $destination): GameNotification
     {
-        $message = $windowOpen
-            ? __('notifications.loan_destination_found_message', ['player' => $player->name, 'team_a' => $destination->nameWithA()])
-            : __('notifications.loan_destination_found_waiting', ['player' => $player->name, 'team_a' => $destination->nameWithA()]);
-
         return $this->create(
             game: $game,
             type: GameNotification::TYPE_LOAN_DESTINATION_FOUND,
-            title: __('notifications.loan_destination_found_title', ['player' => $player->name]),
-            message: $message,
+            title: __('notifications.loan_offer_received_title', [
+                'player' => $player->name,
+            ]),
+            message: __('notifications.loan_offer_received_message', [
+                'team' => $destination->name,
+                'team_el' => Str::ucfirst($destination->nameWithEl()),
+            ]),
             priority: GameNotification::PRIORITY_INFO,
             metadata: [
                 'player_id' => $player->id,
                 'team_id' => $destination->id,
                 'team_name' => $destination->name,
-                'window_open' => $windowOpen,
             ],
         );
     }

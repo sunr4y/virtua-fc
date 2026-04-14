@@ -18,7 +18,7 @@
 
                     {{-- Tab Navigation --}}
                     @php
-                        $salidaBadge = $unsolicitedOffers->count() + $preContractOffers->count() + $listedOffers->count();
+                        $salidaBadge = $unsolicitedOffers->count() + $preContractOffers->count() + $listedOffers->count() + $loanOffers->count();
                     @endphp
                     <div x-data="{ helpOpen: false }">
                         <x-section-nav :items="[
@@ -77,6 +77,7 @@
                         $hasLeftContent = $unsolicitedOffers->isNotEmpty()
                             || $preContractOffers->isNotEmpty()
                             || $listedOffers->isNotEmpty()
+                            || $loanOffers->isNotEmpty()
                             || $agreedTransfers->isNotEmpty()
                             || $agreedPreContracts->isNotEmpty()
                             || $loanSearches->isNotEmpty()
@@ -342,6 +343,45 @@
                                             <div class="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
                                                 <span class="text-sm font-semibold text-accent-red">{{ __('squad.free_transfer') }}</span>
                                                 <span class="text-xs text-text-muted">{{ __('squad.pre_contract_signed') }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @endif
+
+                            {{-- LOAN OFFERS RECEIVED — blue accent, mirrors the "Offers Received" sale pattern --}}
+                            @if($loanOffers->isNotEmpty())
+                            <div class="border-l-4 border-l-accent-blue pl-5">
+                                <h4 class="font-semibold text-lg text-text-primary mb-1">{{ __('transfers.loan_offers_received') }}</h4>
+                                <p class="text-sm text-text-muted mb-3">{{ __('transfers.loan_offers_received_help') }}</p>
+                                <div class="space-y-3">
+                                    @foreach($loanOffers as $offer)
+                                    <div class="bg-accent-blue/10 border border-accent-blue/20 rounded-xl p-4">
+                                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                                            <div class="flex items-center gap-4">
+                                                <x-team-crest :team="$offer->offeringTeam" class="w-10 h-10 shrink-0" />
+                                                <div>
+                                                    <div class="font-semibold text-text-primary">
+                                                        {{ $offer->gamePlayer->player->name }} &larr; {{ $offer->offeringTeam->name }}
+                                                    </div>
+                                                    <div class="text-sm text-text-secondary">
+                                                        {{ $offer->gamePlayer->position_name }} &middot; {{ $offer->gamePlayer->age($game->current_date) }} {{ __('app.years') }} &middot;
+                                                        {{ __('app.value') }}: {{ $offer->gamePlayer->formatted_market_value }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
+                                                <div class="md:text-right">
+                                                    <div class="text-xs text-text-muted">{{ __('transfers.expires_in_days', ['days' => $offer->days_until_expiry]) }}</div>
+                                                </div>
+                                                <form method="post" action="{{ route('game.loans.offers.accept', [$game->id, $offer->id]) }}">
+                                                    @csrf
+                                                    <x-primary-button type="submit" size="sm">
+                                                        {{ __('transfers.accept_loan_offer') }}
+                                                    </x-primary-button>
+                                                </form>
                                             </div>
                                         </div>
                                     </div>
