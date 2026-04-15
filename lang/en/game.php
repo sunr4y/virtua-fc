@@ -394,6 +394,7 @@ return [
     'mode_tournament_badge' => 'World Cup',
     'wc2026_name' => 'World Cup 2026',
     'career_unlock_hint' => 'Win the World Cup to unlock',
+    'b_team_not_playable' => 'B teams are not playable in career mode',
 
     // Season Goals
     'goal_title' => 'Win the League',

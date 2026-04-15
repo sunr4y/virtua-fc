@@ -133,13 +133,21 @@
                             <div x-show="openTab === '{{ $competition->id }}'" x-cloak>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                                     @foreach($competition->teams as $team)
-                                        <label class="flex items-center gap-3 rounded-lg border border-border-default p-3 md:p-4 cursor-pointer transition-all
-                                                       hover:bg-accent-blue/5 hover:border-accent-blue/30
-                                                       has-checked:ring-2 has-checked:ring-accent-blue has-checked:border-accent-blue/30 has-checked:bg-accent-blue/5">
-                                            <x-team-crest :team="$team" class="w-10 h-10 shrink-0" />
-                                            <span class="text-sm md:text-base font-medium text-text-body truncate">{{ $team->name }}</span>
-                                            <input x-bind:required="mode === 'career'" x-bind:disabled="mode !== 'career'" type="radio" name="team_id" value="{{ $team->id }}" class="hidden">
-                                        </label>
+                                        @if($team->isReserveTeam())
+                                            <div x-data x-tooltip.raw="{{ __('game.b_team_not_playable') }}"
+                                                 class="flex items-center gap-3 rounded-lg border border-border-default p-3 md:p-4 opacity-60 cursor-not-allowed">
+                                                <x-team-crest :team="$team" class="w-10 h-10 shrink-0" />
+                                                <span class="text-sm md:text-base font-medium text-text-muted truncate">{{ $team->name }}</span>
+                                            </div>
+                                        @else
+                                            <label class="flex items-center gap-3 rounded-lg border border-border-default p-3 md:p-4 cursor-pointer transition-all
+                                                           hover:bg-accent-blue/5 hover:border-accent-blue/30
+                                                           has-checked:ring-2 has-checked:ring-accent-blue has-checked:border-accent-blue/30 has-checked:bg-accent-blue/5">
+                                                <x-team-crest :team="$team" class="w-10 h-10 shrink-0" />
+                                                <span class="text-sm md:text-base font-medium text-text-body truncate">{{ $team->name }}</span>
+                                                <input x-bind:required="mode === 'career'" x-bind:disabled="mode !== 'career'" type="radio" name="team_id" value="{{ $team->id }}" class="hidden">
+                                            </label>
+                                        @endif
                                     @endforeach
                                 </div>
                             </div>
