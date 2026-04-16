@@ -374,7 +374,7 @@
                                             </div>
                                             <div class="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
                                                 <div class="md:text-right">
-                                                    <div class="text-xs text-text-muted">{{ __('transfers.expires_in_days', ['days' => $offer->days_until_expiry]) }}</div>
+                                                    <div class="text-xs text-text-muted">{{ trans_choice('transfers.expires_in_days', $offer->days_until_expiry) }}</div>
                                                 </div>
                                                 <form method="post" action="{{ route('game.loans.offers.accept', [$game->id, $offer->id]) }}">
                                                     @csrf
