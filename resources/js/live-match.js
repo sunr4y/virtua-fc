@@ -25,7 +25,8 @@ import {
 import { createPenaltyShootout } from './modules/penalty-shootout.js';
 import { createSubstitutionManager } from './modules/substitution-manager.js';
 import { createMatchSimulation } from './modules/match-simulation.js';
-import { generateRegularTimeAtmosphere, generateExtraTimeAtmosphere, generateTacticalNarratives, addGoalNarratives, regenerateShotsAndFouls, regenerateNarratives } from './modules/atmosphere-generator.js';
+import { createMatchStats } from './modules/match-stats.js';
+import { generateRegularTimeAtmosphere, generateExtraTimeAtmosphere, generateTacticalNarratives, addGoalNarratives, regenerateShots, regenerateNarratives } from './modules/atmosphere-generator.js';
 import { calculatePlayerRatings, ratingColor as _ratingColor, updateRosterPerformances, countEvents, buildSubstitutionMap, performanceToBaseRating } from './modules/player-ratings.js';
 
 /**
@@ -73,6 +74,7 @@ export default function liveMatch(config) {
     const subs = createSubstitutionManager(ctx);
     const penalties = createPenaltyShootout(ctx);
     const sim = createMatchSimulation(ctx);
+    const stats = createMatchStats(ctx);
 
     const component = {
         // Config (from server)
@@ -1054,10 +1056,10 @@ export default function liveMatch(config) {
                     }
                 }
 
-                // Regenerate atmosphere events (shots/fouls) for the remaining
-                // match period, now aware of substitutions.
+                // Regenerate atmosphere shot events for the remaining match
+                // period, now aware of substitutions.
                 const atmCfg = this._atmosphereConfig();
-                regenerateShotsAndFouls({
+                regenerateShots({
                     config: atmCfg,
                     target: isET ? this.extraTimeEvents : this.events,
                     availabilityEvents: isET ? [...this.events, ...this.extraTimeEvents] : this.events,
@@ -1226,13 +1228,13 @@ export default function liveMatch(config) {
             // as the fast-forward reveals them.
             this.events = this.events.filter(e => e.minute <= minute);
 
-            // Regenerate shots/fouls for the skipped-over window BEFORE merging
-            // the server's resimulated events, matching the tactical-change
+            // Regenerate shots for the skipped-over window BEFORE merging the
+            // server's resimulated events, matching the tactical-change
             // ordering (fresh shots aren't skewed by just-merged goals).
             // Skip-to-end is bounded to minute < 90 (guard above), so extra-time
             // atmosphere is out of scope here.
             const atmCfg = this._atmosphereConfig();
-            regenerateShotsAndFouls({
+            regenerateShots({
                 config: atmCfg,
                 target: this.events,
                 availabilityEvents: this.events,
@@ -1827,6 +1829,9 @@ export default function liveMatch(config) {
             }).length;
         },
 
+        // Synthetic stats (passes, corners, offsides, fouls) live in
+        // `modules/match-stats.js` and are mixed into the component below.
+
         // =============================
         // Energy / Stamina — delegated to pitch-renderer
         // =============================
@@ -1950,6 +1955,7 @@ export default function liveMatch(config) {
     mixinModule(component, subs);
     mixinModule(component, penalties);
     mixinModule(component, sim);
+    mixinModule(component, stats);
 
     return component;
 }

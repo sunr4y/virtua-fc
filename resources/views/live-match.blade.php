@@ -739,6 +739,15 @@
                             </div>
                         </div>
 
+                        {{-- Passes --}}
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-heading font-bold text-sm text-text-primary tabular-nums" x-text="getSyntheticPasses('home')"></span>
+                                <span class="text-[10px] text-text-muted uppercase tracking-wider">{{ __('game.live_stat_passes') }}</span>
+                                <span class="font-heading font-bold text-sm text-text-primary tabular-nums" x-text="getSyntheticPasses('away')"></span>
+                            </div>
+                        </div>
+
                         {{-- Goals --}}
                         <div>
                             <div class="flex items-center justify-between">
@@ -766,12 +775,30 @@
                             </div>
                         </div>
 
+                        {{-- Corners --}}
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-heading font-bold text-sm text-text-primary tabular-nums" x-text="getSyntheticCorners('home')"></span>
+                                <span class="text-[10px] text-text-muted uppercase tracking-wider">{{ __('game.live_stat_corners') }}</span>
+                                <span class="font-heading font-bold text-sm text-text-primary tabular-nums" x-text="getSyntheticCorners('away')"></span>
+                            </div>
+                        </div>
+
+                        {{-- Offsides --}}
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-heading font-bold text-sm text-text-primary tabular-nums" x-text="getSyntheticOffsides('home')"></span>
+                                <span class="text-[10px] text-text-muted uppercase tracking-wider">{{ __('game.live_stat_offsides') }}</span>
+                                <span class="font-heading font-bold text-sm text-text-primary tabular-nums" x-text="getSyntheticOffsides('away')"></span>
+                            </div>
+                        </div>
+
                         {{-- Fouls --}}
                         <div>
                             <div class="flex items-center justify-between mb-1.5">
-                                <span class="font-heading font-bold text-sm text-text-primary tabular-nums" x-text="getStatCount('foul', 'home')"></span>
+                                <span class="font-heading font-bold text-sm text-text-primary tabular-nums" x-text="getSyntheticFouls('home')"></span>
                                 <span class="text-[10px] text-text-muted uppercase tracking-wider">{{ __('game.live_stat_fouls') }}</span>
-                                <span class="font-heading font-bold text-sm text-text-primary tabular-nums" x-text="getStatCount('foul', 'away')"></span>
+                                <span class="font-heading font-bold text-sm text-text-primary tabular-nums" x-text="getSyntheticFouls('away')"></span>
                             </div>
                         </div>
 
