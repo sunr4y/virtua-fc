@@ -21,8 +21,6 @@ return new class extends Migration
             $table->unsignedInteger('attendance');
             $table->unsignedInteger('capacity_at_match');
 
-            $table->timestamp('created_at')->useCurrent();
-
             $table->foreign('game_id')->references('id')->on('games')->onDelete('cascade');
             $table->foreign('game_match_id')->references('id')->on('game_matches')->onDelete('cascade');
 

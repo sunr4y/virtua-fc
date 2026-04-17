@@ -18,7 +18,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $game_match_id
  * @property int $attendance
  * @property int $capacity_at_match
- * @property \Illuminate\Support\Carbon $created_at
  * @property-read \App\Models\Game $game
  * @property-read \App\Models\GameMatch $gameMatch
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MatchAttendance newModelQuery()
@@ -33,7 +32,7 @@ class MatchAttendance extends Model
 {
     use HasUuids;
 
-    const UPDATED_AT = null;
+    public $timestamps = false;
 
     protected $fillable = [
         'game_id',
@@ -45,7 +44,6 @@ class MatchAttendance extends Model
     protected $casts = [
         'attendance' => 'integer',
         'capacity_at_match' => 'integer',
-        'created_at' => 'datetime',
     ];
 
     public function game(): BelongsTo
