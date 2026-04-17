@@ -498,9 +498,9 @@
                         {{-- ============================== --}}
                         <div class="space-y-6">
 
-                            {{-- EXPIRING CONTRACTS --}}
+                            {{-- CONTRACT RENEWALS --}}
                             @if($renewalEligiblePlayers->isNotEmpty() || $cooldownRenewals->isNotEmpty())
-                            <x-section-card :title="__('transfers.expiring_contracts_section')">
+                            <x-section-card :title="__('transfers.contract_renewals_section')">
                                 <x-slot name="badge">
                                     <span class="text-xs text-text-secondary">({{ $renewalEligiblePlayers->count() + $cooldownRenewals->count() }})</span>
                                 </x-slot>
@@ -515,9 +515,11 @@
                                             </tr>
                                         </thead>
                                         <tbody>
+                                        @php $seasonEndDate = $game->getSeasonEndDate(); @endphp
                                         @foreach($renewalEligiblePlayers as $player)
                                         @php
                                             $hasPendingOffer = $preContractOffers->where('game_player_id', $player->id)->isNotEmpty();
+                                            $isExpiring = $player->isContractExpiring($seasonEndDate);
                                         @endphp
                                         @php
                                             $posDisp = $player->position_display;
@@ -541,12 +543,15 @@
                                                 <x-position-badge :position="$player->position" size="sm" />
                                             </td>
                                             <td class="py-2.5 pl-2 pr-3">
-                                                <div>
+                                                <div class="flex items-center gap-1.5">
                                                     <span class="font-medium text-text-primary truncate">{{ $player->player->name }}</span>
-                                                    @if($hasPendingOffer)
-                                                        <div class="text-xs text-accent-gold">{{ __('squad.has_pre_contract_offers') }}</div>
+                                                    @if($player->contract_expiry_year)
+                                                        <span class="text-[10px] tabular-nums shrink-0 {{ $isExpiring ? 'text-accent-red font-medium' : 'text-text-muted' }}">{{ $player->contract_expiry_year }}</span>
                                                     @endif
                                                 </div>
+                                                @if($hasPendingOffer)
+                                                    <div class="text-xs text-accent-gold">{{ __('squad.has_pre_contract_offers') }}</div>
+                                                @endif
                                             </td>
                                             <td class="py-2.5 text-center text-text-secondary tabular-nums hidden md:table-cell">{{ $player->age($game->current_date) }}</td>
                                             <td class="py-2.5 text-center text-text-secondary tabular-nums hidden md:table-cell pr-4">{{ $player->formatted_wage }}</td>

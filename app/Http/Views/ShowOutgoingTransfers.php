@@ -145,8 +145,7 @@ class ShowOutgoingTransfers
                 ->where('game_id', $gameId)
                 ->ownedByTeam($game->team_id)
                 ->whereIn('id', $cooldownPlayerIds)
-                ->get()
-                ->filter(fn (GamePlayer $p) => $p->isContractExpiring($seasonEndDate));
+                ->get();
         }
 
         return view('outgoing-transfers', [

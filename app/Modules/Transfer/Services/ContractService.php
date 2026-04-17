@@ -273,8 +273,12 @@ class ContractService
 
         $seasonYear = (int) $game->season;
 
-        // New contract ends in June of (current season + contract years)
+        // New contract ends in June of (current season + contract years).
+        // Never shorten an existing contract — early renewals only extend or adjust wages.
         $newContractEnd = \Carbon\Carbon::createFromDate($seasonYear + $contractYears + 1, 6, 30);
+        if ($player->contract_until && $newContractEnd->lt($player->contract_until)) {
+            $newContractEnd = $player->contract_until->copy();
+        }
 
         $player->update([
             'contract_until' => $newContractEnd,

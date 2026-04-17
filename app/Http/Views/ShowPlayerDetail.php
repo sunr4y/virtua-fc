@@ -26,7 +26,7 @@ class ShowPlayerDetail
         $renewalNegotiation = null;
         $renewalCooldown = false;
 
-        if ($game->isCareerMode() && $gamePlayer->isContractExpiring()) {
+        if ($game->isCareerMode() && $gamePlayer->contract_until) {
             $renewalNegotiation = RenewalNegotiation::where('game_player_id', $gamePlayer->id)
                 ->where('status', RenewalNegotiation::STATUS_PLAYER_COUNTERED)
                 ->first();

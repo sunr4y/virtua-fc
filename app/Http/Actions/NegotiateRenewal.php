@@ -7,6 +7,7 @@ use App\Models\GamePlayer;
 use App\Models\RenewalNegotiation;
 use App\Modules\Transfer\Enums\NegotiationScenario;
 use App\Modules\Transfer\Services\ContractService;
+use App\Modules\Transfer\Services\DispositionService;
 use App\Support\Money;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ class NegotiateRenewal
 
     public function __construct(
         private readonly ContractService $contractService,
+        private readonly DispositionService $dispositionService,
     ) {}
 
     public function __invoke(Request $request, string $gameId, string $playerId): JsonResponse
@@ -95,6 +97,23 @@ class NegotiateRenewal
                 'status' => 'error',
                 'message' => __('messages.cannot_renew'),
             ], 422);
+        }
+
+        // Player with plenty of contract left and good morale won't engage in talks.
+        if (!$this->dispositionService->isWillingToNegotiateRenewal($player)) {
+            return response()->json([
+                'status' => 'ok',
+                'negotiation_status' => 'rejected',
+                'round' => 0,
+                'max_rounds' => self::MAX_ROUNDS,
+                'messages' => [
+                    $this->agentMessage('rejected', [
+                        'text' => __('transfers.chat_agent_not_interested', [
+                            'player' => $player->name,
+                        ]),
+                    ]),
+                ],
+            ]);
         }
 
         $demand = $this->contractService->calculateWageDemand($player, NegotiationScenario::RENEWAL);

@@ -49,6 +49,19 @@ class DispositionService
 
     private const AMBITION_PENALTY_PER_TIER_GAP = 0.12;
 
+    /**
+     * Minimum years remaining on a contract before a content player shows
+     * reluctance to renegotiate. Players with fewer years left always engage.
+     */
+    public const RENEWAL_LONG_CONTRACT_YEARS = 3;
+
+    /**
+     * Morale threshold above which a player on a long contract is considered
+     * content enough to decline renegotiation talks. Below this, the player
+     * will always entertain talks (wage bump opportunity).
+     */
+    public const RENEWAL_CONTENT_MORALE_THRESHOLD = 60;
+
     // =========================================
     // PLAYER IMPORTANCE
     // =========================================
@@ -193,6 +206,29 @@ class DispositionService
         }
 
         return max(0.10, min(0.95, $disposition));
+    }
+
+    /**
+     * Decide whether a player is willing to sit down for contract renewal talks at all.
+     *
+     * Gates the opening of the negotiation before any wage demand is computed.
+     * A content player (morale ≥ threshold) with plenty of contract left has no
+     * incentive to renegotiate. An unhappy player, or one nearing the end of
+     * their deal, will always engage.
+     */
+    public function isWillingToNegotiateRenewal(GamePlayer $player): bool
+    {
+        if (!$player->contract_until) {
+            return true;
+        }
+
+        $yearsRemaining = $player->game->current_date->diffInYears($player->contract_until);
+
+        if ($yearsRemaining < self::RENEWAL_LONG_CONTRACT_YEARS) {
+            return true;
+        }
+
+        return $player->morale < self::RENEWAL_CONTENT_MORALE_THRESHOLD;
     }
 
     // ── Disposition factor helpers ──

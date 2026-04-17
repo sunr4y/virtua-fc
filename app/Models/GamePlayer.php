@@ -500,13 +500,13 @@ class GamePlayer extends Model
 
     /**
      * Check if player can be offered a contract renewal.
-     * Only for players with expiring contracts who haven't already agreed to leave.
+     * Any squad player can be renewed (early or expiring), unless blocked by another condition.
      *
-     * @param Carbon|null $seasonEndDate The season end date. If null, calculated from game.
+     * @param Carbon|null $seasonEndDate Unused, kept for call-site compatibility.
      */
     public function canBeOfferedRenewal(?Carbon $seasonEndDate = null, ?Carbon $currentDate = null): bool
     {
-        if (!$this->isContractExpiring($seasonEndDate)) {
+        if (!$this->contract_until) {
             return false;
         }
 
