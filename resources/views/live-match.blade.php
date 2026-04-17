@@ -78,6 +78,9 @@
                 homeLineupRoster: {{ Js::from($homeLineupDisplay) }},
                 awayLineupRoster: {{ Js::from($awayLineupDisplay) }},
                 venueName: {{ Js::from($match->homeTeam->stadium_name ?? '') }},
+                venueEnPhrase: {{ Js::from(\App\Support\StadiumGrammar::withEn($match->homeTeam->stadium_name ?? '')) }},
+                venueElPhrase: {{ Js::from(\App\Support\StadiumGrammar::withEl($match->homeTeam->stadium_name ?? '')) }},
+                venueDePhrase: {{ Js::from(\App\Support\StadiumGrammar::withDe($match->homeTeam->stadium_name ?? '')) }},
                 attendance: @js($attendance ?? null),
                 attendanceCapacity: @js($attendanceCapacity ?? null),
                 attendancePercent: @js($attendancePercent ?? null),
@@ -87,6 +90,12 @@
                 freeSubWindowMinutes: @js(config('match_simulation.free_sub_window_minutes', [45, 90, 105])),
                 matchId: '{{ $match->id }}',
                 animationSeen: {{ $animationSeen ? 'true' : 'false' }},
+                homeForm: @js($homeForm),
+                awayForm: @js($awayForm),
+                homePosition: @js($homePosition),
+                awayPosition: @js($awayPosition),
+                competitionRole: @js($competitionRole),
+                competitionName: @js($competitionName),
                 translations: {
                     unsavedTacticalChanges: {!! Js::from(__('game.tactical_unsaved_changes')) !!},
                     extraTime: {!! Js::from(__('game.live_extra_time')) !!},
@@ -521,6 +530,16 @@
                     {{-- Events Feed --}}
                     <div>
                         <div class="space-y-1 max-h-96 overflow-y-auto" id="events-feed">
+
+                            {{-- Match summary (full-time event in the feed) --}}
+                            <template x-if="matchSummary && phase === 'full_time'">
+                                <div class="px-3 py-3 border-l-2 border-l-transparent">
+                                    <div class="flex gap-2 items-baseline w-full">
+                                        <span class="font-heading font-bold text-xs text-text-muted w-8 text-right shrink-0 tabular-nums">90'</span>
+                                        <span class="text-sm text-text-secondary leading-relaxed italic" x-text="matchSummary"></span>
+                                    </div>
+                                </div>
+                            </template>
 
                             {{-- Penalty kicks display --}}
                             <template x-if="penaltyKicks.length > 0 && (phase === 'penalties' || phase === 'full_time')">
