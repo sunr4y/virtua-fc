@@ -2,6 +2,7 @@
 
 namespace App\Modules\Academy\Services;
 
+use App\Modules\Squad\Configs\TeamRegionalOrigins;
 use App\Modules\Squad\DTOs\GeneratedPlayerData;
 use App\Models\AcademyPlayer;
 use App\Models\Game;
@@ -435,7 +436,15 @@ class YouthAcademyService
         $teamName = $game->team->name;
         $nationalityFilter = self::CANTERA_TEAMS[$teamName] ?? null;
         $teamCountry = $nationalityFilter ? null : $game->team->country;
-        $identity = $this->playerGenerator->pickRandomIdentity($nationalityFilter, $teamCountry, $excludedNames);
+        // Basque / Catalan clubs draw on custom Faker providers instead of es_ES
+        // so their canteranos get regional names (Etxeberria, Fàbregas, …).
+        $region = TeamRegionalOrigins::regionFor($teamName);
+        $identity = $this->playerGenerator->pickRandomIdentity(
+            $nationalityFilter,
+            $teamCountry,
+            $excludedNames,
+            $region,
+        );
 
         return AcademyPlayer::create([
             'id' => Str::uuid()->toString(),
@@ -479,24 +488,25 @@ class YouthAcademyService
     }
 
     /**
-     * Get names of existing first-team and academy players (to prevent duplicate names).
+     * Get names of every existing player in the game — all first-team squads
+     * (any team, plus free agents) and all academy rosters. Game-wide scope is
+     * required so that a new canterano's name doesn't collide with a player on
+     * another team (issue #819).
      *
      * @return string[]
      */
     private function getExistingPlayerNames(Game $game): array
     {
-        $firstTeamNames = GamePlayer::where('game_id', $game->id)
-            ->where('team_id', $game->team_id)
+        $playerNames = GamePlayer::where('game_players.game_id', $game->id)
             ->join('players', 'game_players.player_id', '=', 'players.id')
             ->pluck('players.name')
             ->toArray();
 
         $academyNames = AcademyPlayer::where('game_id', $game->id)
-            ->where('team_id', $game->team_id)
             ->pluck('name')
             ->toArray();
 
-        return array_merge($firstTeamNames, $academyNames);
+        return array_merge($playerNames, $academyNames);
     }
 
     private function selectPosition(): string

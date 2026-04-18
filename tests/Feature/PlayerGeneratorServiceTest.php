@@ -222,4 +222,105 @@ class PlayerGeneratorServiceTest extends TestCase
         $this->assertNotNull($gamePlayer->durability);
         $this->assertGreaterThan(0, $gamePlayer->durability);
     }
+
+    /**
+     * Regression test for issue #819: a generated player must not reuse a name
+     * belonging to any other team in the same game. Previously the exclusion
+     * check was team-scoped, so Málaga's canteranos could collide with Crystal
+     * Palace's squad. With game-wide scope plus Faker, the retry loop should
+     * always produce a non-colliding name.
+     */
+    public function test_generated_name_does_not_collide_with_other_team_players(): void
+    {
+        $service = app(PlayerGeneratorService::class);
+
+        $otherTeam = Team::factory()->create();
+
+        $conflictingPlayer = Player::create([
+            'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'transfermarkt_id' => 'tm-conflict-1',
+            'name' => 'Diego García Pérez',
+            'nationality' => ['Spain'],
+            'date_of_birth' => '1998-03-14',
+            'technical_ability' => 70,
+            'physical_ability' => 70,
+        ]);
+
+        GamePlayer::create([
+            'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'game_id' => $this->game->id,
+            'player_id' => $conflictingPlayer->id,
+            'team_id' => $otherTeam->id,
+            'position' => 'Central Midfield',
+            'market_value_cents' => 1_000_000_00,
+            'contract_until' => Carbon::createFromDate(2026, 6, 30),
+            'annual_wage' => 100_000_00,
+            'durability' => 80,
+            'game_technical_ability' => 70,
+            'game_physical_ability' => 70,
+            'potential' => 75,
+            'potential_low' => 70,
+            'potential_high' => 80,
+            'tier' => 2,
+        ]);
+
+        // The excluded list returned by the generator's internal lookup should
+        // include players from every team in the game, not just $this->team.
+        for ($i = 0; $i < 20; $i++) {
+            $identity = $service->pickRandomIdentity(
+                nationality: 'Spain',
+                excludedNames: ['Diego García Pérez'],
+            );
+
+            $this->assertNotSame('Diego García Pérez', $identity['name']);
+        }
+    }
+
+    public function test_basque_region_produces_basque_names_with_spanish_nationality(): void
+    {
+        $service = app(PlayerGeneratorService::class);
+
+        $basqueSurnames = $this->reflectPool(
+            \App\Support\Faker\Provider\eu_ES\Person::class,
+            'lastName',
+        );
+
+        for ($i = 0; $i < 20; $i++) {
+            $identity = $service->pickRandomIdentity(region: 'basque');
+
+            [, $lastName] = explode(' ', $identity['name'], 2);
+            $this->assertContains($lastName, $basqueSurnames);
+            // Region flag forces Spanish nationality on the data layer.
+            $this->assertSame(['Spain'], $identity['nationality']);
+        }
+    }
+
+    public function test_catalan_region_produces_catalan_names_with_spanish_nationality(): void
+    {
+        $service = app(PlayerGeneratorService::class);
+
+        $catalanSurnames = $this->reflectPool(
+            \App\Support\Faker\Provider\ca_ES\Person::class,
+            'lastName',
+        );
+
+        for ($i = 0; $i < 20; $i++) {
+            $identity = $service->pickRandomIdentity(region: 'catalan');
+
+            [, $lastName] = explode(' ', $identity['name'], 2);
+            $this->assertContains($lastName, $catalanSurnames);
+            $this->assertSame(['Spain'], $identity['nationality']);
+        }
+    }
+
+    /**
+     * @return string[]
+     */
+    private function reflectPool(string $providerClass, string $property): array
+    {
+        $prop = new \ReflectionProperty($providerClass, $property);
+        $prop->setAccessible(true);
+
+        return $prop->getValue();
+    }
 }
