@@ -269,6 +269,7 @@
                         <template x-if="phase === 'full_time' && hasExtraTime && !penaltyResult">
                             <div class="text-xs text-text-secondary mt-1">({{ __('game.live_aet') }})</div>
                         </template>
+
                     </div>
 
                     {{-- Timeline Bar --}}
