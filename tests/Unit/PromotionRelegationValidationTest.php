@@ -4,13 +4,15 @@ namespace Tests\Unit;
 
 use App\Models\Competition;
 use App\Models\CompetitionEntry;
+use App\Models\CupTie;
 use App\Models\Game;
 use App\Models\GameStanding;
 use App\Models\SimulatedSeason;
 use App\Models\Team;
 use App\Models\User;
+use App\Modules\Competition\Enums\PlayoffState;
+use App\Modules\Competition\Exceptions\PlayoffInProgressException;
 use App\Modules\Competition\Promotions\ConfigDrivenPromotionRule;
-use App\Modules\Competition\Promotions\PromotionRelegationFactory;
 use App\Modules\Competition\Services\ReserveTeamFilter;
 use App\Modules\Report\Services\SeasonSummaryService;
 use App\Modules\Season\Processors\SeasonSimulationProcessor;
@@ -40,6 +42,24 @@ class PromotionRelegationValidationTest extends TestCase
             'competition_id' => 'ESP1',
             'season' => '2025',
         ]);
+
+        // Promotion rules require the top division to have CompetitionEntry
+        // rows so reserve-team filtering has a reference set. Seed a minimal
+        // 20-team roster here so individual tests don't have to care.
+        $this->seedTopDivisionRoster();
+    }
+
+    private function seedTopDivisionRoster(): void
+    {
+        for ($i = 0; $i < 20; $i++) {
+            $team = Team::factory()->create();
+            CompetitionEntry::create([
+                'game_id' => $this->game->id,
+                'competition_id' => 'ESP1',
+                'team_id' => $team->id,
+                'entry_round' => 1,
+            ]);
+        }
     }
 
     private function createStandings(string $competitionId, int $count): array
@@ -418,5 +438,130 @@ class PromotionRelegationValidationTest extends TestCase
 
         $this->assertNotNull($simulated);
         $this->assertCount(22, $simulated->results);
+    }
+
+
+    // ──────────────────────────────────────────────────
+    // Playoff state machine — the regression-proofing for Bug B
+    // ("Real Zaragoza lost the semifinal but was still promoted")
+    // ──────────────────────────────────────────────────
+
+    public function test_playoff_in_progress_throws_instead_of_silently_promoting_next_position(): void
+    {
+        // Regression test for the bug where a player lost their playoff
+        // semifinal but was still shown as promoted because the rule saw
+        // "no playoff winner" and fell back to promoting position 3.
+        $this->createStandings('ESP2', 22);
+
+        $rule = new ConfigDrivenPromotionRule(
+            topDivision: 'ESP1',
+            bottomDivision: 'ESP2',
+            relegatedPositions: [18, 19, 20],
+            directPromotionPositions: [1, 2],
+            playoffGenerator: new FakePlayoffGenerator(PlayoffState::InProgress),
+        );
+
+        $this->expectException(PlayoffInProgressException::class);
+        $rule->getPromotedTeams($this->game);
+    }
+
+    public function test_playoff_completed_but_no_winner_throws_invariant_violation(): void
+    {
+        $this->createStandings('ESP2', 22);
+
+        // PlayoffState::Completed but no CupTie rows actually exist → data
+        // invariant violation. Must throw rather than fall back.
+        $rule = new ConfigDrivenPromotionRule(
+            topDivision: 'ESP1',
+            bottomDivision: 'ESP2',
+            relegatedPositions: [18, 19, 20],
+            directPromotionPositions: [1, 2],
+            playoffGenerator: new FakePlayoffGenerator(PlayoffState::Completed),
+        );
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('state=Completed');
+        $rule->getPromotedTeams($this->game);
+    }
+
+    public function test_playoff_not_started_uses_next_eligible_stand_in(): void
+    {
+        // Simulated non-player league: pos 1-2 direct, pos 3 stands in for
+        // the playoff winner (reserve-filtered). This path is legitimate.
+        $teams = $this->createStandings('ESP2', 22);
+
+        $rule = new ConfigDrivenPromotionRule(
+            topDivision: 'ESP1',
+            bottomDivision: 'ESP2',
+            relegatedPositions: [18, 19, 20],
+            directPromotionPositions: [1, 2],
+            playoffGenerator: new FakePlayoffGenerator(PlayoffState::NotStarted),
+        );
+
+        $promoted = $rule->getPromotedTeams($this->game);
+        $this->assertCount(3, $promoted);
+        $positions = array_column($promoted, 'position');
+        $this->assertEquals([1, 2, 3], $positions);
+    }
+
+    public function test_playoff_completed_uses_winner_not_next_position(): void
+    {
+        $teams = $this->createStandings('ESP2', 22);
+
+        // Create a completed final CupTie — positions 1 and 2 directly promoted,
+        // position 3 (who lost in the final) must NOT be promoted.
+        $winner = Team::factory()->create(['name' => 'Playoff Winner']);
+        $loser = $teams[2]; // position 3
+        CupTie::create([
+            'game_id' => $this->game->id,
+            'competition_id' => 'ESP2',
+            'round_number' => 2,
+            'home_team_id' => $winner->id,
+            'away_team_id' => $loser->id,
+            'winner_id' => $winner->id,
+            'completed' => true,
+            'resolution' => ['type' => 'aggregate'],
+        ]);
+
+        $rule = new ConfigDrivenPromotionRule(
+            topDivision: 'ESP1',
+            bottomDivision: 'ESP2',
+            relegatedPositions: [18, 19, 20],
+            directPromotionPositions: [1, 2],
+            playoffGenerator: new FakePlayoffGenerator(PlayoffState::Completed),
+        );
+
+        $promoted = $rule->getPromotedTeams($this->game);
+        $this->assertCount(3, $promoted);
+        $promotedIds = array_column($promoted, 'teamId');
+        $this->assertContains($winner->id, $promotedIds);
+        $this->assertNotContains($loser->id, $promotedIds, 'Playoff loser must not be promoted');
+    }
+
+    // ──────────────────────────────────────────────────
+    // Unfiltered fallback removed — the regression-proofing for Bug A
+    // ("Real Sociedad B promoted while Real Sociedad was in La Liga")
+    // ──────────────────────────────────────────────────
+
+    public function test_empty_top_division_throws_instead_of_bypassing_reserve_filter(): void
+    {
+        // Wipe the top-division roster that setUp seeded to simulate the
+        // pathological state where reserve-team filtering has no reference.
+        CompetitionEntry::where('game_id', $this->game->id)
+            ->where('competition_id', 'ESP1')
+            ->delete();
+
+        $this->createStandings('ESP2', 22);
+
+        $rule = new ConfigDrivenPromotionRule(
+            topDivision: 'ESP1',
+            bottomDivision: 'ESP2',
+            relegatedPositions: [18, 19, 20],
+            directPromotionPositions: [1, 2],
+        );
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Top division ESP1 has no CompetitionEntry rows');
+        $rule->getPromotedTeams($this->game);
     }
 }
