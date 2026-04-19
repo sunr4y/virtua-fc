@@ -258,13 +258,14 @@
                                                             ? 'bg-accent-red/10 border border-accent-red/20 text-accent-red'
                                                             : 'bg-surface-800 border border-border-strong hover:border-border-strong text-text-body'"
                                                     >
-                                                        <span class="inline-flex items-center justify-center w-5 h-5 text-[8px] -skew-x-12 font-semibold text-white shrink-0"
-                                                              :class="getPositionBadgeColor(player.positionGroup)">
-                                                            <span class="skew-x-12" x-text="player.positionAbbr"></span>
-                                                        </span>
-                                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-semibold shrink-0"
-                                                              :class="getOvrBadgeClasses(player.overallScore)"
-                                                              x-text="player.overallScore"></span>
+                                                        <div class="flex items-center gap-0.5 shrink-0">
+                                                            <template x-for="pos in (player.positions || [player.position])" :key="pos">
+                                                                <span class="inline-flex items-center justify-center w-5 h-5 text-[8px] -skew-x-12 font-semibold text-white"
+                                                                      :class="getSecondaryBadgeClasses(pos)">
+                                                                    <span class="skew-x-12" x-text="getSecondaryAbbr(pos)"></span>
+                                                                </span>
+                                                            </template>
+                                                        </div>
                                                         <span class="flex-1 truncate font-medium" x-text="player.name"></span>
                                                         {{-- Yellow card indicator --}}
                                                         <span x-show="isPlayerYellowCarded(player.id)"
@@ -272,12 +273,11 @@
                                                               class="shrink-0 w-2 h-3 rounded-[1px] bg-yellow-400 border border-yellow-500"></span>
                                                         {{-- Live match rating (performance-only, shown when data is available) --}}
                                                         <span x-show="getBaseRating(player.id) !== null"
-                                                              class="ml-auto inline-flex items-center justify-center min-w-[1.5rem] h-5 rounded-full px-1 text-[9px] font-semibold shrink-0"
+                                                              class="inline-flex items-center justify-center min-w-[1.5rem] h-5 rounded-full px-1 text-[9px] font-semibold shrink-0"
                                                               :class="ratingColor(getBaseRating(player.id))"
                                                               x-text="getBaseRating(player.id)?.toFixed(1)"></span>
                                                         {{-- Energy bar --}}
-                                                        <span class="flex items-center gap-1 shrink-0"
-                                                              :class="getBaseRating(player.id) === null ? 'ml-auto' : ''">
+                                                        <span class="flex items-center gap-1 shrink-0">
                                                             <span class="text-[10px] tabular-nums font-semibold"
                                                                   :class="getEnergyTextColor(getPlayerEnergy(player))"
                                                                   x-text="getPlayerEnergy(player) + '%'"></span>
@@ -288,6 +288,10 @@
                                                                       :style="'width:' + getPlayerEnergy(player) + '%'"></span>
                                                             </span>
                                                         </span>
+                                                        {{-- OVR badge --}}
+                                                        <span class="rating-badge w-7 h-7 rounded-md text-xs flex items-center justify-center font-heading font-bold shrink-0"
+                                                              :class="getRatingBadgeClass(player.overallScore)"
+                                                              x-text="player.overallScore"></span>
                                                     </button>
                                                 </template>
                                             </div>
@@ -327,8 +331,8 @@
                                                             </span>
                                                         </span>
                                                         {{-- OVR badge with morale tooltip --}}
-                                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-semibold shrink-0"
-                                                              :class="getOvrBadgeClasses(player.overallScore)"
+                                                        <span class="rating-badge w-7 h-7 rounded-md text-xs flex items-center justify-center font-heading font-bold shrink-0"
+                                                              :class="getRatingBadgeClass(player.overallScore)"
                                                               :x-tooltip="'{{ __('game.ovr_morale') }}: ' + player.morale"
                                                               x-text="player.overallScore"></span>
                                                     </button>
