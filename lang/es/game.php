@@ -497,6 +497,18 @@ return [
     'stadium' => 'Estadio',
     'seats' => ':count localidades',
 
+    // Fast mode (assistant coach)
+    'fast_mode' => 'Modo rápido',
+    'fast_mode_title' => '¿Activar el modo rápido?',
+    'fast_mode_explanation' => 'Tu entrenador asistente elegirá la alineación y hará los cambios durante el partido por ti, respetando tu formación e instrucciones tácticas. Puedes recuperar el control cuando quieras.',
+    'fast_mode_enter' => 'Activar modo rápido',
+    'fast_mode_exit' => 'Salir del modo rápido',
+    'fast_mode_simulate_next' => 'Simular próximo partido',
+    'fast_mode_active_badge' => 'Modo rápido · toca para salir',
+    'fast_mode_no_last_match' => 'Simula tu próximo partido para ver el resultado aquí.',
+    'fast_mode_menu_title' => 'Delegar en el entrenador asistente',
+    'last_result' => 'Último resultado',
+
     // Pre-season
     'pre_season' => 'Pretemporada',
     'pre_season_friendly' => 'Amistoso',

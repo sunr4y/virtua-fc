@@ -43,12 +43,12 @@ class MatchdayOrchestrator
         private readonly AIMatchResolver $aiMatchResolver = new AIMatchResolver,
     ) {}
 
-    public function advance(Game $game): MatchdayAdvanceResult
+    public function advance(Game $game, bool $fastForward = false): MatchdayAdvanceResult
     {
         $this->careerActionTicks = 0;
         $this->ensuredTeamIds = [];
 
-        $result = DB::transaction(function () use ($game) {
+        $result = DB::transaction(function () use ($game, $fastForward) {
             // Lock the game row to prevent concurrent matchday advancement
             $game = Game::where('id', $game->id)->lockForUpdate()->first();
 
@@ -62,8 +62,13 @@ class MatchdayOrchestrator
                 return MatchdayAdvanceResult::blocked(null);
             }
 
-            // Block advancement if there are pending actions the user must resolve
-            if ($game->hasPendingActions()) {
+            // Block advancement on pending actions in the normal flow — the
+            // user must resolve them before the season calendar ticks. Fast
+            // mode opts out: each click plays a single match, and the
+            // fast-mode view itself surfaces pending actions via an inline
+            // banner so the user can resolve them between clicks or ignore
+            // them and keep simulating.
+            if (! $fastForward && $game->hasPendingActions()) {
                 return MatchdayAdvanceResult::blocked($game->getFirstPendingAction());
             }
 
@@ -77,11 +82,29 @@ class MatchdayOrchestrator
                     fn ($m) => $m->involvesTeam($game->team_id)
                 );
 
-                // When the player's match is in the batch, only simulate their match
-                // — sibling AI matches are deferred to background processing
-                $result = $this->processBatch($game, $batch, $batchHasPlayerMatch);
+                // Normal flow: defer sibling AI matches when the user's match is
+                // present (they run in the background while the user plays live).
+                // Fast mode: simulate all matches in the batch inline — there is
+                // no live UI to wait for, so deferral would leave dangling work.
+                $playerMatchOnly = $batchHasPlayerMatch && ! $fastForward;
+
+                $result = $this->processBatch($game, $batch, $playerMatchOnly, $fastForward);
 
                 if ($result['playerMatch']) {
+                    if ($fastForward) {
+                        // Finalize the user's match in-place — no live-UI handoff.
+                        // This advances current_date forward and fires
+                        // GameDateAdvanced listeners (transfer windows, squad
+                        // enrollment, wage-gap drip, etc.) exactly as in the
+                        // normal flow.
+                        $playerMatch = GameMatch::find($result['playerMatch']->id);
+                        if ($playerMatch) {
+                            $this->finalizationService->finalize($playerMatch, $game->refresh());
+                        }
+
+                        return MatchdayAdvanceResult::done();
+                    }
+
                     return MatchdayAdvanceResult::liveMatch($result['playerMatch']->id);
                 }
 
@@ -135,7 +158,7 @@ class MatchdayOrchestrator
      *
      * @return array{playerMatch: ?GameMatch}
      */
-    private function processBatch(Game $game, array $batch, bool $playerMatchOnly = false): array
+    private function processBatch(Game $game, array $batch, bool $playerMatchOnly = false, bool $fastForward = false): array
     {
         $matches = $batch['matches'];
         $handlers = $batch['handlers'];
@@ -239,7 +262,10 @@ class MatchdayOrchestrator
             $matchResults = $this->aiMatchResolver->resolveMatches($matches, $allPlayers, $game, $suspendedByCompetition);
         } else {
             // --- Full simulation path (player-involved batches) ---
-            $resolution = $this->fullMatchSimulation->resolveMatches($matches, $game, $allPlayers, $suspendedByCompetition);
+            // Fast mode rides this same path — the live-match engine — but
+            // delegates the user's in-match substitutions to the assistant
+            // coach (AISubstitutionService) since there is no live UI.
+            $resolution = $this->fullMatchSimulation->resolveMatches($matches, $game, $allPlayers, $suspendedByCompetition, $fastForward);
             $matchResults = $resolution['matchResults'];
             $playerMatch = $resolution['playerMatch'];
         }

@@ -497,6 +497,18 @@ return [
     'stadium' => 'Stadium',
     'seats' => ':count seats',
 
+    // Fast mode (assistant coach)
+    'fast_mode' => 'Fast mode',
+    'fast_mode_title' => 'Enable fast mode?',
+    'fast_mode_explanation' => 'Your assistant coach will pick the lineup and handle in-match substitutions for you, using your saved formation and tactical instructions. You can regain control at any time.',
+    'fast_mode_enter' => 'Enter fast mode',
+    'fast_mode_exit' => 'Exit fast mode',
+    'fast_mode_simulate_next' => 'Simulate next match',
+    'fast_mode_active_badge' => 'Fast mode · tap to exit',
+    'fast_mode_no_last_match' => 'Simulate your next match to see the result here.',
+    'fast_mode_menu_title' => 'Delegate to assistant coach',
+    'last_result' => 'Last result',
+
     // Pre-season
     'pre_season' => 'Pre-Season',
     'pre_season_friendly' => 'Friendly',
