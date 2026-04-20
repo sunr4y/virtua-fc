@@ -16,7 +16,6 @@ use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\GamePlayerMatchState;
 use App\Models\TeamReputation;
-use App\Modules\Player\Support\GamePlayerScopeResolver;
 use App\Modules\Stadium\Services\FanLoyaltyService;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
@@ -310,22 +309,13 @@ class SetupNewGame implements ShouldQueue, ShouldBeUnique
 
         $gameId = $this->gameId;
 
-        // Determine the active team set so we know which players need a
-        // game_player_match_state satellite row at seed time. Players whose
-        // team is outside the active scope (foreign-league transfer pool) get
-        // no satellite row — see GamePlayerScopeResolver for the rules.
-        $game = Game::find($gameId);
-        $activeTeamIds = array_flip(
-            app(GamePlayerScopeResolver::class)->activeTeamIdsForGame($game)
-        );
-
         DB::table('game_player_templates')
             ->where('season', $this->season)
             ->whereNotIn('team_id', function ($query) {
                 $query->select('id')->from('teams')->where('type', 'national');
             })
             ->orderBy('player_id')
-            ->chunk(200, function ($templates) use ($gameId, $activeTeamIds) {
+            ->chunk(200, function ($templates) use ($gameId) {
                 $rows = [];
                 $matchStateRows = [];
 
@@ -353,19 +343,17 @@ class SetupNewGame implements ShouldQueue, ShouldBeUnique
                         'tier' => $t->tier,
                     ];
 
-                    // Active-scope players get a satellite row carrying their
-                    // initial fitness/morale from the template. Pool players
-                    // (foreign leagues) skip this — they never participate in
-                    // simulated matches, so their hot-write columns stay at
-                    // GamePlayerMatchState::DEFAULTS via the accessor delegates.
-                    if (isset($activeTeamIds[$t->team_id])) {
-                        $matchStateRows[] = [
-                            'game_player_id' => $gamePlayerId,
-                            'game_id' => $gameId,
-                            'fitness' => $t->fitness,
-                            'morale' => $t->morale,
-                        ];
-                    }
+                    // Every game_player gets a satellite row. Pool players
+                    // (foreign leagues) carry template defaults they never read
+                    // in practice, but keeping the invariant "every game_player
+                    // has a matchState row" removes the need for the lazy
+                    // ensureExistForGamePlayers path at matchday time.
+                    $matchStateRows[] = [
+                        'game_player_id' => $gamePlayerId,
+                        'game_id' => $gameId,
+                        'fitness' => $t->fitness,
+                        'morale' => $t->morale,
+                    ];
                 }
 
                 if (!empty($rows)) {
