@@ -72,9 +72,22 @@ class MvpCalculator
         $yellowCards = [];
         $redCards = [];
 
+        // Entry/exit minutes for each player. Starters default to 0 entry; everyone
+        // defaults to matchLength exit unless they're subbed off or red-carded.
+        // Detect extra time by checking for events past regulation stoppage (minute 93).
+        $entryMinutes = [];
+        $exitMinutes = [];
+        $matchLength = 90;
+
         foreach ($events as $event) {
             $type = $event->type ?? $event->event_type ?? null;
             $playerId = $event->gamePlayerId ?? $event->game_player_id ?? null;
+            $minute = $event->minute ?? 0;
+            $metadata = $event->metadata ?? null;
+
+            if ($minute > 93) {
+                $matchLength = 120;
+            }
 
             if (! $playerId) {
                 continue;
@@ -87,24 +100,49 @@ class MvpCalculator
                 'red_card' => $redCards[$playerId] = ($redCards[$playerId] ?? 0) + 1,
                 default => null,
             };
+
+            if ($type === 'substitution') {
+                $exitMinutes[$playerId] = $minute;
+                $playerInId = $metadata['player_in_id'] ?? null;
+                if ($playerInId) {
+                    $entryMinutes[$playerInId] = $minute;
+                }
+            } elseif ($type === 'red_card') {
+                $exitMinutes[$playerId] = $minute;
+            }
         }
+
+        $lateEntryThreshold = $matchLength - 10;
 
         // Score each player
         $bestPlayerId = null;
         $bestScore = -INF;
-        $bestIsWinner = false;
+        $bestGoals = -1;
+        $bestMinutesPlayed = -1;
 
         foreach ($performances as $playerId => $performance) {
             $group = $positionGroups[$playerId] ?? 'Midfielder';
             $teamId = $playerTeams[$playerId] ?? null;
             $teamConceded = $teamId ? ($goalsConceded[$teamId] ?? 0) : 0;
 
+            $goalsScored = $goals[$playerId] ?? 0;
+            $assistsMade = $assists[$playerId] ?? 0;
+            $entryMinute = $entryMinutes[$playerId] ?? 0;
+            $exitMinute = $exitMinutes[$playerId] ?? $matchLength;
+            $minutesPlayed = max(0, $exitMinute - $entryMinute);
+
+            // Late entrants (entered in the last 10 minutes) are ineligible unless
+            // they scored or assisted — brief cameos shouldn't win MVP.
+            if ($entryMinute > $lateEntryThreshold && $goalsScored === 0 && $assistsMade === 0) {
+                continue;
+            }
+
             // Normalized performance: map 0.70-1.30 to 0.0-1.0
             $score = ($performance - 0.70) / 0.60;
 
             // Position-scaled goal/assist bonuses
-            $score += ($goals[$playerId] ?? 0) * ($goalBonuses[$group] ?? 0.15);
-            $score += ($assists[$playerId] ?? 0) * ($assistBonuses[$group] ?? 0.10);
+            $score += $goalsScored * ($goalBonuses[$group] ?? 0.15);
+            $score += $assistsMade * ($assistBonuses[$group] ?? 0.10);
 
             // Card penalties
             $score -= ($yellowCards[$playerId] ?? 0) * 0.10;
@@ -150,11 +188,16 @@ class MvpCalculator
                 $score -= min($teamConceded * 0.04, 0.20);
             }
 
-            // Tiebreak: prefer the player from the winning team
-            if ($score > $bestScore || ($score === $bestScore && $isWinner && ! $bestIsWinner)) {
+            // Tiebreaks on equal score: more goals scored, then more minutes played.
+            $takeThis = $score > $bestScore
+                || ($score === $bestScore && $goalsScored > $bestGoals)
+                || ($score === $bestScore && $goalsScored === $bestGoals && $minutesPlayed > $bestMinutesPlayed);
+
+            if ($takeThis) {
                 $bestScore = $score;
+                $bestGoals = $goalsScored;
+                $bestMinutesPlayed = $minutesPlayed;
                 $bestPlayerId = $playerId;
-                $bestIsWinner = $isWinner;
             }
         }
 
