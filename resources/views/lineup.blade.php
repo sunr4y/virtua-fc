@@ -295,9 +295,7 @@
                                                     <div class="flex-1 min-w-0">
                                                         <div class="flex items-center gap-1.5">
                                                             <span class="text-xs font-medium text-text-primary truncate">{{ $player->name }}</span>
-                                                            @if($unavailabilityReason)
-                                                                <span class="text-[8px] px-1 py-0.5 rounded-sm bg-red-500/10 text-accent-red font-medium shrink-0">{{ $unavailabilityReason }}</span>
-                                                            @endif
+                                                            <x-player-unavailable-icon :player="$player" :match-date="$matchDate" :competition-id="$competitionId" :reason="$unavailabilityReason" />
                                                         </div>
                                                         <div class="flex items-center gap-2 mt-0.5">
                                                             <div class="flex items-center gap-0.5">
@@ -305,7 +303,6 @@
                                                                     <x-position-badge :position="$pos" size="sm" />
                                                                 @endforeach
                                                             </div>
-                                                            @if(!$isUnavailable)
                                                             <div class="flex items-center gap-1">
                                                                 <div class="w-8 h-1 rounded-full bg-surface-600 overflow-hidden">
                                                                     <div class="h-full rounded-full fitness-bar @if($player->fitness >= 80) bg-accent-green @elseif($player->fitness >= 60) bg-accent-gold @elseif($player->fitness >= 40) bg-accent-orange @else bg-accent-red @endif" style="width: {{ $player->fitness }}%"></div>
@@ -313,7 +310,6 @@
                                                                 <span class="text-[8px] text-text-faint">{{ $player->fitness }}%</span>
                                                             </div>
                                                             <x-morale-indicator :value="$player->morale" class="shrink-0" />
-                                                            @endif
                                                         </div>
                                                     </div>
                                                     <x-rating-badge :value="$player->overall_score" size="sm" class="shrink-0" />
