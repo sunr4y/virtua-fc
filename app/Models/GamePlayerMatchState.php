@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Sparse satellite of GamePlayer holding the per-matchday hot-write state:
@@ -168,8 +169,18 @@ class GamePlayerMatchState extends Model
      * Bulk-insert default satellite rows for every player on every team
      * in the given set that doesn't already have one. Idempotent.
      *
-     * Used when foreign-league teams enter the user's match scope
-     * (e.g., European competition qualification).
+     * Phase A of the eager-materialization rollout guarantees every
+     * game_player gets a satellite row at creation time, so this method is
+     * expected to be a no-op in steady state. Any row it does create is a
+     * signal that some GamePlayer::insert site skipped its satellite row —
+     * we log a warning with the offending game_player_id / team_id so the
+     * missed path can be identified and fixed. Once logs are silent for a
+     * release cycle the whole method can be deleted (Phase C).
+     *
+     * ORDER BY gp.id ensures concurrent inserts acquire PK / FK index
+     * locks in a deterministic order. Without it, two sessions running
+     * this statement on overlapping player sets can lock rows in opposite
+     * order and deadlock on the PK index (40P01).
      */
     public static function ensureExistForGamePlayers(string $gameId, array $teamIds): void
     {
@@ -179,11 +190,7 @@ class GamePlayerMatchState extends Model
 
         $idList = '{' . implode(',', $teamIds) . '}';
 
-        // ORDER BY gp.id ensures concurrent inserts acquire PK / FK index
-        // locks in a deterministic order. Without it, two sessions running
-        // this statement on overlapping player sets can lock rows in opposite
-        // order and deadlock on the PK index (40P01).
-        DB::statement(<<<'SQL'
+        $created = DB::select(<<<'SQL'
             INSERT INTO game_player_match_state (
                 game_player_id, game_id, fitness, morale, injury_until, injury_type,
                 appearances, season_appearances, goals, own_goals, assists,
@@ -195,7 +202,35 @@ class GamePlayerMatchState extends Model
               AND gp.team_id IN (SELECT unnest(?::uuid[]))
             ORDER BY gp.id
             ON CONFLICT (game_player_id) DO NOTHING
+            RETURNING game_player_id
         SQL, [$gameId, $idList]);
+
+        if (empty($created)) {
+            return;
+        }
+
+        $missingIds = array_map(fn ($row) => $row->game_player_id, $created);
+
+        // Resolve team_id per missing player so the log points at the
+        // creation path that needs fixing.
+        $teamByPlayerId = GamePlayer::whereIn('id', $missingIds)
+            ->pluck('team_id', 'id')
+            ->all();
+
+        // Cap the logged sample to keep payloads bounded in the (should-
+        // never-happen-in-steady-state) mass-miss case. Count stays accurate.
+        $sampleLimit = 50;
+        $sampled = array_slice($missingIds, 0, $sampleLimit);
+
+        Log::warning('GamePlayerMatchState: satellite row was missing and backfilled inline', [
+            'game_id' => $gameId,
+            'count' => count($missingIds),
+            'truncated' => count($missingIds) > $sampleLimit,
+            'missing' => array_map(fn ($id) => [
+                'game_player_id' => $id,
+                'team_id' => $teamByPlayerId[$id] ?? null,
+            ], $sampled),
+        ]);
     }
 
     /**
