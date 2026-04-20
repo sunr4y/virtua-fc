@@ -124,15 +124,20 @@ function detectLastMinuteGoal(allEvents, homeTeamId) {
     const homeAfter = homeBefore + (lastForHome ? 1 : 0);
     const awayAfter = awayBefore + (lastForHome ? 0 : 1);
 
-    const wasTiedBefore = homeBefore === awayBefore;
-    const wasLosingBefore = lastForHome ? homeBefore < awayBefore : awayBefore < homeBefore;
-    const isWinnerAfter = homeAfter !== awayAfter;
-    const isTiedAfter = homeAfter === awayAfter;
+    const scorerBefore = lastForHome ? homeBefore : awayBefore;
+    const opponentBefore = lastForHome ? awayBefore : homeBefore;
+    const scorerAfter = lastForHome ? homeAfter : awayAfter;
+    const opponentAfter = lastForHome ? awayAfter : homeAfter;
 
-    if ((wasLosingBefore || wasTiedBefore) && isWinnerAfter) {
+    const scorerWasLosing = scorerBefore < opponentBefore;
+    const scorerWasTied = scorerBefore === opponentBefore;
+    const scorerIsWinning = scorerAfter > opponentAfter;
+    const scorerIsTied = scorerAfter === opponentAfter;
+
+    if ((scorerWasLosing || scorerWasTied) && scorerIsWinning) {
         return { event: lastGoal, wasWinner: true, wasEqualizer: false };
     }
-    if (!wasTiedBefore && isTiedAfter) {
+    if (scorerWasLosing && scorerIsTied) {
         return { event: lastGoal, wasWinner: false, wasEqualizer: true };
     }
     return null;
