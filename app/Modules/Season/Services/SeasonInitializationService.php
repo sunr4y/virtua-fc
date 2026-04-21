@@ -4,6 +4,7 @@ namespace App\Modules\Season\Services;
 
 use App\Models\Competition;
 use App\Models\CompetitionEntry;
+use App\Models\Game;
 use App\Models\GameMatch;
 use App\Models\GamePlayer;
 use App\Models\Team;
@@ -156,7 +157,8 @@ class SeasonInitializationService
     }
 
     /**
-     * Conduct cup draws for all knockout cups in a country.
+     * Conduct cup draws for every knockout cup this game participates in
+     * — domestic (ESPCUP, ESPSUP) and continental (UEFASUP).
      * Also updates ESPCUP entry_rounds for supercup-qualifying teams.
      */
     public function conductCupDraws(string $gameId, string $countryCode): void
@@ -164,12 +166,28 @@ class SeasonInitializationService
         // Update ESPCUP entry_rounds based on supercup qualifiers
         $this->updateCupEntryRoundsForSupercupTeams($gameId, $countryCode);
 
-        // Draw round 1 for all domestic knockout cups (ESPCUP, ESPSUP)
-        $cupIds = $this->countryConfig->domesticCupIds($countryCode);
+        $cupIds = array_merge(
+            $this->countryConfig->domesticCupIds($countryCode),
+            Competition::query()
+                ->where('handler_type', 'knockout_cup')
+                ->where('scope', Competition::SCOPE_CONTINENTAL)
+                ->pluck('id')
+                ->all(),
+        );
+
+        $userTeamId = Game::where('id', $gameId)->value('team_id');
 
         foreach ($cupIds as $cupId) {
-            $competition = Competition::find($cupId);
-            if (!$competition || $competition->handler_type !== 'knockout_cup') {
+            // Mirror initializeSwissCompetition: skip cups the user's team
+            // isn't in. No entries → no draw → no orphaned background work.
+            // Downstream reporting (season summary, trophies) already handles
+            // the "did not compete" case.
+            $userParticipates = CompetitionEntry::where('game_id', $gameId)
+                ->where('competition_id', $cupId)
+                ->where('team_id', $userTeamId)
+                ->exists();
+
+            if (!$userParticipates) {
                 continue;
             }
 
