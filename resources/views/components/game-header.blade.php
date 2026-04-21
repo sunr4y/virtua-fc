@@ -97,21 +97,30 @@
                         </div>
                         @if($game->hasPendingActions())
                             @php $pendingAction = $game->getFirstPendingAction(); @endphp
-                            <x-primary-button-link color="amber" :href="$pendingAction && $pendingAction['route'] ? route($pendingAction['route'], $game->id) : route('show-game', $game->id)" class="whitespace-nowrap gap-2 animate-pulse">
+                            <x-primary-button-link size="sm" color="amber" :href="$pendingAction && $pendingAction['route'] ? route($pendingAction['route'], $game->id) : route('show-game', $game->id)" class="whitespace-nowrap gap-2">
                                 <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
                                 </svg>
                                 <span class="hidden sm:inline">{{ __('messages.action_required_short') }}</span>
                             </x-primary-button-link>
                         @elseif($continueToHome)
-                            <x-primary-button-link :href="route('show-game', $game->id)">{{ __('app.continue') }}</x-primary-button-link>
+                            <x-primary-button-link size="sm" :href="route('show-game', $game->id)">{{ __('app.continue') }}</x-primary-button-link>
                         @elseif($game->isFastMode())
-                            <a href="{{ route('game.fast-mode', $game->id) }}" class="inline-flex items-center gap-1.5 px-3 py-2 min-h-[44px] text-xs font-semibold uppercase tracking-wider rounded-lg bg-accent-blue/10 text-accent-blue border border-accent-blue/30 hover:bg-accent-blue/20 transition-colors">
+                            <a href="{{ route('game.fast-mode', $game->id) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] text-xs font-semibold uppercase tracking-wider rounded-lg bg-accent-blue/10 text-accent-blue border border-accent-blue/30 hover:bg-accent-blue/20 transition-colors">
                                 <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
                                 </svg>
                                 <span>{{ __('game.fast_mode') }}</span>
                             </a>
+                        @elseif($game->isTournamentMode())
+                            {{-- Fast mode is disabled in tournament mode — show a plain Continue button. --}}
+                            <button type="button"
+                                    x-data="{ clicked: false }"
+                                    @click="if (clicked) return; clicked = true; $dispatch('show-pre-match', '{{ route('game.pre-match-data', $game->id) }}')"
+                                    x-bind:disabled="clicked"
+                                    class="inline-flex items-center justify-center px-3 py-1.5 min-h-[36px] text-xs rounded-lg bg-accent-blue hover:bg-blue-600 active:bg-blue-700 border border-transparent font-semibold text-white uppercase tracking-wider focus:outline-hidden focus:ring-2 focus:ring-accent-blue focus:ring-offset-2 focus:ring-offset-surface-900 disabled:opacity-50 disabled:cursor-not-allowed transition ease-in-out duration-150">
+                                {{ __('app.continue') }}
+                            </button>
                         @else
                             {{-- Split button: left half = Continue (pre-match flow), right half = open fast-mode info modal --}}
                             <div class="inline-flex items-stretch">
@@ -134,8 +143,7 @@
                         @endif
                     @else
                         <div class="flex items-center gap-3">
-                            <span class="hidden sm:inline text-sm text-text-secondary">{{ __('game.season_complete') }}</span>
-                            <x-primary-button-link color="amber" :href="route($game->isTournamentMode() ? 'game.tournament-end' : 'game.season-end', $game->id)">
+                            <x-primary-button-link size="sm" color="amber" :href="route($game->isTournamentMode() ? 'game.tournament-end' : 'game.season-end', $game->id)">
                                 {{ __('game.view_season_summary') }}
                             </x-primary-button-link>
                         </div>
@@ -146,7 +154,7 @@
     </header>
 
     {{-- Fast Mode Info Modal (opened by split-button chevron) --}}
-    @if($nextMatch && !$game->hasPendingActions() && !$continueToHome && !$game->isFastMode())
+    @if($nextMatch && !$game->hasPendingActions() && !$continueToHome && !$game->isFastMode() && !$game->isTournamentMode())
         @include('partials.fast-mode-info-modal')
     @endif
 
