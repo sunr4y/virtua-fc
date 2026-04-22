@@ -2,117 +2,70 @@
 
 namespace App\Modules\Match\Services;
 
-use App\Events\SeasonCompleted;
-use App\Models\ActivationEvent;
 use App\Models\Game;
-use App\Models\GameMatch;
 use App\Modules\Match\DTOs\MatchdayAdvanceResult;
-use App\Modules\Season\Services\ActivationTracker;
+use App\Modules\Match\Jobs\ProcessMatchdayAdvance;
 
 /**
- * Owns the cross-cutting concerns shared by the normal and fast-mode advance
- * Actions: atomic check-and-set on the advancing flag, calling the orchestrator,
- * recording activation events, dispatching SeasonCompleted, and cleaning up the
- * flag on error. Returning a MatchdayAdvanceResult keeps Actions limited to
- * mapping that result to a redirect.
+ * Owns the atomic "claim the advancing flag + dispatch the job" dance. Every
+ * caller that advances a matchday goes through here so the flag check, the
+ * fast-mode guard, and the decision between async and sync dispatch live in
+ * one place.
+ *
+ * The actual advancing work (orchestrator call, SeasonCompleted, activation
+ * tracking, flag cleanup) lives in ProcessMatchdayAdvance.
  */
 class MatchdayAdvanceCoordinator
 {
-    public function __construct(
-        private readonly MatchdayOrchestrator $orchestrator,
-        private readonly ActivationTracker $activationTracker,
-    ) {}
+    /**
+     * Claim the flag and dispatch the job to the queue. Returns true when the
+     * flag was claimed, false when another request already holds it (the
+     * caller typically just redirects to the in-flight loading screen).
+     */
+    public function dispatchAsync(string $gameId): bool
+    {
+        if (! $this->claim($gameId, fastForward: false)) {
+            return false;
+        }
+
+        ProcessMatchdayAdvance::dispatch($gameId);
+
+        return true;
+    }
 
     /**
-     * Advance one matchday. Returns null when another request already holds
-     * the advancing flag (concurrent click); the caller should treat that as
-     * a no-op redirect. Re-throws orchestrator failures after clearing the
-     * flag so the caller can render its own error response.
+     * Claim the flag and run the job inline in the current process. Used by
+     * fast mode (no live UI to defer to) and console commands (no queue
+     * worker assumed). Returns null when the flag couldn't be claimed.
+     *
+     * We invoke handle() directly instead of Bus::dispatchSync because the
+     * latter routes through the sync queue adapter, which returns 0 (the
+     * sync-queue "pushed count") instead of the handle() return value and
+     * leaves a PHP error handler registered in the process.
      */
-    public function advance(string $gameId, bool $fastForward = false): ?MatchdayAdvanceResult
+    public function runSync(string $gameId, bool $fastForward = false): ?MatchdayAdvanceResult
     {
-        $updated = Game::where('id', $gameId)
+        if (! $this->claim($gameId, $fastForward)) {
+            return null;
+        }
+
+        $job = new ProcessMatchdayAdvance($gameId, $fastForward);
+
+        return app()->call([$job, 'handle']);
+    }
+
+    /**
+     * Atomic check-and-set on matchday_advancing_at. The fast-forward path
+     * additionally requires fast_mode_entered_on to be set so a double-submit
+     * racing an ExitFastMode action can't fast-forward a game that's no
+     * longer in fast mode.
+     */
+    private function claim(string $gameId, bool $fastForward): bool
+    {
+        return (bool) Game::where('id', $gameId)
             ->whereNull('matchday_advancing_at')
             ->whereNull('career_actions_processing_at')
             ->when($fastForward, fn ($q) => $q->whereNotNull('fast_mode_entered_on'))
             ->update(['matchday_advancing_at' => now(), 'matchday_advance_result' => null]);
-
-        if (! $updated) {
-            return null;
-        }
-
-        try {
-            $game = Game::findOrFail($gameId);
-            $result = $this->orchestrator->advance($game, fastForward: $fastForward);
-
-            $game->refresh();
-            $this->dispatchSeasonCompletedIfDone($game, $result);
-            $this->recordActivationEvents($game);
-
-            $game->update(['matchday_advancing_at' => null]);
-
-            return $result;
-        } catch (\Throwable $e) {
-            Game::where('id', $gameId)->update([
-                'matchday_advancing_at' => null,
-                'matchday_advance_result' => null,
-            ]);
-
-            throw $e;
-        }
-    }
-
-    /**
-     * The orchestrator returns `done` whenever the user has no more matches
-     * this matchday — including every fast-mode click and mid-season cup
-     * eliminations. Guard the event behind an "actually no matches left"
-     * check so listeners (other-leagues sim, activation analytics) only run
-     * once per season.
-     */
-    private function dispatchSeasonCompletedIfDone(Game $game, MatchdayAdvanceResult $result): void
-    {
-        if ($result->type !== 'season_complete' && $result->type !== 'done') {
-            return;
-        }
-
-        if ($result->type === 'done' && $game->matches()->where('played', false)->exists()) {
-            return;
-        }
-
-        event(new SeasonCompleted($game));
-    }
-
-    private function recordActivationEvents(Game $game): void
-    {
-        $this->activationTracker->record(
-            $game->user_id,
-            ActivationEvent::EVENT_FIRST_MATCH_PLAYED,
-            $game->id,
-            $game->game_mode,
-        );
-
-        $alreadyRecorded = ActivationEvent::where('user_id', $game->user_id)
-            ->where('game_id', $game->id)
-            ->where('event', ActivationEvent::EVENT_5_MATCHES_PLAYED)
-            ->exists();
-
-        if ($alreadyRecorded) {
-            return;
-        }
-
-        $matchesPlayed = GameMatch::where('game_id', $game->id)
-            ->where('played', true)
-            ->where(fn ($q) => $q->where('home_team_id', $game->team_id)
-                ->orWhere('away_team_id', $game->team_id))
-            ->count();
-
-        if ($matchesPlayed >= 5) {
-            $this->activationTracker->record(
-                $game->user_id,
-                ActivationEvent::EVENT_5_MATCHES_PLAYED,
-                $game->id,
-                $game->game_mode,
-            );
-        }
     }
 }

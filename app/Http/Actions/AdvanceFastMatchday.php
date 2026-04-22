@@ -15,7 +15,7 @@ class AdvanceFastMatchday
     public function __invoke(string $gameId)
     {
         try {
-            $result = $this->coordinator->advance($gameId, fastForward: true);
+            $result = $this->coordinator->runSync($gameId, fastForward: true);
         } catch (\Throwable $e) {
             Log::error('Fast-mode matchday advance failed', [
                 'game_id' => $gameId,
@@ -31,7 +31,10 @@ class AdvanceFastMatchday
             return redirect()->route('game.fast-mode', $gameId);
         }
 
+        // Clear the stored result so ShowFastMode (which treats a non-null
+        // result as a "busy" signal) doesn't bounce the next poll.
         $game = Game::findOrFail($gameId);
+        $game->update(['matchday_advance_result' => null]);
 
         return match ($result->type) {
             // Fast mode never returns live_match (the orchestrator finalizes

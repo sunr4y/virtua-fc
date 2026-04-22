@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Http\Actions\AdvanceMatchday;
+use App\Modules\Match\Services\MatchdayAdvanceCoordinator;
 use App\Modules\Season\Services\GameCreationService;
 use App\Models\Game;
 use App\Models\GameMatch;
@@ -80,13 +80,11 @@ class StressTest extends Command
         // Phase 2: Simulate seasons
         $this->info("--- Phase 2: Simulating {$seasonCount} season(s) per game ---");
 
-        $advanceAction = app(AdvanceMatchday::class);
-
         for ($season = 1; $season <= $seasonCount; $season++) {
             $this->info("  Season {$season}/{$seasonCount}:");
 
             foreach ($games as $gameIndex => $game) {
-                $this->simulateOneSeason($game, $advanceAction, $season, $gameIndex + 1, $gameCount);
+                $this->simulateOneSeason($game, $season, $gameIndex + 1, $gameCount);
             }
 
             $this->reportDbStats("AFTER SEASON {$season}");
@@ -162,7 +160,7 @@ class StressTest extends Command
         return $games;
     }
 
-    private function simulateOneSeason(Game $game, AdvanceMatchday $advanceAction, int $seasonNumber, int $gameNumber, int $totalGames): void
+    private function simulateOneSeason(Game $game, int $seasonNumber, int $gameNumber, int $totalGames): void
     {
         $game->refresh();
 
@@ -187,8 +185,15 @@ class StressTest extends Command
             $mem0 = memory_get_usage(true);
 
             DB::enableQueryLog();
-            $advanceAction($game->id);
+            $result = app(MatchdayAdvanceCoordinator::class)->runSync($game->id);
             $queryCount = count(DB::getQueryLog());
+
+            if (! $result) {
+                $this->warn("  Could not claim advancing flag for game {$game->id} — skipping.");
+                DB::disableQueryLog();
+                DB::flushQueryLog();
+                break;
+            }
             DB::disableQueryLog();
             DB::flushQueryLog();
 
