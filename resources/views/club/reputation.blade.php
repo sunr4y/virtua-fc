@@ -29,38 +29,30 @@ $tierMaintenanceApplies = $summary['tier_maintenance_applies'] ?? false;
         <div class="mt-6 mb-4">
             <h2 class="font-heading text-2xl lg:text-3xl font-bold uppercase tracking-wide text-text-primary">{{ __('club.hub_title') }}</h2>
         </div>
-        <div x-data="{ helpOpen: false }">
-            <x-club-section-nav :game="$game" active="reputation">
-                <x-ghost-button color="slate" @click="helpOpen = !helpOpen" class="gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-text-secondary shrink-0">
-                        <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z" clip-rule="evenodd" />
-                    </svg>
-                    <span class="hidden md:inline">{{ __('club.reputation.tiers_help_toggle') }}</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 transition-transform hidden md:block" :class="helpOpen ? 'rotate-180' : ''">
-                        <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
-                    </svg>
-                </x-ghost-button>
-            </x-club-section-nav>
+        <x-help-disclosure>
+            <x-slot name="trigger">
+                <x-club-section-nav :game="$game" active="reputation">
+                    <x-help-toggle :label="__('club.reputation.tiers_help_toggle')" />
+                </x-club-section-nav>
+            </x-slot>
 
-            <div x-show="helpOpen" x-transition x-cloak class="mt-3 bg-surface-800 border border-border-default rounded-xl p-4 text-sm">
-                <p class="text-text-secondary mb-3">{{ __('club.reputation.ladder_help') }}</p>
-                <ol class="space-y-1.5">
-                    @foreach(array_reverse($allTiers) as $tier)
-                        @php
-                            $isCurrent = $tier === $currentLevel;
-                        @endphp
-                        <li class="flex items-baseline gap-2 {{ $isCurrent ? 'text-text-primary font-semibold' : 'text-text-body' }}">
-                            <span class="w-1.5 h-1.5 rounded-full shrink-0 {{ $isCurrent ? 'bg-accent-blue' : 'bg-surface-600' }}"></span>
-                            <span class="uppercase tracking-wider text-xs">{{ __('finances.reputation.' . $tier) }}</span>
-                            <span class="text-text-secondary text-xs">— {{ __('club.reputation.tier_descriptors.' . $tier) }}</span>
-                            @if($isCurrent)
-                                <span class="text-[10px] font-semibold text-accent-blue uppercase tracking-widest">· {{ __('club.reputation.current') }}</span>
-                            @endif
-                        </li>
-                    @endforeach
-                </ol>
-            </div>
-        </div>
+            <p class="text-text-secondary mb-3">{{ __('club.reputation.ladder_help') }}</p>
+            <ol class="space-y-1.5">
+                @foreach(array_reverse($allTiers) as $tier)
+                    @php
+                        $isCurrent = $tier === $currentLevel;
+                    @endphp
+                    <li class="flex items-baseline gap-2 {{ $isCurrent ? 'text-text-primary font-semibold' : 'text-text-body' }}">
+                        <span class="w-1.5 h-1.5 rounded-full shrink-0 {{ $isCurrent ? 'bg-accent-blue' : 'bg-surface-600' }}"></span>
+                        <span class="uppercase tracking-wider text-xs">{{ __('finances.reputation.' . $tier) }}</span>
+                        <span class="text-text-secondary text-xs">— {{ __('club.reputation.tier_descriptors.' . $tier) }}</span>
+                        @if($isCurrent)
+                            <span class="text-[10px] font-semibold text-accent-blue uppercase tracking-widest">· {{ __('club.reputation.current') }}</span>
+                        @endif
+                    </li>
+                @endforeach
+            </ol>
+        </x-help-disclosure>
 
         {{-- Status header --}}
         <div class="mt-6 mb-4 rounded-lg border border-border-default bg-surface-700/40 px-5 py-4">

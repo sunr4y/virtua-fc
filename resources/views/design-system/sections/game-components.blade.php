@@ -886,4 +886,36 @@
 &lt;/x-section-card&gt;</code></pre>
         </div>
     </div>
+
+    {{-- Help Disclosure --}}
+    <div class="mb-12">
+        <h3 class="text-lg font-semibold text-text-primary mb-2">Help Disclosure</h3>
+        <p class="text-sm text-text-secondary mb-4">Collapsible help panel with an info/chevron toggle. Use <code class="text-xs bg-surface-700 px-1.5 py-0.5 rounded-sm text-text-body">&lt;x-help-disclosure&gt;</code> for "How it works" explanations at the top of a page. The component handles <code class="text-xs bg-surface-700 px-1.5 py-0.5 rounded-sm text-text-body">x-data</code>, <code class="text-xs bg-surface-700 px-1.5 py-0.5 rounded-sm text-text-body">x-show</code>, transitions and <code class="text-xs bg-surface-700 px-1.5 py-0.5 rounded-sm text-text-body">x-cloak</code> (no load-time flash). Pair with <code class="text-xs bg-surface-700 px-1.5 py-0.5 rounded-sm text-text-body">&lt;x-help-toggle&gt;</code> when the trigger needs to live inside a nav or custom header.</p>
+
+        <div class="bg-surface-700/30 border border-border-default rounded-xl p-6 mb-3">
+            <x-help-disclosure :label="'How it works'">
+                <p class="text-text-secondary mb-3">Panels are hidden by default and reveal on click. Keep copy concise — this is for orientation, not documentation.</p>
+                <ul class="space-y-1 text-text-secondary">
+                    <li class="flex gap-2"><span class="text-accent-blue shrink-0">&#9679;</span> Use for feature overviews and quick explainers.</li>
+                    <li class="flex gap-2"><span class="text-accent-green shrink-0">&#9679;</span> Place inline above the primary content.</li>
+                </ul>
+            </x-help-disclosure>
+        </div>
+
+        <pre class="bg-surface-800 border border-border-default rounded-md p-4 text-xs text-text-body overflow-x-auto"><code>{{-- Simple: default trigger rendered inline --}}
+&lt;x-help-disclosure :label="__('transfers.scouting_help_toggle')"&gt;
+    &lt;p&gt;Body content…&lt;/p&gt;
+&lt;/x-help-disclosure&gt;
+
+{{-- Custom placement: trigger lives inside a nav --}}
+&lt;x-help-disclosure&gt;
+    &lt;x-slot name="trigger"&gt;
+        &lt;x-section-nav :items="$items"&gt;
+            &lt;x-help-toggle :label="__('transfers.transfers_help_toggle')" /&gt;
+        &lt;/x-section-nav&gt;
+    &lt;/x-slot&gt;
+
+    &lt;p&gt;Body content…&lt;/p&gt;
+&lt;/x-help-disclosure&gt;</code></pre>
+    </div>
 </section>
