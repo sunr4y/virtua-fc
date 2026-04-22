@@ -277,7 +277,14 @@ class AISubstitutionSimulationTest extends TestCase
     public function test_user_team_gets_injury_auto_sub_when_bench_passed_with_user_team_id(): void
     {
         // Crank injury chance to 100% so every simulation produces an injury.
-        config(['match_simulation.injury_chance' => 100]);
+        // Disable reds/yellows so the only home-team sub is an injury auto-sub —
+        // otherwise a red-card reactive sub (red_minute + 2) can land before the
+        // injury and break the "sub == injury minute + 1" pairing.
+        config([
+            'match_simulation.injury_chance' => 100,
+            'match_simulation.direct_red_chance' => 0,
+            'match_simulation.yellow_cards_per_team' => 0,
+        ]);
 
         $game = Game::factory()->create(['current_date' => '2025-10-01']);
         $homeTeam = Team::factory()->create();
