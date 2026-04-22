@@ -241,8 +241,8 @@ return [
     'preparing_tournament' => 'Preparando el torneo...',
     'setup_tournament_loading_message' => 'Cargando selecciones y jugadores. Esto solo tomará unos segundos.',
     'processing_actions' => 'Procesando...',
-    'processing_career_actions' => 'Procesando acciones del juego...',
-    'processing_career_actions_message' => 'Transferencias, contratos y otras acciones se están procesando.',
+    'processing_career_actions' => 'Avanzando a la siguiente jornada',
+    'processing_career_actions_message' => 'Esto solo tardará un momento.',
     'simulating_matches' => 'Calentamiento...',
     'simulating_matches_message' => 'Los equipos están calentando...',
 

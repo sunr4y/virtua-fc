@@ -241,8 +241,8 @@ return [
     'preparing_tournament' => 'Preparing the tournament...',
     'setup_tournament_loading_message' => 'Loading national teams and players. This will only take a few seconds.',
     'processing_actions' => 'Processing...',
-    'processing_career_actions' => 'Processing game actions...',
-    'processing_career_actions_message' => 'Transfers, contracts, and other actions are being processed.',
+    'processing_career_actions' => 'Advancing to the next matchday',
+    'processing_career_actions_message' => 'This will only take a moment.',
     'simulating_matches' => 'Warm-up...',
     'simulating_matches_message' => 'The teams are warming up...',
 
