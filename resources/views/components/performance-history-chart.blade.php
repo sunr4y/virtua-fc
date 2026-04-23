@@ -92,9 +92,11 @@
 >
     <svg
         viewBox="0 0 {{ $svgWidth }} {{ $svgHeight }}"
-        preserveAspectRatio="xMidYMid meet"
+        preserveAspectRatio="xMinYMid meet"
         class="block"
-        style="min-width: {{ min(640, $svgWidth) }}px; width: 100%; height: auto;"
+        width="{{ $svgWidth }}"
+        height="{{ $svgHeight }}"
+        style="min-width: {{ $svgWidth }}px;"
         xmlns="http://www.w3.org/2000/svg"
     >
         {{-- Tier bands --}}
