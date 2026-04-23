@@ -233,8 +233,17 @@ class ExploreService
             // positions; specific codes resolve to a single position.
             $positions = PositionMapper::getPositionsForGroupFilter($filters['position'])
                 ?? PositionMapper::getPositionsForFilter($filters['position']);
-            if ($positions !== null) {
-                $query->whereIn('position', $positions);
+            if ($positions !== null && $positions !== []) {
+                // Match primary position OR any entry in the secondary_positions
+                // JSON array, so e.g. a CB/DM shows up under "Midfielders".
+                $placeholders = implode(',', array_fill(0, count($positions), '?'));
+                $query->where(function ($inner) use ($positions, $placeholders) {
+                    $inner->whereIn('position', $positions)
+                        ->orWhereRaw(
+                            "(secondary_positions IS NOT NULL AND jsonb_exists_any(secondary_positions::jsonb, ARRAY[$placeholders]::text[]))",
+                            $positions
+                        );
+                });
             }
         }
 
