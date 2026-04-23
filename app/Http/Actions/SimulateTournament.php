@@ -4,12 +4,14 @@ namespace App\Http\Actions;
 
 use App\Models\TournamentSummary;
 use App\Modules\Match\Services\MatchdayOrchestrator;
+use App\Modules\Season\Listeners\DetectTournamentEnded;
 use App\Models\Game;
 
 class SimulateTournament
 {
     public function __construct(
         private readonly MatchdayOrchestrator $orchestrator,
+        private readonly DetectTournamentEnded $tournamentEndDetector,
     ) {}
 
     public function __invoke(string $gameId)
@@ -44,8 +46,12 @@ class SimulateTournament
         }
 
         // Finalization (snapshot, soft-delete, activation) happens via the
-        // TournamentEnded listener chain fired from DetectTournamentEnded on
-        // the final match's MatchFinalized event inside the orchestrator loop.
+        // TournamentEnded listener chain fired from DetectTournamentEnded.
+        // MatchFinalizationService invokes the detector for the user's matches;
+        // call it here too so AI-only completions (e.g. an eliminated user
+        // fast-forwarding through remaining knockouts) still end the tournament.
+        $this->tournamentEndDetector->detect($game->refresh()->setRelations([]));
+
         $summary = TournamentSummary::where('original_game_id', $game->id)->first();
 
         if (! $summary) {

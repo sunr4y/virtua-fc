@@ -7,6 +7,7 @@ use App\Modules\Match\Events\CupTieResolved;
 use App\Modules\Match\Events\GameDateAdvanced;
 use App\Modules\Match\Events\MatchFinalized;
 use App\Modules\Player\Services\PlayerConditionService;
+use App\Modules\Season\Listeners\DetectTournamentEnded;
 use App\Models\Competition;
 use App\Models\CupTie;
 use App\Models\Game;
@@ -23,6 +24,7 @@ class MatchFinalizationService
         private readonly CupTieResolver $cupTieResolver,
         private readonly CompetitionHandlerResolver $handlerResolver,
         private readonly PlayerConditionService $conditionService,
+        private readonly DetectTournamentEnded $tournamentEndDetector,
     ) {}
 
     /**
@@ -74,6 +76,12 @@ class MatchFinalizationService
         // final after both semifinals completed). Step 6 may have found no matches
         // because they didn't exist yet.
         $this->advanceCurrentDate($game, $previousDate);
+
+        // 9. Detect tournament end AFTER beforeMatches so group_stage_cup competitions
+        // (like the World Cup) have had a chance to generate the next knockout round.
+        // Otherwise the "no unplayed matches" check is briefly true between rounds and
+        // ends the tournament prematurely after the group phase.
+        $this->tournamentEndDetector->detect($game->refresh());
     }
 
     /**

@@ -30,7 +30,6 @@ use App\Modules\Match\Listeners\UpdateGoalkeeperStats;
 use App\Modules\Match\Listeners\UpdateLeagueStandings;
 use App\Modules\Match\Listeners\UpdateManagerStats;
 use App\Modules\Report\Listeners\CreateTournamentSnapshot;
-use App\Modules\Season\Listeners\DetectTournamentEnded;
 use App\Modules\Season\Listeners\GrantCareerAccessToChampion;
 use App\Modules\Season\Listeners\RecordTournamentCompletedActivation;
 use App\Modules\Season\Listeners\SoftDeleteCompletedTournamentGame;
@@ -101,9 +100,13 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(MatchFinalized::class, SendCompetitionProgressNotifications::class);
         Event::listen(MatchFinalized::class, UpdateManagerStats::class);
         Event::listen(MatchFinalized::class, EnsureMatchAttendance::class);
-        // Must run after standings/stats listeners above: the tournament snapshot
-        // it eventually triggers reads final standings and manager stats.
-        Event::listen(MatchFinalized::class, DetectTournamentEnded::class);
+        // Tournament-end detection is NOT wired here on purpose: it must run
+        // after MatchFinalizationService::beforeMatches has had a chance to
+        // generate the next knockout round for group_stage_cup competitions
+        // (otherwise the "no unplayed matches" check is true between rounds
+        // and the tournament ends prematurely). It is invoked directly by
+        // MatchFinalizationService::finalize after beforeMatches, and by the
+        // tournament fast-forward actions for AI-only completions.
 
         Event::listen(CupTieResolved::class, AwardCupPrizeMoney::class);
         Event::listen(CupTieResolved::class, ConductNextCupRoundDraw::class);

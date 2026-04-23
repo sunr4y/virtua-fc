@@ -6,6 +6,7 @@ use App\Events\SeasonCompleted;
 use App\Models\TournamentSummary;
 use App\Modules\Match\Services\MatchdayOrchestrator;
 use App\Modules\Match\Services\MatchFinalizationService;
+use App\Modules\Season\Listeners\DetectTournamentEnded;
 use App\Models\Game;
 use App\Models\GameMatch;
 use Illuminate\Http\Request;
@@ -16,6 +17,7 @@ class FinalizeMatch
     public function __construct(
         private readonly MatchFinalizationService $finalizationService,
         private readonly MatchdayOrchestrator $orchestrator,
+        private readonly DetectTournamentEnded $tournamentEndDetector,
     ) {}
 
     public function __invoke(Request $request, string $gameId)
@@ -58,7 +60,8 @@ class FinalizeMatch
         // season (e.g. promotion playoff final) — ShowGame would redirect straight
         // to season-end, bypassing AdvanceMatchday which normally fires this event.
         // Tournament mode is handled by the TournamentEnded event chain dispatched
-        // from the DetectTournamentEnded listener on MatchFinalized.
+        // from DetectTournamentEnded, which is invoked by MatchFinalizationService
+        // after beforeMatches has had a chance to generate the next knockout round.
         $hasRemainingMatches = GameMatch::where('game_id', $game->id)
             ->where('played', false)
             ->exists();
@@ -105,6 +108,12 @@ class FinalizeMatch
 
             $game->refresh()->setRelations([]);
         }
+
+        // AI-only batches don't flow through MatchFinalizationService::finalize,
+        // so DetectTournamentEnded isn't invoked during auto-simulation. Run it
+        // here to cover the eliminated-user fast-forward path where every
+        // remaining match is AI-only.
+        $this->tournamentEndDetector->detect($game->refresh()->setRelations([]));
 
         return $this->redirectToTournamentSummary($game);
     }
