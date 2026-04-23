@@ -5,6 +5,7 @@ namespace App\Modules\Season\Processors;
 use App\Modules\Season\Contracts\SeasonProcessor;
 use App\Modules\Season\DTOs\SeasonTransitionData;
 use App\Modules\Competition\Services\SwissKnockoutGenerator;
+use App\Modules\Manager\Services\PerformanceHistoryService;
 use App\Models\CompetitionEntry;
 use App\Models\CupTie;
 use App\Models\Game;
@@ -74,6 +75,10 @@ class SeasonArchiveProcessor implements SeasonProcessor
             'transfer_activity' => $transferActivity,
         ]);
 
+        // Bust the cached archived-seasons shape so the Reputation page
+        // reflects the new season on the next page load.
+        PerformanceHistoryService::forget($game->id);
+
         // Delete archived data to free up space
         $this->deleteArchivedData($game);
 
@@ -141,6 +146,7 @@ class SeasonArchiveProcessor implements SeasonProcessor
                 return [
                     'team_id' => $standing->team_id,
                     'team_name' => $standing->team->name ?? 'Unknown',
+                    'competition_id' => $standing->competition_id,
                     'position' => $standing->position,
                     'played' => $standing->played,
                     'won' => $standing->won,
