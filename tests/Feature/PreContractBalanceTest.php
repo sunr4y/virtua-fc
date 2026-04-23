@@ -73,10 +73,10 @@ class PreContractBalanceTest extends TestCase
     public function test_reputation_modifier_returns_correct_values_per_gap(): void
     {
         $expectedModifiers = [
-            1 => 0.75,
-            2 => 0.45,
-            3 => 0.20,
-            4 => 0.08,
+            1 => 0.85,
+            2 => 0.65,
+            3 => 0.40,
+            4 => 0.20,
         ];
 
         // Reputation tiers ordered: local(0), modest(1), established(2), continental(3), elite(4)
@@ -211,8 +211,8 @@ class PreContractBalanceTest extends TestCase
 
         $premiumWage = $this->contractService->calculateWageDemand($player, NegotiationScenario::PRE_CONTRACT)['wage'];
 
-        // Run 100 evaluations — with gap 4 (elite → local), modifier is 0.08
-        // 85% × 0.08 = 6.8% → should rarely accept
+        // Run 100 evaluations — with gap 4 (elite → local), modifier is 0.20
+        // 65% × 0.20 = 13% → should mostly reject
         $acceptedCount = 0;
         for ($i = 0; $i < 100; $i++) {
             $result = $this->scoutingService->evaluatePreContractOffer($player, $premiumWage, $game->team);
@@ -221,7 +221,7 @@ class PreContractBalanceTest extends TestCase
             }
         }
 
-        // With 6.8% chance, expect roughly 0-15 accepts out of 100
+        // With ~13% chance, expect roughly 0-25 accepts out of 100
         $this->assertLessThan(25, $acceptedCount, "Expected mostly rejections for large reputation gap, got {$acceptedCount}/100 accepts");
     }
 
