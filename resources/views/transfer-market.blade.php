@@ -36,7 +36,7 @@
                 </div>
             @endif
 
-            @if($listings->isEmpty())
+            @if($rows->isEmpty())
                 {{-- No listings --}}
                 <div class="bg-surface-800 border border-border-default rounded-xl p-8 text-center">
                     <svg class="w-12 h-12 mx-auto text-text-muted mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -61,15 +61,16 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($listings as $listing)
+                            @foreach($rows as $row)
                                 <x-explore-player-row
-                                    :player="$listing->gamePlayer"
+                                    :player="$row['gamePlayer']"
                                     :game="$game"
                                     :show-team="true"
                                     team-placement="inline"
                                     :show-ovr="true"
                                     :show-contract="true"
-                                    :asking-price="$listing->asking_price" />
+                                    :asking-price="$row['askingPrice']"
+                                    :show-asking-price="true" />
                             @endforeach
                         </tbody>
                     </table>

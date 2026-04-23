@@ -6,6 +6,7 @@
     'showOvr' => false,
     'showContract' => null,
     'askingPrice' => null,
+    'showAskingPrice' => null,
     'teamPlacement' => 'column', // 'column' | 'inline'
 ])
 
@@ -17,6 +18,9 @@ $isFreeAgent = $player->team_id === null;
 $canNegotiateFreeAgent = $isFreeAgent && !$isOwnTeam;
 // Default: contract column shown when the team column isn't rendered.
 $showContract = $showContract ?? !$showTeam;
+// When rendering alongside listings, the asking-price cell must always be
+// rendered to keep column alignment stable — free agents show a placeholder.
+$showAskingPrice = $showAskingPrice ?? ($askingPrice !== null);
 @endphp
 
 <tr class="border-b border-border-default transition-colors hover:bg-[rgba(59,130,246,0.05)]">
@@ -36,6 +40,11 @@ $showContract = $showContract ?? !$showTeam;
                 <span class="text-text-muted/60">&middot;</span>
                 <img src="{{ $player->team->image }}" alt="{{ $player->team->name }}" class="w-4 h-4 shrink-0 object-contain">
                 <span class="truncate">{{ $player->team->name }}</span>
+            </span>
+            @elseif($teamPlacement === 'inline' && $showTeam && $isFreeAgent)
+            <span class="hidden md:inline-flex items-center gap-1 text-xs text-text-muted min-w-0 shrink">
+                <span class="text-text-muted/60">&middot;</span>
+                <span class="truncate">{{ __('transfers.free_agent') }}</span>
             </span>
             @endif
             @if(!$showTeam && $player->is_loaned_in)
@@ -60,13 +69,17 @@ $showContract = $showContract ?? !$showTeam;
                 <span>&middot;</span>
                 <span>OVR {{ $player->overall_score }}</span>
             @endif
-            @if($askingPrice !== null)
+            @if($showAskingPrice)
                 <span>&middot;</span>
-                <span class="font-medium text-text-primary">{{ \App\Support\Money::format($askingPrice) }}</span>
+                @if($askingPrice !== null)
+                    <span class="font-medium text-text-primary">{{ \App\Support\Money::format($askingPrice) }}</span>
+                @else
+                    <span class="font-medium text-accent-green">{{ __('transfers.market_free') }}</span>
+                @endif
             @endif
             @if($showContract)
                 <span>&middot;</span>
-                <span>{{ $player->contract_until?->year ?? '—' }}</span>
+                <span>{{ $isFreeAgent ? '—' : ($player->contract_until?->year ?? '—') }}</span>
             @endif
         </div>
     </td>
@@ -97,11 +110,17 @@ $showContract = $showContract ?? !$showTeam;
     <td class="py-2 pr-3 hidden md:table-cell text-text-secondary tabular-nums">{{ \App\Support\Money::format($player->market_value_cents) }}</td>
     @if($showContract)
     {{-- Contract --}}
-    <td class="py-2 pr-3 hidden md:table-cell text-center text-text-muted tabular-nums">{{ $player->contract_until?->year ?? '—' }}</td>
+    <td class="py-2 pr-3 hidden md:table-cell text-center text-text-muted tabular-nums">{{ $isFreeAgent ? '—' : ($player->contract_until?->year ?? '—') }}</td>
     @endif
-    @if($askingPrice !== null)
+    @if($showAskingPrice)
     {{-- Asking price --}}
-    <td class="py-2 pr-3 hidden md:table-cell text-right font-semibold text-text-primary tabular-nums">{{ \App\Support\Money::format($askingPrice) }}</td>
+    <td class="py-2 pr-3 hidden md:table-cell text-right tabular-nums">
+        @if($askingPrice !== null)
+            <span class="font-semibold text-text-primary">{{ \App\Support\Money::format($askingPrice) }}</span>
+        @else
+            <span class="font-semibold text-accent-green">{{ __('transfers.market_free') }}</span>
+        @endif
+    </td>
     @endif
     {{-- Offer button --}}
     <td class="py-2 pr-1 text-center">
