@@ -533,9 +533,9 @@
                 },
 
                 // Dual-range bounds (mirrors scout-search-modal pattern)
-                AGE_MIN_BOUND: 15,
-                AGE_MAX_BOUND: 50,
-                OVERALL_MIN_BOUND: 40,
+                AGE_MIN_BOUND: 16,
+                AGE_MAX_BOUND: 40,
+                OVERALL_MIN_BOUND: 50,
                 OVERALL_MAX_BOUND: 99,
                 valueSteps: [0, 500000, 1000000, 2000000, 5000000, 10000000, 20000000, 50000000, 100000000, 200000000],
 
