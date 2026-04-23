@@ -89,7 +89,7 @@ return [
     'recent_signings' => 'Entradas Recientes',
 
     // Scouting
-    'scout_search_desc' => 'Tu ojeador buscará jugadores y te presentará una lista corta de candidatos que mejor se adapten a tu equipo. Cuanto más específicos sean los criterios, mejores serán los resultados.',
+    'scout_search_desc' => 'Tus ojeadores devuelven jugadores con alta probabilidad de fichar por tu club. Para una visión más amplia del mercado, usa :explore.',
     'position_required' => 'Posición *',
     'select_position' => 'Seleccionar posición...',
     'specific_positions' => 'Posiciones Específicas',
@@ -116,7 +116,6 @@ return [
     'scout_results' => 'Resultados de búsqueda',
     'all_ages' => 'Todas',
     'no_players_found' => 'No se encontraron jugadores con tus criterios.',
-    'try_broadening' => 'Intenta ampliar tu búsqueda.',
     'ability' => 'Habilidad',
 
     // Scouting player page
@@ -271,7 +270,7 @@ return [
     // Explorer
     'explore_tab' => 'Explorar',
     'explore_title' => 'Explorar equipos',
-    'explore_hint' => 'Explora las plantillas de otros equipos. Para información detallada de habilidades y precios, usa los ojeadores.',
+    'explore_hint' => 'Explora las plantillas de otros equipos. Para información detallada de habilidades y precios, usa los :scouting.',
     'explore_select_competition' => 'Selecciona una competición',
     'explore_select_team' => 'Selecciona un equipo para ver su plantilla',
     'explore_teams_count' => ':count equipos',
@@ -288,7 +287,7 @@ return [
     'explore_midfielders' => 'Centrocampistas',
     'explore_forwards' => 'Delanteros',
     'explore_age' => 'Edad',
-    'explore_rating' => 'Nota',
+    'explore_overall' => 'Media',
     'explore_value' => 'Valor',
     'explore_free_agents' => 'Agentes Libres',
     'explore_free_agents_hint' => 'Explora agentes libres disponibles. Los agentes libres se pueden fichar en cualquier momento, incluso fuera de las ventanas de fichajes.',
@@ -307,6 +306,34 @@ return [
     'explore_make_offer' => 'Hacer oferta',
     'explore_negotiate' => 'Negociar',
     'explore_offer_hint' => 'Haz ofertas directas o añade jugadores a tu lista de seguimiento. Sin informe de ojeador, negociarás a ciegas.',
+
+    // Búsqueda avanzada en Explorar
+    'explore_advanced_filters' => 'Filtros avanzados',
+    'explore_advanced_criteria_hint' => 'Escribe un nombre o ajusta los filtros para buscar en toda la base de datos de jugadores.',
+    'explore_clear_filters' => 'Limpiar filtros',
+    'explore_search_submit' => 'Buscar',
+    'explore_min' => 'Mín',
+    'explore_max' => 'Máx',
+    'explore_value_range_millions' => 'Valor de mercado (€ millones)',
+    'explore_overall_range' => 'Media',
+    'explore_contract_expires_by' => 'Contrato expira antes de (año)',
+    'explore_nationality' => 'Nacionalidad',
+    'explore_search_showing_first' => 'mostrando los primeros :count',
+    'explore_search_refine_hint' => 'Demasiadas coincidencias — ajusta los filtros para acotar la lista.',
+
+    // Enlaces cruzados (Explorar ↔ Ojeadores)
+    'explore_link_to_scouting' => 'ojeadores',
+    'explore_empty_scout_cta' => 'Envía a tus ojeadores a buscar este perfil',
+    'scouting_link_to_explore' => 'Explorar',
+    'scouting_empty_explore_cta' => 'Explora todo el mercado en Explorar',
+    'scout_filtered_by_three_pass_hint' => 'Tus ojeadores sólo muestran jugadores que mejorarían la plantilla, agrupados por lo realista del fichaje.',
+    'scouting_empty_three_pass_hint' => 'Ningún jugador cumple los criterios importantes: mejorar la plantilla, encajar en el presupuesto (o acercarse) y estar dispuesto a fichar. Prueba a ampliar la búsqueda.',
+    'scout_bucket_primary_title' => 'Objetivos realistas',
+    'scout_bucket_primary_description' => 'Mejoran la plantilla, entran en tu presupuesto y están dispuestos a fichar.',
+    'scout_bucket_ambitious_title' => 'Objetivos ambiciosos',
+    'scout_bucket_ambitious_description' => 'Mejoran la plantilla y quieren cambiar de aires, pero cuestan más de lo que tienes. Haz caja o negocia a la baja.',
+    'scout_bucket_persuasion_title' => 'Requieren convencimiento',
+    'scout_bucket_persuasion_description' => 'Mejoran la plantilla y entran en el presupuesto, pero todavía no están convencidos de fichar.',
 
     // Free agent negotiation chat
     'chat_free_agent_title' => 'Negociación con Agente Libre',

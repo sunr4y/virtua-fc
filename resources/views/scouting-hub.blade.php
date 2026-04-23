@@ -661,7 +661,9 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                                 </svg>
                                 <p class="font-medium">{{ __('transfers.no_search_history') }}</p>
-                                <p class="text-sm mt-1">{{ __('transfers.scout_search_desc') }}</p>
+                                <p class="text-sm mt-1">{!! __('transfers.scout_search_desc', [
+                                    'explore' => '<a href="' . route('game.explore', $game->id) . '" class="text-accent-blue hover:text-accent-blue/80 font-medium underline-offset-2 hover:underline">' . __('transfers.scouting_link_to_explore') . '</a>',
+                                ]) !!}</p>
                             </div>
                             @endif
 

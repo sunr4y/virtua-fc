@@ -89,7 +89,7 @@ return [
     'recent_signings' => 'Recent Signings',
 
     // Scouting
-    'scout_search_desc' => 'Your scout will search for players and present a shortlist of candidates that best fit your team. The more specific your criteria, the better the results.',
+    'scout_search_desc' => 'Your scouts return players likely to join your club. For a broader view of the market, use :explore.',
     'position_required' => 'Position *',
     'select_position' => 'Select position...',
     'specific_positions' => 'Specific Positions',
@@ -115,7 +115,6 @@ return [
     'scout_results' => 'Search Results',
     'all_ages' => 'All',
     'no_players_found' => 'No players found matching your criteria.',
-    'try_broadening' => 'Try broadening your search.',
     'ability' => 'Ability',
 
     // Scouting player page
@@ -266,7 +265,7 @@ return [
     // Explorer
     'explore_tab' => 'Explore',
     'explore_title' => 'Explore teams',
-    'explore_hint' => 'Browse other teams\' squads. For detailed ability and pricing info, use scouting.',
+    'explore_hint' => 'Browse other teams\' squads. For detailed ability and pricing info, use :scouting.',
     'explore_select_competition' => 'Select a competition',
     'explore_select_team' => 'Select a team to view their squad',
     'explore_teams_count' => ':count teams',
@@ -283,7 +282,7 @@ return [
     'explore_midfielders' => 'Midfielders',
     'explore_forwards' => 'Forwards',
     'explore_age' => 'Age',
-    'explore_rating' => 'Rating',
+    'explore_overall' => 'Overall',
     'explore_value' => 'Value',
     'explore_free_agents' => 'Free Agents',
     'explore_free_agents_hint' => 'Browse available free agents. Free agents can be signed at any time, even outside transfer windows.',
@@ -302,6 +301,34 @@ return [
     'explore_make_offer' => 'Make offer',
     'explore_negotiate' => 'Negotiate',
     'explore_offer_hint' => 'Make offers directly or shortlist players for scouting. Without a scout report, you\'ll negotiate blind.',
+
+    // Advanced Explore search
+    'explore_advanced_filters' => 'Advanced filters',
+    'explore_advanced_criteria_hint' => 'Type a name or set filters to search the full player database.',
+    'explore_clear_filters' => 'Clear filters',
+    'explore_search_submit' => 'Search',
+    'explore_min' => 'Min',
+    'explore_max' => 'Max',
+    'explore_value_range_millions' => 'Market value (€ millions)',
+    'explore_overall_range' => 'Overall',
+    'explore_contract_expires_by' => 'Contract expires by (year)',
+    'explore_nationality' => 'Nationality',
+    'explore_search_showing_first' => 'showing first :count',
+    'explore_search_refine_hint' => 'Too many matches — refine your filters to narrow the list.',
+
+    // Cross-discoverability (Explore ↔ Scouting)
+    'explore_link_to_scouting' => 'scouting',
+    'explore_empty_scout_cta' => 'Send your scouts to look for this profile',
+    'scouting_link_to_explore' => 'Explore',
+    'scouting_empty_explore_cta' => 'Browse the full market in Explore',
+    'scout_filtered_by_three_pass_hint' => 'Your scouts only surface players who would improve the squad, grouped by how realistic a move is.',
+    'scouting_empty_three_pass_hint' => 'No player matched your search on all the important axes: upgrading the squad, being within budget (or close to it), and willing to move. Try widening the criteria.',
+    'scout_bucket_primary_title' => 'Realistic targets',
+    'scout_bucket_primary_description' => 'Would improve the squad, fit within your budget, and are willing to join.',
+    'scout_bucket_ambitious_title' => 'Ambitious targets',
+    'scout_bucket_ambitious_description' => 'Would improve the squad and want to move, but cost more than you currently have. Raise funds or negotiate down.',
+    'scout_bucket_persuasion_title' => 'Need persuasion',
+    'scout_bucket_persuasion_description' => 'Would improve the squad and fit the budget, but aren\'t sold on the move yet.',
 
     // Free agent negotiation chat
     'chat_free_agent_title' => 'Free Agent Negotiation',
