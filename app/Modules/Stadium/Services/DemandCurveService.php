@@ -39,6 +39,13 @@ class DemandCurveService
     private const ATTENDANCE_FLOOR_RATIO = 0.10;
     private const ATTENDANCE_FLOOR_ABSOLUTE = 500;
 
+    // Opponent-reputation floors. Hosting a marquee visitor draws near-full
+    // stadiums regardless of home-side loyalty or form.
+    private const OPPONENT_FLOOR_RATIO = [
+        ClubProfile::REPUTATION_ELITE => 0.90,
+        ClubProfile::REPUTATION_CONTINENTAL => 0.80,
+    ];
+
     public function project(
         Team $home,
         TeamReputation $homeRep,
@@ -63,7 +70,22 @@ class DemandCurveService
         $attendance = (int) round($capacity * $baseFill * $modifier);
 
         $floor = (int) max(self::ATTENDANCE_FLOOR_ABSOLUTE, $capacity * self::ATTENDANCE_FLOOR_RATIO);
-        return max($floor, min($capacity, $attendance));
+        $opponentFloor = $this->opponentFloor($awayRep, $capacity);
+
+        return max($floor, $opponentFloor, min($capacity, $attendance));
+    }
+
+    /**
+     * Minimum attendance when hosting a top-tier visitor. Elite visitors
+     * (Real/Barça/etc.) floor the gate at 90% capacity, continental visitors
+     * at 80%. Lower-tier visitors don't trigger a floor — the normal
+     * loyalty-driven demand curve applies.
+     */
+    private function opponentFloor(TeamReputation $awayRep, int $capacity): int
+    {
+        $ratio = self::OPPONENT_FLOOR_RATIO[$awayRep->reputation_level] ?? 0.0;
+
+        return (int) round($capacity * $ratio);
     }
 
     /**
