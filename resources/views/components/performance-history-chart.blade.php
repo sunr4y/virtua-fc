@@ -12,12 +12,12 @@
     // Width scales to container via viewBox; we give each season a fixed slot
     // so long histories get a horizontal scroll container rather than cramming.
     $slotWidth = 56;
-    $leftGutter = 44;   // room for tier labels
+    $leftGutter = 48;   // room for tier labels
     $rightGutter = 12;
-    $topPadding = 14;
-    $bottomGutter = 22; // room for season labels
-    $bandHeight = 84;
-    $bandGap = 10;
+    $topPadding = 20;
+    $bottomGutter = 28; // room for season labels
+    $bandHeight = 150;
+    $bandGap = 14;
 
     $bandCount = count($tiersPresent);
     $plotHeight = $bandCount * $bandHeight + max(0, $bandCount - 1) * $bandGap;
@@ -63,10 +63,15 @@
         ];
     }
 
-    // Segment colour classes by transition type.
+    // Segment colour by tier transition: a segment that crosses into a
+    // higher tier (smaller tier number) is a promotion edge, a segment
+    // into a lower tier is a relegation edge. Same-tier segments stay
+    // neutral. Derived from tier rather than the season-level flags
+    // because the flags live on the source season (where the transition
+    // was earned), not the segment endpoints.
     $segmentStrokeClass = function (array $from, array $to): string {
-        if ($to['promoted']) return 'stroke-accent-green';
-        if ($to['relegated']) return 'stroke-accent-red';
+        if ($to['tier'] < $from['tier']) return 'stroke-accent-green';
+        if ($to['tier'] > $from['tier']) return 'stroke-accent-red';
         return 'stroke-accent-blue';
     };
 
@@ -119,7 +124,7 @@
                 text-anchor="end"
                 dominant-baseline="central"
                 class="fill-text-muted font-heading"
-                style="font-size: 9px; letter-spacing: 0.08em;"
+                style="font-size: 11px; letter-spacing: 0.08em;"
             >{{ strtoupper($bandLabelByTier[$tier] ?? ('T' . $tier)) }}</text>
             {{-- "1st" hint on the top-left of the band, so readers know
                  why higher-on-band = better regardless of team count. --}}
@@ -129,7 +134,7 @@
                 text-anchor="end"
                 dominant-baseline="hanging"
                 class="fill-text-faint"
-                style="font-size: 7px;"
+                style="font-size: 9px;"
             >1</text>
         @endforeach
 
@@ -160,11 +165,11 @@
                 @endphp
                 <text
                     x="{{ $p['x'] }}"
-                    y="{{ $p['y'] - 18 }}"
+                    y="{{ $p['y'] - 24 }}"
                     text-anchor="middle"
                     dominant-baseline="central"
                     class="{{ $colorClass }}"
-                    style="font-size: 9px;"
+                    style="font-size: 13px;"
                 >{{ $glyph }}</text>
             @endif
         @endforeach
@@ -178,21 +183,21 @@
             <circle
                 cx="{{ $p['x'] }}"
                 cy="{{ $p['y'] }}"
-                r="4"
+                r="5"
                 class="{{ $fillClass }} {{ $strokeClass }} transition-all duration-150 cursor-default"
-                stroke-width="1.8"
-                :r="hoveredIndex === {{ $i }} ? 5.5 : 4"
+                stroke-width="2"
+                :r="hoveredIndex === {{ $i }} ? 7 : 5"
                 @mouseenter="hoveredIndex = {{ $i }}"
                 @mouseleave="hoveredIndex = null"
             />
             {{-- Position label above marker --}}
             <text
                 x="{{ $p['x'] }}"
-                y="{{ $p['y'] - 8 }}"
+                y="{{ $p['y'] - 11 }}"
                 text-anchor="middle"
                 dominant-baseline="baseline"
                 class="fill-text-primary font-heading font-bold pointer-events-none"
-                style="font-size: 8.5px;"
+                style="font-size: 12px;"
             >{{ $p['position'] }}</text>
         @endforeach
 
@@ -200,11 +205,11 @@
         @foreach ($points as $i => $p)
             <text
                 x="{{ $p['x'] }}"
-                y="{{ $svgHeight - 6 }}"
+                y="{{ $svgHeight - 8 }}"
                 text-anchor="middle"
                 dominant-baseline="alphabetic"
                 class="fill-text-muted"
-                style="font-size: 8.5px;"
+                style="font-size: 11px;"
             >{{ $p['season'] }}</text>
         @endforeach
     </svg>

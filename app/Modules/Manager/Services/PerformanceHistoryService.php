@@ -234,6 +234,12 @@ class PerformanceHistoryService
     }
 
     /**
+     * Promotion/relegation is marked on the season where it was *earned*
+     * (the source of the transition), not on the subsequent season played
+     * in the new tier. Segment colouring in the chart is derived from the
+     * tier difference between consecutive points, so it still highlights
+     * the connecting edge correctly.
+     *
      * @param  array<int, array<string, mixed>>  $seasons  (by reference)
      */
     private function markTierTransitions(array &$seasons): void
@@ -243,9 +249,9 @@ class PerformanceHistoryService
             $currTier = $seasons[$i]['tier'];
 
             if ($currTier < $prevTier) {
-                $seasons[$i]['promoted'] = true;
+                $seasons[$i - 1]['promoted'] = true;
             } elseif ($currTier > $prevTier) {
-                $seasons[$i]['relegated'] = true;
+                $seasons[$i - 1]['relegated'] = true;
             }
         }
     }
