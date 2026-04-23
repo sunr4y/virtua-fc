@@ -25,11 +25,11 @@ class DispositionService
      */
     private const REPUTATION_GAP_MODIFIERS = [
         0 => 1.00,
-        1 => 0.75,
-        2 => 0.45,
-        3 => 0.20,
-        4 => 0.08,
-        5 => 0.02,
+        1 => 0.85,
+        2 => 0.65,
+        3 => 0.40,
+        4 => 0.20,
+        5 => 0.10,
     ];
 
     /**

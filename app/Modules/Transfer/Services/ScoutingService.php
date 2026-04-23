@@ -40,7 +40,7 @@ class ScoutingService
      * at or above this bar is classed as willing; anything between
      * PERSUASION_WILLINGNESS_MIN and this bar is classed as persuadable.
      */
-    public const WILLINGNESS_THRESHOLD = 60;
+    public const WILLINGNESS_THRESHOLD = 45;
 
     /**
      * Lower bound of the persuasion bucket. Candidates below this score are
@@ -48,7 +48,7 @@ class ScoutingService
      * than presented as long shots — the "not_interested" / lower "reluctant"
      * band is a waste of the user's time.
      */
-    private const PERSUASION_WILLINGNESS_MIN = 30;
+    private const PERSUASION_WILLINGNESS_MIN = 15;
 
     /**
      * Max asking-price-to-available-budget ratio for the ambitious bucket.
@@ -56,7 +56,7 @@ class ScoutingService
      * is shown as "close to affordable". Anything more expensive is dropped,
      * keeping bigger-league stars out of lower-tier scouting results.
      */
-    private const AMBITIOUS_BUDGET_MULTIPLIER = 2.0;
+    private const AMBITIOUS_BUDGET_MULTIPLIER = 3.0;
 
     /** Per-bucket cap on scout results. Primary bucket also gets the tier bonus. */
     private const BUCKET_CAP = 5;
@@ -359,8 +359,10 @@ class ScoutingService
         $willingness = $this->dispositionService->playerTransferWillingness($candidate, $game, $importance)['score'];
 
         // If we have no one at this position, any candidate fills the gap.
-        // Otherwise require the candidate to beat our average at the position.
-        $improves = $squadAverage === null || $overallAbility > $squadAverage;
+        // Otherwise allow candidates within 5 ability points of our squad
+        // average so depth/rotation signings still surface — clearly worse
+        // players are still filtered out.
+        $improves = $squadAverage === null || $overallAbility >= ($squadAverage - 5);
         $affordable = $askingPrice <= $availableBudget;
         $willing = $willingness >= self::WILLINGNESS_THRESHOLD;
 
