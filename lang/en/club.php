@@ -61,6 +61,11 @@ return [
             'trophies' => 'Trophies',
         ],
 
+        'trophy_cabinet' => [
+            'title' => 'Trophy cabinet',
+            'empty' => 'No trophies won with this club yet.',
+        ],
+
         'path_title' => 'Path to the next tier',
         'path_also' => 'Cup titles and European runs also count at season close.',
         'maintenance_note' => 'At this tier, reputation decays slightly each season unless you back it up with results.',

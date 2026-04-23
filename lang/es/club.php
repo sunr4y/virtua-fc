@@ -61,6 +61,11 @@ return [
             'trophies' => 'Títulos',
         ],
 
+        'trophy_cabinet' => [
+            'title' => 'Sala de trofeos',
+            'empty' => 'Aún no has conquistado ningún título con este club.',
+        ],
+
         'path_title' => 'Camino al siguiente nivel',
         'path_also' => 'Los títulos de copa y las rachas europeas también suman al cierre de la temporada.',
         'maintenance_note' => 'En este nivel, la reputación se desgasta cada temporada si no la respaldas con resultados.',

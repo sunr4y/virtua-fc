@@ -20,10 +20,13 @@ class ShowClubReputation
         $game = Game::with('team.clubProfile')->findOrFail($gameId);
         abort_if($game->isTournamentMode(), 404);
 
+        $userId = (int) auth()->id();
+
         return view('club.reputation', [
             'game' => $game,
             'summary' => $this->reputationSummaryService->build($game),
-            'career' => $this->careerSummaryService->build($game, (int) auth()->id()),
+            'career' => $this->careerSummaryService->build($game, $userId),
+            'trophyCabinet' => $this->careerSummaryService->buildTrophyCabinet($game, $userId),
             'history' => $this->performanceHistoryService->build($game),
         ]);
     }

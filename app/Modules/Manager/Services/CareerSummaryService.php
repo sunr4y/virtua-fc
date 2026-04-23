@@ -42,4 +42,68 @@ class CareerSummaryService
             'starting_tier' => $game->team?->clubProfile?->reputation_level ?? 'local',
         ];
     }
+
+    /**
+     * Groups the user's trophies in this game by competition and returns a
+     * flat, pre-sorted list suitable for rendering a "Trophy cabinet" widget.
+     *
+     * Ordering: league titles first, then domestic cups, then European, then
+     * supercups — matching the perceived prestige tiers. Within a type,
+     * competitions with more titles rank higher; ties break alphabetically.
+     *
+     * @return list<array{competition_id:string,competition_name:string,trophy_type:string,count:int,seasons:list<string>}>
+     */
+    public function buildTrophyCabinet(Game $game, int $userId): array
+    {
+        $trophies = ManagerTrophy::with('competition')
+            ->where('user_id', $userId)
+            ->where('game_id', $game->id)
+            ->get();
+
+        if ($trophies->isEmpty()) {
+            return [];
+        }
+
+        $typePriority = [
+            'league' => 0,
+            'cup' => 1,
+            'european' => 2,
+            'supercup' => 3,
+        ];
+
+        $grouped = [];
+        foreach ($trophies as $trophy) {
+            $key = $trophy->competition_id;
+            $grouped[$key] ??= [
+                'competition_id' => $trophy->competition_id,
+                'competition_name' => $trophy->competition?->name ?? $trophy->competition_id,
+                'trophy_type' => $trophy->trophy_type,
+                'count' => 0,
+                'seasons' => [],
+            ];
+
+            $grouped[$key]['count']++;
+            $grouped[$key]['seasons'][] = (string) $trophy->season;
+        }
+
+        foreach ($grouped as &$entry) {
+            sort($entry['seasons']);
+        }
+        unset($entry);
+
+        $list = array_values($grouped);
+        usort($list, function (array $a, array $b) use ($typePriority) {
+            $priorityA = $typePriority[$a['trophy_type']] ?? 99;
+            $priorityB = $typePriority[$b['trophy_type']] ?? 99;
+            if ($priorityA !== $priorityB) {
+                return $priorityA <=> $priorityB;
+            }
+            if ($a['count'] !== $b['count']) {
+                return $b['count'] <=> $a['count'];
+            }
+            return strcmp($a['competition_name'], $b['competition_name']);
+        });
+
+        return $list;
+    }
 }
