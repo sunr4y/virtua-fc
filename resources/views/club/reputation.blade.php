@@ -56,10 +56,13 @@ $tierMaintenanceApplies = $summary['tier_maintenance_applies'] ?? false;
         </x-help-disclosure>
 
         {{-- Status header --}}
-        <div class="mt-6 mb-4 rounded-lg border border-border-default bg-surface-700/40 px-5 py-4">
-            <div class="text-[10px] text-text-muted uppercase tracking-widest">{{ __('club.reputation.current_tier') }}</div>
-            <div class="font-heading text-2xl lg:text-3xl font-bold text-text-primary leading-tight">{{ __('finances.reputation.' . $currentLevel) }}</div>
-            <div class="text-sm text-text-body mt-1">{{ __('club.reputation.tier_descriptors.' . $currentLevel) }}</div>
+        <div class="mt-6 mb-4 rounded-lg border border-border-default bg-surface-700/40 px-5 py-4 flex items-center gap-4">
+            <x-team-crest :team="$game->team" class="w-14 h-14 lg:w-16 lg:h-16 shrink-0" />
+            <div class="min-w-0">
+                <div class="text-[10px] text-text-muted uppercase tracking-widest">{{ __('club.reputation.current_tier') }}</div>
+                <div class="font-heading text-2xl lg:text-3xl font-bold text-text-primary leading-tight">{{ __('finances.reputation.' . $currentLevel) }}</div>
+                <div class="text-sm text-text-body mt-1">{{ __('club.reputation.tier_descriptors.' . $currentLevel) }}</div>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
