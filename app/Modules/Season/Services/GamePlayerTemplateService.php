@@ -247,7 +247,6 @@ class GamePlayerTemplateService
             return [];
         }
 
-        $minimumWage = $this->contractService->getMinimumWageForCompetition($competitionId);
         $rows = [];
 
         foreach ($clubs as $club) {
@@ -266,7 +265,10 @@ class GamePlayerTemplateService
                 continue;
             }
 
+            $minimumWage = $this->contractService->getMinimumWageForCompetition($competitionId, $teamId);
+
             foreach ($club['players'] ?? [] as $playerData) {
+                $playerData = $this->applyMarketValueFallback($playerData, $competitionId);
                 $row = $this->prepareTemplateRow($season, $teamId, $playerData, $minimumWage, $allPlayers);
                 if ($row && !isset($processedPlayerIds[$row['player_id']])) {
                     $rows[] = $row;
@@ -276,6 +278,23 @@ class GamePlayerTemplateService
         }
 
         return $rows;
+    }
+
+    /**
+     * Primera RFEF (ESP3A / ESP3B) source data has sporadic missing market values.
+     * Treat any missing/empty value as €50k so wage calculation and tiering stay sane.
+     */
+    private function applyMarketValueFallback(array $playerData, string $competitionId): array
+    {
+        if (!in_array($competitionId, ['ESP3A', 'ESP3B'], true)) {
+            return $playerData;
+        }
+
+        if (empty($playerData['marketValue']) || $playerData['marketValue'] === '-') {
+            $playerData['marketValue'] = '€50k';
+        }
+
+        return $playerData;
     }
 
     /**
@@ -296,7 +315,6 @@ class GamePlayerTemplateService
 
         $teamsData = json_decode(file_get_contents($teamsFilePath), true);
         $clubs = $teamsData['clubs'] ?? [];
-        $minimumWage = $this->contractService->getMinimumWageForCompetition($competitionId);
         $rows = [];
 
         foreach ($clubs as $club) {
@@ -314,6 +332,8 @@ class GamePlayerTemplateService
             if (isset($processedTeamIds[$teamId])) {
                 continue;
             }
+
+            $minimumWage = $this->contractService->getMinimumWageForCompetition($competitionId, $teamId);
 
             foreach ($club['players'] ?? [] as $playerData) {
                 $row = $this->prepareTemplateRow($season, $teamId, $playerData, $minimumWage, $allPlayers);

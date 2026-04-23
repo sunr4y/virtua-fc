@@ -3,6 +3,7 @@
 namespace App\Modules\Finance\Services;
 
 use App\Models\BudgetLoan;
+use App\Models\ClubProfile;
 use App\Models\Competition;
 use App\Models\FinancialTransaction;
 use App\Models\Game;
@@ -23,14 +24,36 @@ class BudgetProjectionService
         private readonly MatchAttendanceService $matchAttendanceService,
     ) {}
     /**
-     * UEFA and RFEF solidarity funds (€250K)
+     * UEFA / RFEF solidarity funds by competition tier (in cents).
+     * Segunda receives the full €1M pool; Primera RFEF gets a trimmed €250K share
+     * that matches the division's real-world distribution.
      */
-    private const SOLIDARITY_FUNDS = 100_000_000; // €1M in cents
+    private const SOLIDARITY_FUNDS_BY_TIER = [
+        2 => 100_000_000, // €1M — Segunda
+        3 =>  25_000_000, // €250K — Primera RFEF
+    ];
 
     /**
-     * Minimum transfer budget guaranteed after mandatory infrastructure.
+     * Minimum transfer budget guaranteed after mandatory infrastructure, by competition tier (in cents).
+     * Primera RFEF (tier 3) operates on a tighter floor that matches the division's cash reality.
      */
-    private const MINIMUM_TRANSFER_BUDGET = 100_000_000; // €1M in cents
+    private const MINIMUM_TRANSFER_BUDGET_BY_TIER = [
+        1 => 100_000_000, // €1M — La Liga
+        2 => 100_000_000, // €1M — Segunda
+        3 =>  20_000_000, // €200K — Primera RFEF
+    ];
+
+    private const MINIMUM_TRANSFER_BUDGET_DEFAULT = 100_000_000; // €1M in cents
+
+    /**
+     * Baseline public subsidy granted every season by competition tier (in cents).
+     * Applied on top of the gap-fill logic: a tier-3 club always receives at
+     * least €250K in town/regional subsidies, and additional top-up kicks in
+     * if the club still can't cover its infrastructure + transfer minimum.
+     */
+    private const SUBSIDY_BASELINE_BY_TIER = [
+        3 => 25_000_000, // €250K — Primera RFEF
+    ];
 
     /**
      * Maximum stadium seats used for commercial revenue calculation.
@@ -57,7 +80,7 @@ class BudgetProjectionService
         // Calculate projected revenues
         $projectedTvRevenue = $this->calculateTvRevenue($projectedPosition, $league);
         $projectedMatchdayRevenue = $this->calculateMatchdayRevenue($team, $game);
-        $projectedSolidarityFundsRevenue = ($game->competition->tier > 1) ? self::SOLIDARITY_FUNDS : 0;
+        $projectedSolidarityFundsRevenue = self::SOLIDARITY_FUNDS_BY_TIER[$game->competition->tier] ?? 0;
         $projectedCommercialRevenue = $this->getBaseCommercialRevenue($game, $team, $league);
 
         $projectedTotalRevenue = $projectedTvRevenue
@@ -84,7 +107,7 @@ class BudgetProjectionService
 
         // Calculate public subsidy if needed to guarantee minimum viable budget
         $projectedSubsidyRevenue = $this->calculateSubsidy(
-            $projectedSurplus, $carriedDebt, $carriedSurplus, $previousLoanRepayment
+            $projectedSurplus, $carriedDebt, $carriedSurplus, $previousLoanRepayment, $league->tier
         );
         if ($projectedSubsidyRevenue > 0) {
             $projectedTotalRevenue += $projectedSubsidyRevenue;
@@ -304,27 +327,25 @@ class BudgetProjectionService
 
         $base = $seats * config("finances.commercial_per_seat.{$reputation}", 80_000);
 
-        // Reduce commercial revenue for lower tiers
-        if ($league->tier > 1) {
-            return $base * 0.75;
-        }
+        $tierMultiplier = config("finances.commercial_tier_multiplier.{$league->tier}", 1.0);
 
-        return $base;
+        return $base * $tierMultiplier;
     }
 
     /**
      * Calculate public subsidy (Subvenciones Públicas) to guarantee a minimum viable budget.
      * Ensures every team can cover mandatory infrastructure + a minimum transfer budget.
      */
-    private function calculateSubsidy(int $projectedSurplus, int $carriedDebt, int $carriedSurplus, int $loanRepayment = 0): int
+    private function calculateSubsidy(int $projectedSurplus, int $carriedDebt, int $carriedSurplus, int $loanRepayment = 0, int $tier = 1): int
     {
-        $minimumAvailable = GameInvestment::MINIMUM_TOTAL_INVESTMENT + self::MINIMUM_TRANSFER_BUDGET;
+        $minimumTransferBudget = self::MINIMUM_TRANSFER_BUDGET_BY_TIER[$tier] ?? self::MINIMUM_TRANSFER_BUDGET_DEFAULT;
+        $minimumInfrastructure = GameInvestment::minimumInfrastructureForCompetitionTier($tier);
+        $minimumAvailable = $minimumInfrastructure + $minimumTransferBudget;
         $rawAvailable = $projectedSurplus + $carriedSurplus - $carriedDebt - $loanRepayment;
 
-        if ($rawAvailable >= $minimumAvailable) {
-            return 0;
-        }
+        $gapSubsidy = max(0, $minimumAvailable - $rawAvailable);
+        $baselineSubsidy = self::SUBSIDY_BASELINE_BY_TIER[$tier] ?? 0;
 
-        return $minimumAvailable - $rawAvailable;
+        return max($gapSubsidy, $baselineSubsidy);
     }
 }
